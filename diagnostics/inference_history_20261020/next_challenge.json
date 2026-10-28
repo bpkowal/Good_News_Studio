@@ -1,0 +1,160 @@
+{
+  "version": "inference-review/0.1",
+  "prior_reply_sha256": "f33efdcb482fd62806ce61bf4919829b243a8368a2c1d70a4a2d7a1a90f31c3e",
+  "claim_path": "explanation",
+  "quote": "While this supports classifying the exposure as a side-effect, it does not justify the stronger negative claim that the agent definitely does not rely on or use the staff instrumentally.",
+  "defect_kind": "SCOPE_OVERREACH",
+  "missing_premise": "Explain whether the side-effect classification is a candidate interpretation conditional on a rescue maxim, rather than an established description of actual intention. Distinguish a conditional ethical argument from a factual claim about instrumental belief; do not infer absence of intention from an absent graph edge.",
+  "evidence": [
+    {
+      "ref": "E1",
+      "path": "/effects/0",
+      "kind": "FROZEN_WORLD_COPY",
+      "value": {
+        "effect_id": "E1",
+        "action_id": "A0",
+        "party_id": "P2",
+        "outcome": "open the door now",
+        "relation": "OPEN",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "INTERVENTION",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "open the door now",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      }
+    },
+    {
+      "ref": "E2",
+      "path": "/effects/1",
+      "kind": "FROZEN_WORLD_COPY",
+      "value": {
+        "effect_id": "E2",
+        "action_id": "A0",
+        "party_id": "P3",
+        "outcome": "doing so may expose nearby staff to hazardous fumes",
+        "relation": "EXPOSE",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "POSSIBLE",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ],
+        "likelihood_qualifiers": [
+          "may"
+        ],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+        "source_effect_ids": [
+          "E1"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      }
+    },
+    {
+      "ref": "LINK:0",
+      "path": "/causal_links/0",
+      "kind": "FROZEN_WORLD_COPY",
+      "value": {
+        "source_id": "E1",
+        "relation": "ENABLES",
+        "target_id": "E2",
+        "modality": "CERTAIN",
+        "condition_ids": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+          }
+        ],
+        "action_id": "A0"
+      }
+    },
+    {
+      "ref": "ARGUMENT:means_relation",
+      "path": "DEON_ASSESSMENT:deontological:A0/means_relation",
+      "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+      "value": "FORESEEN_SIDE_EFFECT"
+    },
+    {
+      "ref": "ARGUMENT:candidate_maxim.person_role",
+      "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.person_role",
+      "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+      "value": "FORESEEN_AFFECTED"
+    },
+    {
+      "ref": "ARGUMENT:candidate_maxim.instrumental_belief",
+      "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_belief",
+      "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+      "value": "RELIES_ON_PERSON"
+    },
+    {
+      "ref": "ARGUMENT:candidate_maxim.instrumental_use",
+      "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_use",
+      "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+      "value": "USES_PERSON"
+    },
+    {
+      "ref": "ARGUMENT:candidate_maxim.practical_reasoning",
+      "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.practical_reasoning",
+      "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+      "value": "Staff exposure is accepted to reach technician sooner."
+    },
+    {
+      "ref": "ARGUMENT:candidate_maxim.means_effect_ids",
+      "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.means_effect_ids",
+      "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+      "value": [
+        "E1"
+      ]
+    },
+    {
+      "ref": "ARGUMENT:candidate_maxim.end_effect_ids",
+      "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.end_effect_ids",
+      "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+      "value": []
+    }
+  ],
+  "affected_paths": [
+    "means_relation",
+    "candidate_maxim.person_role",
+    "candidate_maxim.instrumental_belief",
+    "candidate_maxim.instrumental_use",
+    "candidate_maxim.practical_reasoning",
+    "candidate_maxim.means_effect_ids",
+    "candidate_maxim.end_effect_ids"
+  ],
+  "reviewer": "ASSISTANT_CONTENT_REVIEW_20261020",
+  "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+  "status": "OPEN",
+  "challenge_id": "INFERENCE:6dc7d9fcdeefa17d0f0f5e65"
+}

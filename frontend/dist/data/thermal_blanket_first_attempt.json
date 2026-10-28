@@ -1,0 +1,1019 @@
+{
+  "schema_version": "parliament-view/1",
+  "id": "thermal_blanket_first_attempt",
+  "title": "Thermal blanket first attempt",
+  "source": "A mountain rescue shelter has one thermal blanket. Rescuer Ellis can give the blanket to Rowan or Sasha, but not both. Both hikers are stranded in the cold, and no other rescue or warming equipment will arrive in time. If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival. If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival. The hiker who does not get the blanket will die. Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket. Whom should Ellis give the blanket to?",
+  "source_sha256": "a0dba794ea1ec36c622f1dcf75f9aac5ca44cffd63e4154f5e491dee463daec7",
+  "status": "INTERPRETIVE_BEAM",
+  "stop": {
+    "stage": "construction/admission",
+    "reason": "Competing admitted worlds are not separated or invariant.",
+    "kind": "epistemic_abstention"
+  },
+  "judgment_status": "NOT_RUN",
+  "mode": "LIVE",
+  "diagrams": [
+    {
+      "id": "candidate-0",
+      "label": "exclusive_allocation",
+      "authority": "CANDIDATE",
+      "sent_to_agents": false,
+      "world": {
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Rescuer Ellis",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C1",
+                "excerpt": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P2",
+            "label": "one thermal blanket",
+            "kind": "RESOURCE",
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "A mountain rescue shelter has one thermal blanket."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P3",
+            "label": "Rowan",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C1",
+                "excerpt": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+              },
+              {
+                "clause_id": "C6",
+                "excerpt": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P4",
+            "label": "Sasha",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C1",
+                "excerpt": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+              },
+              {
+                "clause_id": "C6",
+                "excerpt": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket."
+              }
+            ],
+            "quantities": []
+          },
+          {
+            "party_id": "P5",
+            "label": "Ellis",
+            "kind": "PERSON",
+            "provenance": [
+              {
+                "clause_id": "C1",
+                "excerpt": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+              },
+              {
+                "clause_id": "C6",
+                "excerpt": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket."
+              },
+              {
+                "clause_id": "C7",
+                "excerpt": "Whom should Ellis give the blanket to?"
+              }
+            ],
+            "quantities": []
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "Ellis gives the blanket to Rowan",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P3"
+            ],
+            "effect_ids": [
+              "E1",
+              "E2",
+              "E5",
+              "E7"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+              }
+            ]
+          },
+          {
+            "action_id": "A1",
+            "intervention": "Ellis gives the blanket to Sasha",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P4"
+            ],
+            "effect_ids": [
+              "E3",
+              "E4",
+              "E6",
+              "E8"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+              }
+            ]
+          }
+        ],
+        "effects": [
+          {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "Ellis gives the blanket to Rowan",
+            "relation": "GIVE",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "Ellis gives the blanket to Rowan",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "Rowan has an 80% chance of survival",
+            "relation": "SURVIVE",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "PROBABILISTIC",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [
+              "80% chance"
+            ],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "Rowan has an 80% chance of survival",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E3",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "Ellis gives the blanket to Sasha",
+            "relation": "GIVE",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "Ellis gives the blanket to Sasha",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E4",
+            "action_id": "A1",
+            "party_id": "P4",
+            "outcome": "Sasha has a 60% chance of survival",
+            "relation": "SURVIVE",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "PROBABILISTIC",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [
+              "60% chance"
+            ],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "Sasha has a 60% chance of survival",
+            "source_effect_ids": [
+              "E3"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E5",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "does not receive one thermal blanket",
+            "relation": "NOT_RECEIVES",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "A mountain rescue shelter has one thermal blanket."
+              },
+              {
+                "clause_id": "C1",
+                "excerpt": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "A mountain rescue shelter has one thermal blanket.",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+            "derivation_explanation": "Only one exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E6",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "does not receive one thermal blanket",
+            "relation": "NOT_RECEIVES",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "A mountain rescue shelter has one thermal blanket."
+              },
+              {
+                "clause_id": "C1",
+                "excerpt": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "A mountain rescue shelter has one thermal blanket.",
+            "source_effect_ids": [
+              "E3"
+            ],
+            "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+            "derivation_explanation": "Only one exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E7",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "will die",
+            "relation": "DIE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C5",
+                "excerpt": "The hiker who does not get the blanket will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "will die",
+            "source_effect_ids": [
+              "E5"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          },
+          {
+            "effect_id": "E8",
+            "action_id": "A1",
+            "party_id": "P3",
+            "outcome": "will die",
+            "relation": "DIE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "HEALTH_OUTCOME",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C5",
+                "excerpt": "The hiker who does not get the blanket will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "will die",
+            "source_effect_ids": [
+              "E6"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        ],
+        "conditions": [],
+        "causal_links": [
+          {
+            "source_id": "E1",
+            "relation": "ENABLES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+              }
+            ],
+            "action_id": "A0"
+          },
+          {
+            "source_id": "E3",
+            "relation": "ENABLES",
+            "target_id": "E4",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C4",
+                "excerpt": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+              }
+            ],
+            "action_id": "A1"
+          },
+          {
+            "source_id": "E5",
+            "relation": "ENABLES",
+            "target_id": "E7",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C5",
+                "excerpt": "The hiker who does not get the blanket will die."
+              }
+            ],
+            "action_id": "A0"
+          },
+          {
+            "source_id": "E6",
+            "relation": "ENABLES",
+            "target_id": "E8",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C5",
+                "excerpt": "The hiker who does not get the blanket will die."
+              }
+            ],
+            "action_id": "A1"
+          },
+          {
+            "source_id": "E1",
+            "relation": "CAUSES",
+            "target_id": "E5",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "A mountain rescue shelter has one thermal blanket."
+              },
+              {
+                "clause_id": "C1",
+                "excerpt": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+              }
+            ],
+            "action_id": "A0"
+          },
+          {
+            "source_id": "E3",
+            "relation": "CAUSES",
+            "target_id": "E6",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "A mountain rescue shelter has one thermal blanket."
+              },
+              {
+                "clause_id": "C1",
+                "excerpt": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+              },
+              {
+                "clause_id": "C4",
+                "excerpt": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+              }
+            ],
+            "action_id": "A1"
+          }
+        ],
+        "counterfactual_links": [],
+        "admission": {
+          "status": "COMMITTED",
+          "admitted_effect_ids": [
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5",
+            "E6",
+            "E7",
+            "E8"
+          ],
+          "quarantined_effects": [],
+          "user_override": false,
+          "override_reason": ""
+        },
+        "schema_version": "1.3",
+        "temporal_relations": [],
+        "propositions": [
+          {
+            "proposition_id": "PR1",
+            "predication": "would get the blanket",
+            "polarity": "positive",
+            "status": "COMMITTED_CONTENT",
+            "clause_ids": [
+              "C1",
+              "C3",
+              "C4",
+              "C6",
+              "C7"
+            ]
+          }
+        ],
+        "reports": [],
+        "commitments": [
+          {
+            "commitment_id": "K0",
+            "promisor_party_id": "P5",
+            "promisee_party_id": "P4",
+            "commitment_event": "promised",
+            "content_proposition_id": "PR1",
+            "reliance": "",
+            "breach": "",
+            "clause_ids": [
+              "C1",
+              "C3",
+              "C4",
+              "C6",
+              "C7"
+            ]
+          }
+        ],
+        "modal_operators": [],
+        "normative_propositions": []
+      },
+      "mermaid": "flowchart LR\n    P1[\"P1 — Rescuer Ellis<br/>PERSON\"]\n    P2[\"P2 — one thermal blanket<br/>RESOURCE\"]\n    P3[\"P3 — Rowan<br/>PERSON\"]\n    P4[\"P4 — Sasha<br/>PERSON\"]\n    P5[\"P5 — Ellis<br/>PERSON\"]\n    A0[\"A0 — Ellis gives the blanket to Rowan\"]\n    A1[\"A1 — Ellis gives the blanket to Sasha\"]\n    E1[\"E1 — Ellis gives the blanket to Rowan<br/>DIRECT · NEUTRAL · CERTAIN\"]\n    E2[\"E2 — Rowan has an 80% chance of survival<br/>DOWNSTREAM · BENEFICIAL · PROBABILISTIC\"]\n    E3[\"E3 — Ellis gives the blanket to Sasha<br/>DIRECT · NEUTRAL · CERTAIN\"]\n    E4[\"E4 — Sasha has a 60% chance of survival<br/>DOWNSTREAM · BENEFICIAL · PROBABILISTIC\"]\n    E5[\"E5 — does not receive one thermal blanket<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    E6[\"E6 — does not receive one thermal blanket<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    E7[\"E7 — will die<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    E8[\"E8 — will die<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    P1 -->|\"actor\"| A0\n    A0 -->|\"recipient\"| P3\n    A0 -.->|\"effect\"| E1\n    A0 -.->|\"effect\"| E2\n    A0 -.->|\"effect\"| E5\n    A0 -.->|\"effect\"| E7\n    P1 -->|\"actor\"| A1\n    A1 -->|\"recipient\"| P4\n    A1 -.->|\"effect\"| E3\n    A1 -.->|\"effect\"| E4\n    A1 -.->|\"effect\"| E6\n    A1 -.->|\"effect\"| E8\n    E1 -.->|\"affects\"| P3\n    E2 -.->|\"affects\"| P3\n    E3 -.->|\"affects\"| P4\n    E4 -.->|\"affects\"| P4\n    E5 -.->|\"affects\"| P4\n    E6 -.->|\"affects\"| P3\n    E7 -.->|\"affects\"| P4\n    E8 -.->|\"affects\"| P3\n    E1 -->|\"ENABLES\"| E2\n    E3 -->|\"ENABLES\"| E4\n    E5 -->|\"ENABLES\"| E7\n    E6 -->|\"ENABLES\"| E8\n    E1 -->|\"CAUSES\"| E5\n    E3 -->|\"CAUSES\"| E6\n    PR1([\" PR1 — would get the blanket<br/>proposition · COMMITTED_CONTENT \"])\n    K0([\" K0 — promised<br/>commitment ·  \"])\n    P5 -.->|\"PROMISOR\"| K0\n    K0 -.->|\"PROMISEE\"| P4\n    K0 -.->|\"CONTENT\"| PR1",
+      "compact_mermaid": "flowchart LR\n    P1[\"P1 — Rescuer Ellis<br/>PERSON\"]\n    P2[\"P2 — one thermal blanket<br/>RESOURCE\"]\n    P3[\"P3 — Rowan<br/>PERSON\"]\n    P4[\"P4 — Sasha<br/>PERSON\"]\n    P5[\"P5 — Ellis<br/>PERSON\"]\n    A0[\"A0 — Ellis gives the blanket to Rowan\"]\n    A1[\"A1 — Ellis gives the blanket to Sasha\"]\n    E2[\"E2 — Rowan has an 80% chance of survival<br/>DOWNSTREAM · BENEFICIAL · PROBABILISTIC\"]\n    E4[\"E4 — Sasha has a 60% chance of survival<br/>DOWNSTREAM · BENEFICIAL · PROBABILISTIC\"]\n    E5[\"E5 — does not receive one thermal blanket<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    E6[\"E6 — does not receive one thermal blanket<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    E7[\"E7 — will die<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    E8[\"E8 — will die<br/>DOWNSTREAM · ADVERSE · CERTAIN\"]\n    P1 -->|\"actor\"| A0\n    A0 -->|\"recipient\"| P3\n    P1 -->|\"actor\"| A1\n    A1 -->|\"recipient\"| P4\n    A0 -.->|\"affects\"| P3\n    E2 -.->|\"affects\"| P3\n    A1 -.->|\"affects\"| P4\n    E4 -.->|\"affects\"| P4\n    E5 -.->|\"affects\"| P4\n    E6 -.->|\"affects\"| P3\n    E7 -.->|\"affects\"| P4\n    E8 -.->|\"affects\"| P3\n    A0 -->|\"ENABLES\"| E2\n    A1 -->|\"ENABLES\"| E4\n    E5 -->|\"ENABLES\"| E7\n    E6 -->|\"ENABLES\"| E8\n    A0 -->|\"CAUSES\"| E5\n    A1 -->|\"CAUSES\"| E6\n    PR1([\" PR1 — would get the blanket<br/>proposition · COMMITTED_CONTENT \"])\n    K0([\" K0 — promised<br/>commitment ·  \"])\n    P5 -.->|\"PROMISOR\"| K0\n    K0 -.->|\"PROMISEE\"| P4\n    K0 -.->|\"CONTENT\"| PR1",
+      "hidden_membership_edges": [
+        {
+          "action_id": "A0",
+          "effect_id": "E2"
+        },
+        {
+          "action_id": "A0",
+          "effect_id": "E5"
+        },
+        {
+          "action_id": "A0",
+          "effect_id": "E7"
+        },
+        {
+          "action_id": "A1",
+          "effect_id": "E4"
+        },
+        {
+          "action_id": "A1",
+          "effect_id": "E6"
+        },
+        {
+          "action_id": "A1",
+          "effect_id": "E8"
+        }
+      ],
+      "reader_bundles": {
+        "A0": [
+          "A0",
+          "E1"
+        ],
+        "A1": [
+          "A1",
+          "E3"
+        ]
+      },
+      "reader_context_ids": [],
+      "source_ledger_nodes": [],
+      "source_ledger_mermaid": "",
+      "compact_source_ledger_mermaid": "",
+      "typed_reader_view": null,
+      "world_sha256": "b215af712b0fcdae73a2455dd1b95ae81838088d036522834e68bd5c50c3d9bd"
+    },
+    {
+      "id": "candidate-1",
+      "label": "promise_reliance",
+      "authority": "CANDIDATE",
+      "sent_to_agents": false,
+      "world": {
+        "schema_version": "1.3",
+        "parties": [
+          {
+            "party_id": "P1",
+            "label": "Ellis",
+            "kind": "PERSON",
+            "kind_origin": "STRUCTURALLY_DERIVED",
+            "quantities": [],
+            "clause_ids": [
+              "C1",
+              "C3",
+              "C4",
+              "C6",
+              "C7"
+            ]
+          },
+          {
+            "party_id": "P2",
+            "label": "Sasha",
+            "kind": "PERSON",
+            "kind_origin": "STRUCTURALLY_DERIVED",
+            "quantities": [],
+            "clause_ids": [
+              "C1",
+              "C4",
+              "C6"
+            ]
+          }
+        ],
+        "actions": [
+          {
+            "action_id": "A0",
+            "intervention": "promised",
+            "actor_party_id": "P1",
+            "recipient_party_ids": [
+              "P2"
+            ],
+            "effect_ids": [],
+            "clause_ids": [
+              "C1",
+              "C3",
+              "C4",
+              "C6",
+              "C7"
+            ]
+          }
+        ],
+        "effects": [],
+        "conditions": [],
+        "temporal_relations": [],
+        "causal_links": [],
+        "counterfactual_links": [],
+        "propositions": [
+          {
+            "proposition_id": "PR1",
+            "predication": "that Sasha would get the blanket",
+            "polarity": "positive",
+            "status": "COMMITTED_CONTENT",
+            "clause_ids": [
+              "C1",
+              "C3",
+              "C4",
+              "C6",
+              "C7"
+            ]
+          }
+        ],
+        "reports": [],
+        "commitments": [
+          {
+            "commitment_id": "K0",
+            "promisor_party_id": "P1",
+            "promisee_party_id": "P2",
+            "commitment_event": "promised",
+            "content_proposition_id": "PR1",
+            "reliance": "",
+            "breach": "",
+            "clause_ids": [
+              "C1",
+              "C3",
+              "C4",
+              "C6",
+              "C7"
+            ]
+          }
+        ],
+        "modal_operators": [],
+        "normative_propositions": []
+      },
+      "mermaid": "flowchart LR\n    P1[\"P1 — Ellis<br/>PERSON\"]\n    P2[\"P2 — Sasha<br/>PERSON\"]\n    A0[\"A0 — promised\"]\n    P1 -->|\"actor\"| A0\n    A0 -->|\"recipient\"| P2\n    PR1([\" PR1 — that Sasha would get the blanket<br/>proposition · COMMITTED_CONTENT \"])\n    K0([\" K0 — promised<br/>commitment ·  \"])\n    P1 -.->|\"PROMISOR\"| K0\n    K0 -.->|\"PROMISEE\"| P2\n    K0 -.->|\"CONTENT\"| PR1",
+      "compact_mermaid": "flowchart LR\n    P1[\"P1 — Ellis<br/>PERSON\"]\n    P2[\"P2 — Sasha<br/>PERSON\"]\n    A0[\"A0 — promised\"]\n    P1 -->|\"actor\"| A0\n    A0 -->|\"recipient\"| P2\n    PR1([\" PR1 — that Sasha would get the blanket<br/>proposition · COMMITTED_CONTENT \"])\n    K0([\" K0 — promised<br/>commitment ·  \"])\n    P1 -.->|\"PROMISOR\"| K0\n    K0 -.->|\"PROMISEE\"| P2\n    K0 -.->|\"CONTENT\"| PR1",
+      "hidden_membership_edges": [],
+      "reader_bundles": {},
+      "reader_context_ids": [],
+      "source_ledger_nodes": [],
+      "source_ledger_mermaid": "",
+      "compact_source_ledger_mermaid": "",
+      "typed_reader_view": null,
+      "world_sha256": "42daa807907ebe4762ab775a7526c523cbbc145dbd3d107b23990f5ae48cb3f2"
+    }
+  ],
+  "frameworks": [],
+  "hinges": [],
+  "agent_roster": null,
+  "unknowns": [],
+  "disagreements": [],
+  "agreement": "No operative preference recorded.",
+  "not_decided": [
+    "This report does not adjudicate a governing moral verdict.",
+    "Ledger admission does not prove the argument or supply missing welfare units.",
+    "Unresolved objections remain live; reported reversal thresholds are not source facts."
+  ],
+  "stipulated_claims": [],
+  "missing_slots": [],
+  "diagram_notices": [],
+  "topography": {
+    "version": "parliament-topography/1",
+    "status": "UNAVAILABLE",
+    "unavailable_reason": "No unique frozen world was supplied to agents; no framework coordinates exist.",
+    "caption": "Survivor arithmetic does not settle total welfare. Coordinates are native ledger records, not a calibrated moral physics. Attractors are occupancy of recorded points, not interpolated terrain.",
+    "axes": {
+      "care": {
+        "available": false,
+        "encoding": "ordinal",
+        "omit_reason": "No unique frozen world was supplied to agents; no framework coordinates exist."
+      },
+      "welfare": {
+        "available": false,
+        "encoding": "numeric",
+        "omit_reason": "No unique frozen world was supplied to agents; no framework coordinates exist."
+      },
+      "obligation": {
+        "available": false,
+        "encoding": "ordinal",
+        "omit_reason": "No unique frozen world was supplied to agents; no framework coordinates exist."
+      }
+    },
+    "actions": [],
+    "framework_arrows": [],
+    "flags": {
+      "degenerate": [],
+      "attractors": [],
+      "conflicts": [],
+      "holes": [
+        "care",
+        "welfare",
+        "obligation"
+      ]
+    },
+    "notices": [
+      "No unique frozen world was supplied to agents; no framework coordinates exist."
+    ]
+  },
+  "run_provenance": {
+    "schema_version": "parliament-run/1",
+    "run_id": "run_ef79ebcfadd9465d9aeeb3d03a6441de",
+    "parent_run_id": null,
+    "execution_path": "compact_demo",
+    "mode": "LIVE",
+    "started_at": "2026-10-23T15:35:14.892728+00:00",
+    "configuration": {
+      "model": "o3",
+      "chooser_model": "gpt-4o-mini",
+      "runtime_profile": "compact_frameworks",
+      "review": true,
+      "review_depth": "standard",
+      "prepare_only": false,
+      "followup_rounds": 2,
+      "baseline": false,
+      "parliament_root": ".runtime/parliament",
+      "parliament_python": ".runtime/venv/bin/python"
+    },
+    "pipeline_lock_sha256": "915b54bd4b4208c955f70dfb9276af2ae80e5efec4540c6b0dec10c572ef50dc",
+    "inputs": {
+      "scenario": {
+        "sha256": "21ed5e94b4e2e5ad60e86e0fc95b71e8f2798d16a7c557a81843c233d0aff067"
+      }
+    },
+    "manifest_file": "run_manifest.json",
+    "checkpoint_tags": [
+      "thermal-blanket-end-to-end"
+    ],
+    "checkpoints": [
+      {
+        "schema_version": "parliament-checkpoint/1",
+        "id": "run_ef79ebcfadd9465d9aeeb3d03a6441de:cp:1",
+        "run_id": "run_ef79ebcfadd9465d9aeeb3d03a6441de",
+        "stage": "execution_started",
+        "status": "recorded",
+        "at": "2026-10-23T15:35:14.973594+00:00",
+        "tags": [
+          "thermal-blanket-end-to-end"
+        ],
+        "artifacts": []
+      },
+      {
+        "schema_version": "parliament-checkpoint/1",
+        "id": "run_ef79ebcfadd9465d9aeeb3d03a6441de:cp:2",
+        "run_id": "run_ef79ebcfadd9465d9aeeb3d03a6441de",
+        "stage": "runtime_checked",
+        "status": "ready",
+        "at": "2026-10-23T15:35:16.232443+00:00",
+        "tags": [
+          "thermal-blanket-end-to-end"
+        ],
+        "artifacts": []
+      },
+      {
+        "schema_version": "parliament-checkpoint/1",
+        "id": "run_ef79ebcfadd9465d9aeeb3d03a6441de:cp:3",
+        "run_id": "run_ef79ebcfadd9465d9aeeb3d03a6441de",
+        "stage": "report_prepared",
+        "status": "INTERPRETIVE_BEAM",
+        "at": "2026-10-23T15:35:38.026951+00:00",
+        "tags": [
+          "thermal-blanket-end-to-end"
+        ],
+        "artifacts": []
+      }
+    ],
+    "application": {
+      "commit": "a1a79d242b2ef4ffb8e4a2e7a6256075b0232cdf",
+      "branch": "Parliament_Frontend",
+      "dirty": true,
+      "source_sha256": "cc4565b6ca022b6e5d878c5b3c34ff04f4f611da30622451080bd9491bd17aa7",
+      "archive_sha256": "a9c6fb2a162051aa85f315f35d03f0b42958b229639a816cf648b46e30350454"
+    }
+  },
+  "generation_provenance": {
+    "schema_version": "parliament-run/1",
+    "run_id": "run_c04e0962159340a491c4d1599aab5b21",
+    "parent_run_id": "run_ef79ebcfadd9465d9aeeb3d03a6441de",
+    "execution_path": "world_preparation",
+    "mode": "LIVE",
+    "started_at": "2026-10-23T15:35:16.915976+00:00",
+    "configuration": {
+      "chooser_model": "gpt-4o-mini",
+      "openai_model": "o3",
+      "prepare_only": true,
+      "parliament_root": ".runtime/parliament",
+      "parliament_python": ".runtime/venv/bin/python",
+      "runtime_profile": "compact_frameworks",
+      "agents": null,
+      "max_cycles": null,
+      "use_rag": null,
+      "time_budget": null,
+      "agent_timeout": null,
+      "prototype_deliberation": false
+    },
+    "pipeline_lock_sha256": "915b54bd4b4208c955f70dfb9276af2ae80e5efec4540c6b0dec10c572ef50dc",
+    "inputs": {
+      "scenario-file": {
+        "sha256": "21ed5e94b4e2e5ad60e86e0fc95b71e8f2798d16a7c557a81843c233d0aff067"
+      }
+    },
+    "manifest_file": "run_manifest.json",
+    "checkpoint_tags": [
+      "thermal-blanket-end-to-end"
+    ],
+    "checkpoints": [
+      {
+        "schema_version": "parliament-checkpoint/1",
+        "id": "run_c04e0962159340a491c4d1599aab5b21:cp:1",
+        "run_id": "run_c04e0962159340a491c4d1599aab5b21",
+        "stage": "execution_started",
+        "status": "recorded",
+        "at": "2026-10-23T15:35:16.958525+00:00",
+        "tags": [
+          "thermal-blanket-end-to-end"
+        ],
+        "artifacts": []
+      },
+      {
+        "schema_version": "parliament-checkpoint/1",
+        "id": "run_c04e0962159340a491c4d1599aab5b21:cp:2",
+        "run_id": "run_c04e0962159340a491c4d1599aab5b21",
+        "stage": "runtime_checked",
+        "status": "ready",
+        "at": "2026-10-23T15:35:18.103534+00:00",
+        "tags": [
+          "thermal-blanket-end-to-end"
+        ],
+        "artifacts": []
+      }
+    ],
+    "application": {
+      "commit": "a1a79d242b2ef4ffb8e4a2e7a6256075b0232cdf",
+      "branch": "Parliament_Frontend",
+      "dirty": true,
+      "source_sha256": "cc4565b6ca022b6e5d878c5b3c34ff04f4f611da30622451080bd9491bd17aa7",
+      "archive_sha256": "9bf5ebb5cad9ce887aacb023f4a52bfedd845c3ad5b0cd66780941a1399036b0"
+    }
+  },
+  "presentation_revisions": [],
+  "viewer_provenance": {
+    "execution": {
+      "schema_version": "parliament-run/1",
+      "run_id": "run_1498c82baf9a4a2ea5796a21da932aef",
+      "parent_run_id": null,
+      "execution_path": "viewer_export",
+      "mode": "SAVED_REPLAY_NO_API",
+      "started_at": "2026-10-27T00:01:41.830994+00:00",
+      "configuration": {
+        "runtime_profile": null
+      },
+      "pipeline_lock_sha256": "915b54bd4b4208c955f70dfb9276af2ae80e5efec4540c6b0dec10c572ef50dc",
+      "inputs": {
+        "report": {
+          "sha256": "2099068a1a04beb71475387dae27ede0d6691f1ba0d5960cde641526f81c7e4f"
+        }
+      },
+      "manifest_file": "run_1498c82baf9a4a2ea5796a21da932aef.json",
+      "checkpoint_tags": [
+        "contractualist-interpolated-topography"
+      ],
+      "checkpoints": [
+        {
+          "schema_version": "parliament-checkpoint/1",
+          "id": "run_1498c82baf9a4a2ea5796a21da932aef:cp:1",
+          "run_id": "run_1498c82baf9a4a2ea5796a21da932aef",
+          "stage": "execution_started",
+          "status": "recorded",
+          "at": "2026-10-27T00:01:41.906666+00:00",
+          "tags": [
+            "contractualist-interpolated-topography"
+          ],
+          "artifacts": []
+        },
+        {
+          "schema_version": "parliament-checkpoint/1",
+          "id": "run_1498c82baf9a4a2ea5796a21da932aef:cp:2",
+          "run_id": "run_1498c82baf9a4a2ea5796a21da932aef",
+          "stage": "input_recorded",
+          "status": "recorded",
+          "at": "2026-10-27T00:01:41.907487+00:00",
+          "tags": [
+            "contractualist-interpolated-topography"
+          ],
+          "artifacts": [
+            {
+              "name": "runs.json",
+              "sha256": "2099068a1a04beb71475387dae27ede0d6691f1ba0d5960cde641526f81c7e4f",
+              "snapshot": "inputs/2099068a1a04beb71475387dae27ede0d6691f1ba0d5960cde641526f81c7e4f_runs.json"
+            }
+          ]
+        }
+      ],
+      "application": {
+        "commit": "a1a79d242b2ef4ffb8e4a2e7a6256075b0232cdf",
+        "branch": "Parliament_Frontend",
+        "dirty": true,
+        "source_sha256": "5c2f52a5ec18541323fe68f2bef080772d83effccc790aa3081db1b15e27bcf8",
+        "archive_sha256": "ee32f323f885fd924c45ee04b902c2e9447b2b134cdeaee22a0683facdf7e997"
+      }
+    },
+    "manifest_file": "run_1498c82baf9a4a2ea5796a21da932aef.json",
+    "presentation_files": {
+      "export_parliament_viewer.py": "55e3a5da1b3fad9442784b54bdc4c013bc1d318845c6b545f88a0ea3b1e8805c",
+      "blueprint_reader_projection.py": "2ad62d4f33b50d1675f9be8e943f445b3eff8981fc4bbc23f25eea1ad782fb90",
+      "frontend/dist/app.js": "98684472de5acd28b1ee9e888b496cd88f8d14ca2cb4e2b2545d627c84c303f7",
+      "frontend/dist/provenance-receipts.mjs": "08beee02c8fc623416eca8639d3a951ccdab0a9df8422bcc8c2297167d9a93e0",
+      "frontend/dist/index.html": "ff3ad4240b6da895e07b77c71abd7c15d3075b3de2f71ddcf4e6b6473ccea624",
+      "frontend/dist/styles.css": "bc235cecda2c620ef7ad2b0edb5950250972166638990fab87a393dc9f7d58aa",
+      "frontend/dist/vendor/mermaid-10.9.3.min.js": "5a8ec91820bd55afef049068489369910e5d6ce70c8103952f27e29d3e76e8bc",
+      "frontend/reviewed_explanations.json": "717e435555f4e5104a65105383d1c2ea41189714f096f67725358aa1dd21466c",
+      "frontend/saved_runs.json": "145cbf36952b6b33d465bd42cebb0b440d53a51915d253524601bef44b6fcbdf"
+    }
+  },
+  "provenance": {
+    "origin": "SAVED_DEMO_REPORT",
+    "new_model_calls": 0,
+    "report_sha256": "4bef082ecc8cf2a06478a0e0c97ee93a7b50a83f0ccd78fb78993011e592d21f"
+  }
+}

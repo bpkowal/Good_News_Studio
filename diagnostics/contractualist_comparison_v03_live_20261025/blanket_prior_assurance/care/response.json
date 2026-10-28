@@ -1,0 +1,410 @@
+{
+  "persons": [
+    {
+      "id": "P1",
+      "label": "Rowan",
+      "source_quotes": [
+        "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+      ]
+    },
+    {
+      "id": "P2",
+      "label": "Sasha",
+      "source_quotes": [
+        "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket."
+      ]
+    },
+    {
+      "id": "P3",
+      "label": "Ellis (rescuer)",
+      "source_quotes": [
+        "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+      ]
+    }
+  ],
+  "burdens": [
+    {
+      "id": "B1R",
+      "person_id": "P1",
+      "description": "Risk of death from exposure for Rowan"
+    },
+    {
+      "id": "B1S",
+      "person_id": "P2",
+      "description": "Risk of death from exposure for Sasha"
+    },
+    {
+      "id": "B2S",
+      "person_id": "P2",
+      "description": "Harm of promise being broken"
+    },
+    {
+      "id": "B3E",
+      "person_id": "P3",
+      "description": "Moral distress for Ellis at failing someone in need or breaking a promise"
+    }
+  ],
+  "burden_positions": [
+    {
+      "burden_id": "B1R",
+      "action_id": "A",
+      "status": "PRESENT",
+      "position": "20% death risk remains",
+      "ground_handles": [
+        "s2"
+      ]
+    },
+    {
+      "burden_id": "B1S",
+      "action_id": "A",
+      "status": "PRESENT",
+      "position": "100% death certainty",
+      "ground_handles": [
+        "s3"
+      ]
+    },
+    {
+      "burden_id": "B2S",
+      "action_id": "A",
+      "status": "PRESENT",
+      "position": "Promise broken to Sasha",
+      "ground_handles": [
+        "s6"
+      ]
+    },
+    {
+      "burden_id": "B3E",
+      "action_id": "A",
+      "status": "UNKNOWN",
+      "position": "Ellis may feel distress for breaking promise and Sasha's death",
+      "ground_handles": [
+        "s6"
+      ]
+    },
+    {
+      "burden_id": "B1R",
+      "action_id": "B",
+      "status": "PRESENT",
+      "position": "100% death certainty",
+      "ground_handles": [
+        "s5"
+      ]
+    },
+    {
+      "burden_id": "B1S",
+      "action_id": "B",
+      "status": "PRESENT",
+      "position": "40% death risk remains",
+      "ground_handles": [
+        "s4"
+      ]
+    },
+    {
+      "burden_id": "B2S",
+      "action_id": "B",
+      "status": "ABSENT",
+      "position": "Promise kept",
+      "ground_handles": [
+        "s6"
+      ]
+    },
+    {
+      "burden_id": "B3E",
+      "action_id": "B",
+      "status": "UNKNOWN",
+      "position": "Ellis may feel distress at Rowan's death",
+      "ground_handles": [
+        "s5"
+      ]
+    }
+  ],
+  "principles": [],
+  "statements": [
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "Both hikers are stranded in the cold.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "Both hikers are stranded in the cold"
+        }
+      ],
+      "handle": "s1"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "If the blanket is given to Rowan, Rowan has an 80% chance of survival.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival"
+        }
+      ],
+      "handle": "s2"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "If the blanket is given to Rowan, Sasha will die.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "The hiker who does not get the blanket will die"
+        }
+      ],
+      "handle": "s3"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "If the blanket is given to Sasha, Sasha has a 60% chance of survival.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival"
+        }
+      ],
+      "handle": "s4"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "If the blanket is given to Sasha, Rowan will die.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "The hiker who does not get the blanket will die"
+        }
+      ],
+      "handle": "s5"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "Ellis promised Sasha that Sasha would get the blanket.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "Ellis promised Sasha that Sasha would get the blanket"
+        }
+      ],
+      "handle": "s6"
+    },
+    {
+      "kind": "NORMATIVE_PREMISE",
+      "text": "Under a care perspective, responding to the more urgent threat to life normally has priority over an earlier but weaker relational assurance when the difference in vulnerability is significant.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "n1"
+    },
+    {
+      "kind": "NORMATIVE_PREMISE",
+      "text": "Keeping a promise is an important element of sustaining trust within caring relationships.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "n2"
+    },
+    {
+      "kind": "NORMATIVE_JUDGMENT",
+      "text": "Ellis has stronger reason of care to give the blanket to Rowan.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "j1"
+    },
+    {
+      "kind": "NORMATIVE_JUDGMENT",
+      "text": "Breaking the promise to Sasha is a morally relevant harm that counts against giving the blanket to Rowan.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "j2"
+    }
+  ],
+  "supports": [
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "s1",
+      "explanation": "Scene quotation"
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "s2",
+      "explanation": "Scene quotation"
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "s3",
+      "explanation": "Scene quotation"
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "s4",
+      "explanation": "Scene quotation"
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "s5",
+      "explanation": "Scene quotation"
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "s6",
+      "explanation": "Scene quotation"
+    },
+    {
+      "operation": "ASSUMPTION",
+      "inputs": [],
+      "output": "n1",
+      "explanation": "Care-ethics priority assumption"
+    },
+    {
+      "operation": "ASSUMPTION",
+      "inputs": [],
+      "output": "n2",
+      "explanation": "Importance of promise keeping"
+    },
+    {
+      "operation": "NORM_APPLICATION",
+      "inputs": [
+        "s2",
+        "s4",
+        "s3",
+        "s5",
+        "n1"
+      ],
+      "output": "j1",
+      "explanation": "Higher expected survival for Rowan makes need more urgent under n1"
+    },
+    {
+      "operation": "NORM_APPLICATION",
+      "inputs": [
+        "s6",
+        "n2"
+      ],
+      "output": "j2",
+      "explanation": "n2 applies to show moral cost of promise-breaking"
+    }
+  ],
+  "reasons": [
+    {
+      "id": "R1",
+      "person_id": null,
+      "principle_id": null,
+      "action_id": "A",
+      "stance": "FOR",
+      "value": "Higher chance of saving a life (80% vs 60%) and responding to greatest vulnerability",
+      "conclusion_handle": "j1",
+      "ground_handles": [
+        "s2",
+        "s4"
+      ],
+      "warrant_handles": [
+        "n1"
+      ],
+      "generic_basis": "Responsiveness to urgent need"
+    },
+    {
+      "id": "R2",
+      "person_id": "P2",
+      "principle_id": null,
+      "action_id": "B",
+      "stance": "FOR",
+      "value": "Ellis keeps the promise made to Sasha, sustaining a trust relationship",
+      "conclusion_handle": "j2",
+      "ground_handles": [
+        "s6"
+      ],
+      "warrant_handles": [
+        "n2"
+      ],
+      "generic_basis": "Relational promise"
+    }
+  ],
+  "comparisons": [
+    {
+      "id": "C1",
+      "from_action_id": "A",
+      "to_action_id": "B",
+      "status": "FAVORS_FROM",
+      "relieved_burden_ids": [
+        "B1R"
+      ],
+      "introduced_burden_ids": [
+        "B2S"
+      ],
+      "retained_burden_ids": [
+        "B1S",
+        "B1R",
+        "B3E"
+      ],
+      "reason_ids": [
+        "R1",
+        "R2"
+      ],
+      "judgment_handle": "j1",
+      "explanation": "Action A has a higher expected survival benefit and responds to the more serious vulnerability, which under n1 outweighs the relational cost captured in R2."
+    }
+  ],
+  "challenges": [],
+  "action_assessments": [
+    {
+      "action_id": "A",
+      "conclusion_handle": "j1",
+      "assessment": "DEFENSIBLE"
+    },
+    {
+      "action_id": "B",
+      "conclusion_handle": "j2",
+      "assessment": "DEFENSIBLE"
+    }
+  ],
+  "recommendation_action_id": "A",
+  "recommendation_status": "PROVISIONAL_PREFERENCE",
+  "recommendation_comparison_ids": [
+    "C1"
+  ],
+  "remaining_complaint_ids": [
+    "R2"
+  ],
+  "conclusion": "Caring responsiveness to the most acute life-threatening need provisionally supports giving the blanket to Rowan, though the moral cost of breaking Ellis’s promise to Sasha remains a live concern.",
+  "strongest_objection": "Breaking Ellis’s explicit promise to Sasha undermines trust and may inflict relational harm that care ethics takes seriously.",
+  "answer_to_objection": "The care duty to address the gravest vulnerability (80% chance to save Rowan versus 60% for Sasha) is, in this context, more urgent than fulfilling the earlier assurance; responsiveness to life-or-death need can override but does not erase the wrong of breaking a promise.",
+  "reversal_condition": "If the survival probabilities were roughly equal, or Sasha’s need became at least as urgent as Rowan’s, the relational promise could tip the balance toward giving the blanket to Sasha.",
+  "residual_disagreement": [
+    "Whether Ellis could have competently avoided promising before full knowledge and whether the lingering harm to caring relationships outweighs the 20-percentage-point survival difference"
+  ]
+}

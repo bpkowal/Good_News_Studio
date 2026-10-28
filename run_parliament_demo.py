@@ -273,7 +273,7 @@ def write_report(report, output):
     output.mkdir(parents=True, exist_ok=True)
     for view in report.get('frameworks', []):
         name = view['framework']
-        if name not in {'utilitarian','deontological','care','virtue','rawlsian'}:
+        if name not in {'utilitarian','deontological','care','virtue','rawlsian','contractualist'}:
             continue
         view['argument_markdown_path'] = 'arguments/'+name+'.md'
         (output/'arguments').mkdir(exist_ok=True)
@@ -346,12 +346,15 @@ def write_report(report, output):
             '', 'Live objection: '+('; '.join(v['live_objections']) or 'None separately recorded.'),
             '', ('Would reverse the recorded preference: '+('; '.join(v.get('reversal_explanations',v['reversal_conditions'])) or 'Not recorded.')
                  if v.get('preference') else
-                 'Abstention boundary (no ranking to reverse): '+('; '.join(v.get('decision_boundaries') or []) or 'Not recorded.')), '']
+                 'Open comparison (no ranking to reverse): '+('; '.join(v.get('decision_boundaries') or []) or 'Not recorded.')), '']
+        if v.get('critical_questions'):
+            from contractualist_questions import render_questions
+            lines += [render_questions({'recording_status': 'RECORDED', 'questions': v['critical_questions']})]
     lines += ['## Agreement and disagreement', '', report['agreement'], '', report['disagreement_types'],
         '']
     lines += [f"- {d['framework']}: {d['kind']} dependency — {d['dependency']}" for d in report['disagreements']]
     lines += ['', '## Decision hinges', '']
-    lines += ([f"- {h['framework']}: {h['text']} ({'abstention boundary, no ranking to reverse' if h.get('role')=='ABSTENTION_BOUNDARY' else 'would reverse a recorded preference'}; `{h['record']}`)." for h in report['hinges']] or ['No explicit reversal hinge was recorded. The report does not fabricate one.'])
+    lines += ([f"- {h['framework']}: {h['text']} ({'critical unanswered question' if h.get('role')=='OPEN_QUESTION' else 'abstention boundary, no ranking to reverse' if h.get('role')=='ABSTENTION_BOUNDARY' else 'would reverse a recorded preference'}; `{h['record']}`)." for h in report['hinges']] or ['No explicit reversal hinge was recorded. The report does not fabricate one.'])
     lines += ['', '## What Parliament did not decide', ''] + ['- '+s for s in report['not_decided']]
     topo = report.get('topography') or {}
     lines += ['', '## Topography', '', topo.get('caption') or '', '']
@@ -409,6 +412,7 @@ def _main(argv=None):
     parser.add_argument('--followup-rounds', type=int, choices=(1,2), default=2)
     parser.add_argument('--baseline', action='store_true', help='Optional direct model analysis; additional API call')
     parser.add_argument('--model', default='o3')
+    parser.add_argument('--chooser-model', default='gpt-4o-mini', help='Model for blueprint construction and interpretation selection')
     parser.add_argument('--parliament-root', type=Path, default=DEFAULT_PARLIAMENT_ROOT)
     parser.add_argument('--parliament-python', type=Path, default=DEFAULT_PARLIAMENT_PYTHON)
     parser.add_argument('--checkpoint-tag', action='append', help='Run label, inherited by child runs; repeatable')
@@ -444,7 +448,7 @@ def _main(argv=None):
                 raise RuntimeError('Runtime preflight failed: ' + '; '.join(runtime['errors']) + '. ' + runtime['remediation'])
             code = run([sys.executable, str(ROOT/'run_blueprint_parliament.py'), '--scenario-file', str(args.scenario.resolve()),
                 '--output-dir', str(folder.resolve()), '--prepare-only', '--parliament-root', str(args.parliament_root),
-                '--parliament-python', str(args.parliament_python)], 'construction')
+                '--parliament-python', str(args.parliament_python), '--chooser-model', args.chooser_model], 'construction')
         else:
             code = 0
         manifest = read(folder/'preparation_manifest.json', {})

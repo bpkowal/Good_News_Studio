@@ -769,10 +769,15 @@ def openai_complete(model: str = "gpt-4o-mini",
     def complete(messages: Sequence[dict[str, str]]) -> str:
         payload = {
             "model": model,
-            "temperature": 0,
             "response_format": {"type": "json_object"},
             "messages": list(messages),
         }
+        # Match the pinned native backend's reasoning-model transport. These
+        # models reject temperature=0; this is not an interpretation fallback.
+        if model.casefold().startswith(("o1", "o3", "o4", "gpt-5")):
+            payload.update(reasoning_effort="low", max_completion_tokens=8192)
+        else:
+            payload["temperature"] = 0
         body = json.dumps(payload).encode("utf-8")
         req = urlrequest.Request(
             "https://api.openai.com/v1/chat/completions",
@@ -781,7 +786,7 @@ def openai_complete(model: str = "gpt-4o-mini",
             method="POST",
         )
         try:
-            with urlrequest.urlopen(req, timeout=60) as response:
+            with urlrequest.urlopen(req, timeout=120) as response:
                 data = json.loads(response.read().decode("utf-8"))
         except HTTPError as error:
             detail = error.read().decode("utf-8", errors="replace")

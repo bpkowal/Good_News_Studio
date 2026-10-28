@@ -1,0 +1,66 @@
+{
+  "version": "complaint-consequence-reply/0.1",
+  "prepared_at": "2026-10-26T13:29:37.523008+00:00",
+  "source_probe": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/opposing_complaint_live_20261025",
+  "cases": [
+    "cooling_contributor_consents",
+    "blanket_prior_assurance"
+  ],
+  "origins": {
+    "cooling_contributor_consents": {
+      "packet_sha256": "369b4c0cb31790c6e067242f1350e43b13114680a1a2bf126ccf5c118d946ce5",
+      "assignment_result_sha256": "679a9ddd66f5aadea4e9731c05ff6dd71a4eb679918ed556a63aeea5ebfc4b82",
+      "assignment_output_receipt_sha256": "5ae0d7375459b53679286210ddd4fc24f39893eb257b04f1876855b4bbbbf7f0"
+    },
+    "blanket_prior_assurance": {
+      "packet_sha256": "76469ab2834316d8721102af0846368c7a6774d923381e2f7effa0b36520e358",
+      "assignment_result_sha256": "44c98131fe654747eee6003437fdb4720a15f6e03adb4a2539c377c80392b2c7",
+      "assignment_output_receipt_sha256": "bebdfecd7a9f93439e8b33dd7f8720c75bc3399cda3f13c6c15b4fe9e9b34e60"
+    }
+  },
+  "arms": [
+    "focused_baseline",
+    "consequences_first"
+  ],
+  "model": "o3",
+  "reasoning_effort": "low",
+  "max_completion_tokens": 8192,
+  "maximum_provider_calls": 4,
+  "selector_calls": 0,
+  "sdk_retries": 0,
+  "runtime": {
+    "python": "3.11.11 (main, Dec  3 2024, 17:20:40) [Clang 16.0.0 (clang-1600.0.26.4)]",
+    "packages": {
+      "openai": "3.31.0",
+      "python-dotenv": "1.2.4"
+    }
+  },
+  "code_sha256": {
+    "complaint_consequences.py": "fe31dd36a701616432f62a6d86e02f162bbdc8fc5122a91c55ffd30578424e6d",
+    "run_consequence_complaint_probe.py": "7c27ad346a94db8002f8dde54614da630389858c6baa78b27c06298823d8a3df",
+    "complaint_comparison.py": "e30f6bbe765d504fa4fa35485edf733c3fcebfc3b6346f48ece1ba7516f8335f",
+    "opposing_complaint.py": "d0bf4ac2d4a13ccb84d4af78b205cb896e76b538501da61c70d15b15fb30722a",
+    "run_opposing_complaint_probe.py": "2a1da6b78d6a21d2672270654636b5d693d3a2f09da4d73df7908fe2da2b4f46",
+    "run_contractualist_pilot.py": "65383d3cffa02051bd266ba41962ea15a216c2c566db1b21785b6de44f6db389",
+    "contractualist_pilot.py": "4bbf79ab93d3e4d07efd135f240161e219e631d5de96ed0a8b4bc56f07c377e3",
+    "argument_construction.py": "053942f616e14467b42f9df0ab37db05a846142171be53e49bc08148f4bebd93",
+    "argument_support.py": "4efd91e8b33607a5285e4126039393798c0587723d7beceb81f8c9313839f5bd",
+    "argument_frameworks.py": "eddf4fdb1f62705842c99830a876062b4917b209251c812ce3ba7cb1712d9c0b",
+    "inference_boundaries.py": "91bec44d0d072e03c3697609d217eb740a543318289eb5d248630a666887f626",
+    "deontology_repair_cards.py": "495d556309274944a49286235590d2a1a346d67a73a3036f294947125a864672"
+  },
+  "instructions": {
+    "refinement": "Before defending your conclusion, compare the assigned complaint and your own saved reasoning against the source and the person-by-option consequence_record. The record is a projection of FALLIBLE model annotations, not an admitted world or a semantic oracle. Exact source text takes priority over every paraphrase. Correct factual errors in either side, and distinguish contradictions from claims that are simply not established. Unsupported severity, knowledge, reliance, institutional entitlement or assent must not become facts. Consent may change a complaint's warrant without removing the physical or financial loss. Distinguish the actual assurance and its wording from a future policy that could qualify assurances. Do not retroactively insert such a qualification. For every quantitative comparison keep the same identified person, option, endpoint, unit and conditional probability. A risk PRESENT under both options can change in magnitude. A recipient's probability is not everyone's probability; do not replace identified people with an unstated identity lottery. Distinguish guaranteed outcomes from possible outcomes. Do not erase a complaint because one factual premise needs correction: restate the strongest objection that survives. Then defend the NORMATIVE warrant for your comparative priority, including why the disadvantaged person should accept it and its strongest counterreason. Neither the matrix, a number, a count of complainants nor the name of a theory supplies this warrant. Separate a justification for this actual choice from a proposed future policy or a hypothetical boundary test. If a warrant remains contestable, retain that objection and calibrate the inferential conclusion itself, not merely a confidence label. No choice is prescribed by the record or by the critic.",
+    "review_format": "In factual_review cite an exact quote and JSON pointer in the named origin: PRIOR_ARGUMENT means prior_argument; ASSIGNED_COMPLAINT means assigned_complaint (including raw_assignment); CONSEQUENCE_RECORD means consequence_record when provided. source_quotes are exact contiguous source substrings, without added quotation marks. SUPPORTED is your proposed support assessment, not certification. CONTRADICTED, NOT_ESTABLISHED, NORMATIVE_NOT_FACT and CONDITIONAL are distinct. Keep corrected_statement faithful even when the target is morally serious. Record row IDs only if a consequence record is supplied. Give the normative warrant, its justification and its limits separately from factual corrections."
+  },
+  "world_mutation": false,
+  "native_dispatch": false,
+  "peer_input": false,
+  "limits": [
+    "Same source, own opening, assigned complaint, schema, model, effort and reply ceiling.",
+    "Treatment adds a fallible consequence projection and fact-first instruction together; effects are not isolated.",
+    "Both arms share new factual-review/warrant fields; baseline differs from the previous experiment.",
+    "No assistant content review, previous response-arm outputs or desired recommendation enters either request.",
+    "Correcting a fact or changing a conclusion is not proof of better normative reasoning."
+  ]
+}

@@ -1397,5 +1397,23 @@ assert result["status"] in {"COMMITTED", "COMMITTED_WITH_UNCERTAINTY"}, result
         self.assertEqual(result["world_beam"][0]["blueprint_id"], "deontic_rule")
 
 
+class CompleterTransportTests(unittest.TestCase):
+    def test_reasoning_chooser_omits_unsupported_temperature_and_uses_bounded_budget(self):
+        from blueprint_cloze_chooser import openai_complete
+        for model in ('o3','gpt-4o-mini'):
+            with self.subTest(model=model), mock.patch.dict('os.environ',{'OPENAI_API_KEY':'test-key'}):
+                response=mock.MagicMock()
+                response.__enter__.return_value.read.return_value=json.dumps({'choices':[{'message':{'content':'{}'}}]}).encode()
+                with mock.patch('blueprint_cloze_chooser.urlrequest.urlopen',return_value=response) as send:
+                    self.assertEqual(openai_complete(model)([{'role':'user','content':'Return JSON'}]),'{}')
+                request=send.call_args[0][0]
+                payload=json.loads(request.data)
+                if model=='o3':
+                    self.assertNotIn('temperature',payload)
+                    self.assertEqual(payload['max_completion_tokens'],8192)
+                    self.assertEqual(payload['reasoning_effort'],'low')
+                else:self.assertEqual(payload['temperature'],0)
+
+
 if __name__ == "__main__":
     unittest.main()

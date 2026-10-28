@@ -1,0 +1,39 @@
+{
+  "version": "sol-parliament-comparison/1",
+  "prepared_at": "2026-10-23T16:43:01.731032+00:00",
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "high",
+  "max_completion_tokens": 16384,
+  "maximum_calls": 3,
+  "sdk_retries": 0,
+  "tools": false,
+  "stateless_requests": true,
+  "sequence": [
+    "blind",
+    "informed",
+    "comparison"
+  ],
+  "informed_receives_blind_response": false,
+  "system_instruction": "You are reviewing a fictional ethical dilemma. Give the strongest defensible practical judgment, with a concise substantive justification rather than hidden chain-of-thought. Ground case facts in the scenario. Distinguish factual unknowns, interpretive assumptions and normative priorities. Use relevant arithmetic accurately, weigh the strongest competing claim, answer the strongest objection and give concrete conditions that could change your conclusion. Do not equate caution or decisiveness with correctness. Additional analysis, if supplied, is fallible argument rather than authority or new scenario facts. Model-derived plots are assessments, not source facts or votes. You may reject a supplied argument or its technical objections with reasons. Do not defer to consensus. No browsing or tools are available. Keep the complete response under 1400 words.",
+  "rubric_fixed_before_calls": [
+    "Source fidelity: preserve facts and unknowns without importing extra characteristics or outcomes.",
+    "Quantitative reasoning: distinguish survival prospects, expected survivors and total welfare.",
+    "Fairness reasoning: distinguish expected-value selection from strict maximin or an independently justified procedure.",
+    "Normative bridges: defend the priority of rescue, fidelity or another principle in this case.",
+    "Objection engagement: answer the strongest competing claim without declaring it solved by a label.",
+    "Action/omission and mental states: do not infer intentional killing or instrumental use from an adverse outcome alone.",
+    "Practical usefulness: offer the strongest warranted recommendation or conditional decision without gratuitous abstention.",
+    "Benefit from Parliament: identify added insight, corrected errors, deference or newly imported mistakes separately."
+  ],
+  "scenario_sha256": "a0dba794ea1ec36c622f1dcf75f9aac5ca44cffd63e4154f5e491dee463daec7",
+  "parliament_packet_sha256": "4bf86cc4538ed3202a464f2534deb0b0896f3494ce703d58189bb94ddd52de46",
+  "parliament_input_policy": "Exact frozen public viewer JSON, including all five recorded arguments, objections, statuses, world and latest topography; no assistant editorial diagnoses.",
+  "limitations": [
+    "One sample per condition; input lengths differ.",
+    "The informed request is a fresh analysis, not a continuation of the blind response.",
+    "Comparison is a model judgment, not an independent normative oracle.",
+    "Parliament uses different models, multiple calls and native admission machinery; this is not a budget-matched architecture benchmark."
+  ],
+  "code_sha256": "d4f5a4120de385f06ae29b4c8a513ecf49411986963b979b0fa8f00ad33280a2",
+  "official_model_reference": "https://developers.openai.com/api/docs/models/gpt-6.1-sol"
+}

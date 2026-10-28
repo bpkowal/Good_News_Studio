@@ -1,0 +1,1627 @@
+{
+  "version": "neutral-framework-pilot/0.2",
+  "framework": "utilitarian",
+  "raw_response": {
+    "persons": [
+      {
+        "id": "MIRA",
+        "label": "Mira",
+        "source_quotes": [
+          "Plan A cools twenty households but requires demolishing Mira's occupied home, leaving her without housing; she refuses."
+        ]
+      },
+      {
+        "id": "SAL",
+        "label": "Sal",
+        "source_quotes": [
+          "Plan C ... requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period."
+        ]
+      },
+      {
+        "id": "JO",
+        "label": "Jo",
+        "source_quotes": [
+          "Plan C cools Jo's home, which has the greatest heat exposure of any home in this case",
+          "Jo's home is not cooled by A or B."
+        ]
+      },
+      {
+        "id": "H12",
+        "label": "Twelve households cooled by B",
+        "source_quotes": [
+          "Plan B cools twelve of those same households"
+        ]
+      },
+      {
+        "id": "H8",
+        "label": "Remaining eight households only cooled by A",
+        "source_quotes": [
+          "Plan A cools twenty households",
+          "Plan B cools twelve of those same households"
+        ]
+      }
+    ],
+    "burdens": [
+      {
+        "id": "B_MIRA_HOMELESS",
+        "person_id": "MIRA",
+        "description": "Loss of housing (homelessness)"
+      },
+      {
+        "id": "B_SAL_INCOME",
+        "person_id": "SAL",
+        "description": "Loss of all shop income for eight weeks"
+      },
+      {
+        "id": "B_JO_HEAT",
+        "person_id": "JO",
+        "description": "Unmitigated extreme heat exposure at Jo's home"
+      },
+      {
+        "id": "B_H12_HEAT",
+        "person_id": "H12",
+        "description": "Unmitigated heat exposure for 12 households"
+      },
+      {
+        "id": "B_H8_HEAT",
+        "person_id": "H8",
+        "description": "Unmitigated heat exposure for 8 households"
+      }
+    ],
+    "burden_positions": [
+      {
+        "burden_id": "B_MIRA_HOMELESS",
+        "action_id": "A",
+        "status": "PRESENT",
+        "position": "Mira loses her home",
+        "ground_handles": [
+          "S2"
+        ]
+      },
+      {
+        "burden_id": "B_MIRA_HOMELESS",
+        "action_id": "B",
+        "status": "ABSENT",
+        "position": "No displacement in B",
+        "ground_handles": [
+          "S3"
+        ]
+      },
+      {
+        "burden_id": "B_MIRA_HOMELESS",
+        "action_id": "C",
+        "status": "ABSENT",
+        "position": "No displacement in C",
+        "ground_handles": [
+          "S2"
+        ]
+      },
+      {
+        "burden_id": "B_SAL_INCOME",
+        "action_id": "C",
+        "status": "PRESENT",
+        "position": "Sal loses eight weeks of income",
+        "ground_handles": [
+          "S5"
+        ]
+      },
+      {
+        "burden_id": "B_SAL_INCOME",
+        "action_id": "A",
+        "status": "ABSENT",
+        "position": "Shop stays open",
+        "ground_handles": [
+          "S5"
+        ]
+      },
+      {
+        "burden_id": "B_SAL_INCOME",
+        "action_id": "B",
+        "status": "ABSENT",
+        "position": "Shop stays open",
+        "ground_handles": [
+          "S5"
+        ]
+      },
+      {
+        "burden_id": "B_JO_HEAT",
+        "action_id": "A",
+        "status": "PRESENT",
+        "position": "Jo not cooled by A",
+        "ground_handles": [
+          "S6"
+        ]
+      },
+      {
+        "burden_id": "B_JO_HEAT",
+        "action_id": "B",
+        "status": "PRESENT",
+        "position": "Jo not cooled by B",
+        "ground_handles": [
+          "S6"
+        ]
+      },
+      {
+        "burden_id": "B_JO_HEAT",
+        "action_id": "C",
+        "status": "ABSENT",
+        "position": "Jo’s home cooled",
+        "ground_handles": [
+          "S4"
+        ]
+      },
+      {
+        "burden_id": "B_H12_HEAT",
+        "action_id": "A",
+        "status": "ABSENT",
+        "position": "12 households cooled by A",
+        "ground_handles": [
+          "S1"
+        ]
+      },
+      {
+        "burden_id": "B_H12_HEAT",
+        "action_id": "B",
+        "status": "ABSENT",
+        "position": "12 households cooled by B",
+        "ground_handles": [
+          "S3"
+        ]
+      },
+      {
+        "burden_id": "B_H12_HEAT",
+        "action_id": "C",
+        "status": "PRESENT",
+        "position": "12 households remain hot under C",
+        "ground_handles": [
+          "S3",
+          "S4"
+        ]
+      },
+      {
+        "burden_id": "B_H8_HEAT",
+        "action_id": "A",
+        "status": "ABSENT",
+        "position": "8 households cooled by A",
+        "ground_handles": [
+          "S1"
+        ]
+      },
+      {
+        "burden_id": "B_H8_HEAT",
+        "action_id": "B",
+        "status": "PRESENT",
+        "position": "8 households remain hot under B",
+        "ground_handles": [
+          "S1",
+          "S3"
+        ]
+      },
+      {
+        "burden_id": "B_H8_HEAT",
+        "action_id": "C",
+        "status": "PRESENT",
+        "position": "8 households remain hot under C",
+        "ground_handles": [
+          "S1",
+          "S4"
+        ]
+      }
+    ],
+    "principles": [
+      {
+        "id": "UTIL",
+        "statement_handle": "P1",
+        "action_ids": [
+          "A",
+          "B",
+          "C"
+        ]
+      }
+    ],
+    "statements": [
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan A cools twenty households",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Plan A cools twenty households"
+          }
+        ],
+        "handle": "S1"
+      },
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan A requires demolishing Mira's occupied home, leaving her without housing",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "requires demolishing Mira's occupied home, leaving her without housing"
+          }
+        ],
+        "handle": "S2"
+      },
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan B cools twelve of those same households and displaces nobody",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Plan B cools twelve of those same households and displaces nobody"
+          }
+        ],
+        "handle": "S3"
+      },
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan C cools Jo's home, which has the greatest heat exposure of any home in this case",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Plan C cools Jo's home, which has the greatest heat exposure of any home in this case"
+          }
+        ],
+        "handle": "S4"
+      },
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan C requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period"
+          }
+        ],
+        "handle": "S5"
+      },
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Jo's home is not cooled by A or B",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Jo's home is not cooled by A or B."
+          }
+        ],
+        "handle": "S6"
+      },
+      {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "The council ought to choose the plan that maximizes overall welfare (utilitarian principle)",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "P1"
+      },
+      {
+        "kind": "INTERPRETIVE_PREMISE",
+        "text": "Homelessness for Mira imposes a very large welfare loss that outweighs the incremental cooling benefit to the eight additional households cooled only by Plan A",
+        "polarity": "AFFIRMED",
+        "modality": "POSSIBLE",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "I1"
+      },
+      {
+        "kind": "INTERPRETIVE_PREMISE",
+        "text": "Eight weeks of lost income for Sal is a moderate welfare loss, smaller than homelessness but non-trivial",
+        "polarity": "AFFIRMED",
+        "modality": "POSSIBLE",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "I2"
+      },
+      {
+        "kind": "INTERPRETIVE_PREMISE",
+        "text": "Cooling Jo’s especially exposed home benefits Jo but does not compensate for simultaneously leaving 12 households uncooled and depriving Sal of income when compared with Plan B",
+        "polarity": "AFFIRMED",
+        "modality": "POSSIBLE",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "I3"
+      },
+      {
+        "kind": "NORMATIVE_JUDGMENT",
+        "text": "Plan B yields higher net welfare than Plan A",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "J1"
+      },
+      {
+        "kind": "NORMATIVE_JUDGMENT",
+        "text": "Plan B yields higher net welfare than Plan C",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "J2"
+      },
+      {
+        "kind": "NORMATIVE_JUDGMENT",
+        "text": "Plan B maximizes overall welfare among the three options",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "J3"
+      }
+    ],
+    "supports": [
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S1",
+        "explanation": "Direct quote of Plan A cooling 20 households"
+      },
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S2",
+        "explanation": "Direct quote about Mira's home demolished"
+      },
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S3",
+        "explanation": "Direct quote about Plan B"
+      },
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S4",
+        "explanation": "Direct quote about Plan C cooling Jo"
+      },
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S5",
+        "explanation": "Direct quote about Sal's shop closure"
+      },
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S6",
+        "explanation": "Direct quote about Jo not cooled by A or B"
+      },
+      {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "P1",
+        "explanation": "Utilitarian evaluative baseline"
+      },
+      {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "I1",
+        "explanation": "Comparative severity of homelessness"
+      },
+      {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "I2",
+        "explanation": "Severity of eight-week income loss"
+      },
+      {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "I3",
+        "explanation": "Relative benefit of cooling Jo"
+      },
+      {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "P1",
+          "I1",
+          "S1",
+          "S2",
+          "S3"
+        ],
+        "output": "J1",
+        "explanation": "Applying utilitarian principle with severity assumption I1 shows B better than A"
+      },
+      {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "P1",
+          "I2",
+          "I3",
+          "S3",
+          "S4",
+          "S5"
+        ],
+        "output": "J2",
+        "explanation": "Applying utilitarian principle with assumptions I2 and I3 shows B better than C"
+      },
+      {
+        "operation": "NORM_PRIORITY",
+        "inputs": [
+          "J1",
+          "J2"
+        ],
+        "output": "J3",
+        "explanation": "B beats both rivals, so is overall winner"
+      }
+    ],
+    "reasons": [
+      {
+        "id": "R1",
+        "person_id": null,
+        "principle_id": "UTIL",
+        "action_id": "B",
+        "stance": "FOR",
+        "value": "Avoids severe homelessness while providing substantial cooling",
+        "conclusion_handle": "J3",
+        "ground_handles": [
+          "S3",
+          "S2",
+          "I1"
+        ],
+        "warrant_handles": [
+          "P1"
+        ],
+        "generic_basis": "Aggregate welfare higher"
+      },
+      {
+        "id": "R2",
+        "person_id": null,
+        "principle_id": "UTIL",
+        "action_id": "A",
+        "stance": "AGAINST",
+        "value": "Imposes very large harm on Mira that outweighs benefit to 8 extra households",
+        "conclusion_handle": "J1",
+        "ground_handles": [
+          "S1",
+          "S2",
+          "I1"
+        ],
+        "warrant_handles": [
+          "P1"
+        ],
+        "generic_basis": "Net welfare lower"
+      },
+      {
+        "id": "R3",
+        "person_id": null,
+        "principle_id": "UTIL",
+        "action_id": "C",
+        "stance": "AGAINST",
+        "value": "Leaves 12 households hot and harms Sal for moderate benefit to Jo",
+        "conclusion_handle": "J2",
+        "ground_handles": [
+          "S3",
+          "S4",
+          "S5",
+          "I2",
+          "I3"
+        ],
+        "warrant_handles": [
+          "P1"
+        ],
+        "generic_basis": "Net welfare lower"
+      }
+    ],
+    "comparisons": [
+      {
+        "id": "COMP_AB",
+        "from_action_id": "A",
+        "to_action_id": "B",
+        "status": "FAVORS_TO",
+        "relieved_burden_ids": [
+          "B_MIRA_HOMELESS"
+        ],
+        "introduced_burden_ids": [
+          "B_H8_HEAT"
+        ],
+        "retained_burden_ids": [
+          "B_H12_HEAT"
+        ],
+        "reason_ids": [
+          "R1",
+          "R2"
+        ],
+        "judgment_handle": "J1",
+        "explanation": "B avoids Mira’s homelessness at cost of 8 households remaining hot; assumption I1 makes that trade beneficial"
+      },
+      {
+        "id": "COMP_BC",
+        "from_action_id": "B",
+        "to_action_id": "C",
+        "status": "FAVORS_FROM",
+        "relieved_burden_ids": [
+          "B_JO_HEAT"
+        ],
+        "introduced_burden_ids": [
+          "B_SAL_INCOME",
+          "B_H12_HEAT"
+        ],
+        "retained_burden_ids": [
+          "B_H8_HEAT"
+        ],
+        "reason_ids": [
+          "R3"
+        ],
+        "judgment_handle": "J2",
+        "explanation": "C cools Jo but harms Sal and 12 households; net welfare lower per assumptions I2, I3"
+      }
+    ],
+    "challenges": [
+      {
+        "id": "C1",
+        "kind": "UNDERMINING",
+        "target_kind": "STATEMENT",
+        "target_id": "I1",
+        "challenge_handle": "CH1",
+        "response_handle": "RS1",
+        "status": "ANSWERED"
+      }
+    ],
+    "action_assessments": [
+      {
+        "action_id": "A",
+        "conclusion_handle": "J1",
+        "assessment": "REJECTED"
+      },
+      {
+        "action_id": "B",
+        "conclusion_handle": "J3",
+        "assessment": "DEFENSIBLE"
+      },
+      {
+        "action_id": "C",
+        "conclusion_handle": "J2",
+        "assessment": "REJECTED"
+      }
+    ],
+    "recommendation_action_id": "B",
+    "recommendation_status": "PROVISIONAL_PREFERENCE",
+    "recommendation_comparison_ids": [
+      "COMP_AB",
+      "COMP_BC"
+    ],
+    "remaining_complaint_ids": [
+      "C1"
+    ],
+    "conclusion": "Given the utilitarian mandate to maximize total welfare and the stated severity assumptions, Plan B is provisionally preferred because it secures substantial cooling benefits without imposing homelessness or significant economic hardship.",
+    "strongest_objection": "Aggregation might undervalue the extreme heat risk faced by Jo and the long-term impact of closing Sal’s only shop, so Plan C could actually yield higher welfare if those losses are worse than assumed.",
+    "answer_to_objection": "If Jo’s heat danger or Sal’s income loss were shown to exceed the aggregate harm of eight additional households remaining hot, assumption I3 would fail and comparison COMP_BC would reverse. Current information treats Jo’s single benefit and Sal’s temporary loss as insufficient to outweigh harms to 12 households.",
+    "reversal_condition": "Reliable evidence that Jo faces life-threatening heat exposure substantially greater than the typical household, or that Sal’s business closure causes enduring poverty, would overturn I3 and justify Plan C.",
+    "residual_disagreement": [
+      "I1",
+      "I2",
+      "I3"
+    ]
+  },
+  "source_text_sha256": "3a7a1aa655c3a36135dec3188e12af3496923039c8f8707092370ecb704ec9d6",
+  "source_status": "FROZEN_TEXT_NOT_ADMITTED_WORLD",
+  "operative": false,
+  "world_state_authority": "NONE",
+  "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+  "paper_attribution": {
+    "authors": [
+      "Luis Marcos-Vidal",
+      "Giulio Antonio Abbo",
+      "Tony Belpaeme"
+    ],
+    "title": "A Contractualist Argumentation Framework for Moral Decision-Making",
+    "version": "arXiv:2608.01937v1",
+    "url": "https://arxiv.org/html/2608.01937v1",
+    "used_sections": [
+      "5.1",
+      "5.2",
+      "5.3"
+    ],
+    "formal_semantics_implemented": false
+  },
+  "instruction_version": "argument-framework-instructions/0.3",
+  "issues": [
+    {
+      "kind": "PERSON_SOURCE_BINDING_MISSING",
+      "record_id": "SAL"
+    },
+    {
+      "kind": "PRINCIPLE_KIND_MISMATCH",
+      "record_id": "UTIL"
+    },
+    {
+      "kind": "DETACHED_COMPARISON",
+      "record_id": "COMP_AB"
+    },
+    {
+      "kind": "DETACHED_COMPARISON",
+      "record_id": "COMP_BC"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "C1"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "C1"
+    },
+    {
+      "kind": "VERDICT_USED_AS_PREMISE",
+      "record_id": "STATEMENT:946a9b8cb71422afd88ec603"
+    }
+  ],
+  "argument": {
+    "version": "argument-support/0.1",
+    "world_sha256": "3a7a1aa655c3a36135dec3188e12af3496923039c8f8707092370ecb704ec9d6",
+    "evidence": [
+      {
+        "ref": "SCENE",
+        "kind": "EXACT_SCENARIO",
+        "value": "During a heat wave, a council has funds for one of three technically feasible cooling plans. Plan A cools twenty households but requires demolishing Mira's occupied home, leaving her without housing; she refuses. Plan B cools twelve of those same households and displaces nobody. Plan C cools Jo's home, which has the greatest heat exposure of any home in this case, but requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period. Sal refuses. Jo's home is not cooled by A or B. Mira, Jo, and Sal are not members of the twenty households. No additional cooling, relocation, or compensation plan is available in this exercise. The text stipulates these effects, not total welfare scores or a ranking of whose overall position is worst. Which plan should the council adopt?"
+      }
+    ],
+    "issue_id": "cooling_three_options:utilitarian",
+    "statements": {
+      "STATEMENT:e2d2ef1f9640e70b4010bd3b": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan A cools twenty households",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Plan A cools twenty households",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "Plan A cools twenty households"
+            },
+            "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:6cad679ecdbcb3ed5f5af885": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan A requires demolishing Mira's occupied home, leaving her without housing",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "requires demolishing Mira's occupied home, leaving her without housing",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "requires demolishing Mira's occupied home, leaving her without housing"
+            },
+            "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:dfce9212c90a6607dcbd87b1": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan B cools twelve of those same households and displaces nobody",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Plan B cools twelve of those same households and displaces nobody",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "Plan B cools twelve of those same households and displaces nobody"
+            },
+            "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:6d877d7b7395852a270685f4": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan C cools Jo's home, which has the greatest heat exposure of any home in this case",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Plan C cools Jo's home, which has the greatest heat exposure of any home in this case",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "Plan C cools Jo's home, which has the greatest heat exposure of any home in this case"
+            },
+            "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:164261bc351f64adc06bad3a": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan C requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period"
+            },
+            "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:67bd2b2db6fd6172b6630965": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Jo's home is not cooled by A or B",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Jo's home is not cooled by A or B.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "Jo's home is not cooled by A or B."
+            },
+            "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:1ea35dd992a3a3955de1e1d8": {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "The council ought to choose the plan that maximizes overall welfare (utilitarian principle)",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:b6fc4c18301e165a780f1167": {
+        "kind": "INTERPRETIVE_PREMISE",
+        "text": "Homelessness for Mira imposes a very large welfare loss that outweighs the incremental cooling benefit to the eight additional households cooled only by Plan A",
+        "polarity": "AFFIRMED",
+        "modality": "POSSIBLE",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:e0911c31db084aa86c3eab9f": {
+        "kind": "INTERPRETIVE_PREMISE",
+        "text": "Eight weeks of lost income for Sal is a moderate welfare loss, smaller than homelessness but non-trivial",
+        "polarity": "AFFIRMED",
+        "modality": "POSSIBLE",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:b163cac755be37ea7e9f3698": {
+        "kind": "INTERPRETIVE_PREMISE",
+        "text": "Cooling Jo’s especially exposed home benefits Jo but does not compensate for simultaneously leaving 12 households uncooled and depriving Sal of income when compared with Plan B",
+        "polarity": "AFFIRMED",
+        "modality": "POSSIBLE",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:8dcd6cfa16f0d9c07c110bc9": {
+        "kind": "NORMATIVE_JUDGMENT",
+        "text": "Plan B yields higher net welfare than Plan A",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:8c0ae51581290011cd196367": {
+        "kind": "NORMATIVE_JUDGMENT",
+        "text": "Plan B yields higher net welfare than Plan C",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:946a9b8cb71422afd88ec603": {
+        "kind": "NORMATIVE_JUDGMENT",
+        "text": "Plan B maximizes overall welfare among the three options",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      }
+    },
+    "handles": {
+      "S1": "STATEMENT:e2d2ef1f9640e70b4010bd3b",
+      "S2": "STATEMENT:6cad679ecdbcb3ed5f5af885",
+      "S3": "STATEMENT:dfce9212c90a6607dcbd87b1",
+      "S4": "STATEMENT:6d877d7b7395852a270685f4",
+      "S5": "STATEMENT:164261bc351f64adc06bad3a",
+      "S6": "STATEMENT:67bd2b2db6fd6172b6630965",
+      "P1": "STATEMENT:1ea35dd992a3a3955de1e1d8",
+      "I1": "STATEMENT:b6fc4c18301e165a780f1167",
+      "I2": "STATEMENT:e0911c31db084aa86c3eab9f",
+      "I3": "STATEMENT:b163cac755be37ea7e9f3698",
+      "J1": "STATEMENT:8dcd6cfa16f0d9c07c110bc9",
+      "J2": "STATEMENT:8c0ae51581290011cd196367",
+      "J3": "STATEMENT:946a9b8cb71422afd88ec603"
+    },
+    "routes": {
+      "SUPPORT:3836909320b46c8849fbf667": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:e2d2ef1f9640e70b4010bd3b",
+        "explanation": "Direct quote of Plan A cooling 20 households"
+      },
+      "SUPPORT:5d50f17156d8a312ac81a6fb": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:6cad679ecdbcb3ed5f5af885",
+        "explanation": "Direct quote about Mira's home demolished"
+      },
+      "SUPPORT:0d6141a98565c44f241a6240": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:dfce9212c90a6607dcbd87b1",
+        "explanation": "Direct quote about Plan B"
+      },
+      "SUPPORT:79b75331313ac55482f8cb31": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:6d877d7b7395852a270685f4",
+        "explanation": "Direct quote about Plan C cooling Jo"
+      },
+      "SUPPORT:a982a667ffed47fe4f4bf04c": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:164261bc351f64adc06bad3a",
+        "explanation": "Direct quote about Sal's shop closure"
+      },
+      "SUPPORT:2c8d9dbf6592ed4a247ab2c0": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:67bd2b2db6fd6172b6630965",
+        "explanation": "Direct quote about Jo not cooled by A or B"
+      },
+      "SUPPORT:cd406fef06c89e0808f526de": {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "STATEMENT:1ea35dd992a3a3955de1e1d8",
+        "explanation": "Utilitarian evaluative baseline"
+      },
+      "SUPPORT:15f5bfaab8409800b75d2d31": {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "STATEMENT:b6fc4c18301e165a780f1167",
+        "explanation": "Comparative severity of homelessness"
+      },
+      "SUPPORT:a980c73cf7257686ec61ff0c": {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "STATEMENT:e0911c31db084aa86c3eab9f",
+        "explanation": "Severity of eight-week income loss"
+      },
+      "SUPPORT:19b4044c16f2cbb4a80f8c95": {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "STATEMENT:b163cac755be37ea7e9f3698",
+        "explanation": "Relative benefit of cooling Jo"
+      },
+      "SUPPORT:e82f59e295acd0a2b581fd9e": {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "STATEMENT:1ea35dd992a3a3955de1e1d8",
+          "STATEMENT:b6fc4c18301e165a780f1167",
+          "STATEMENT:e2d2ef1f9640e70b4010bd3b",
+          "STATEMENT:6cad679ecdbcb3ed5f5af885",
+          "STATEMENT:dfce9212c90a6607dcbd87b1"
+        ],
+        "output": "STATEMENT:8dcd6cfa16f0d9c07c110bc9",
+        "explanation": "Applying utilitarian principle with severity assumption I1 shows B better than A"
+      },
+      "SUPPORT:888e3124e8a6f865fa189076": {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "STATEMENT:1ea35dd992a3a3955de1e1d8",
+          "STATEMENT:e0911c31db084aa86c3eab9f",
+          "STATEMENT:b163cac755be37ea7e9f3698",
+          "STATEMENT:dfce9212c90a6607dcbd87b1",
+          "STATEMENT:6d877d7b7395852a270685f4",
+          "STATEMENT:164261bc351f64adc06bad3a"
+        ],
+        "output": "STATEMENT:8c0ae51581290011cd196367",
+        "explanation": "Applying utilitarian principle with assumptions I2 and I3 shows B better than C"
+      },
+      "SUPPORT:fa1f8a77d9ec12905d386313": {
+        "operation": "NORM_PRIORITY",
+        "inputs": [
+          "STATEMENT:8dcd6cfa16f0d9c07c110bc9",
+          "STATEMENT:8c0ae51581290011cd196367"
+        ],
+        "output": "STATEMENT:946a9b8cb71422afd88ec603",
+        "explanation": "B beats both rivals, so is overall winner"
+      }
+    },
+    "events": [
+      {
+        "sequence": 1,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:e2d2ef1f9640e70b4010bd3b"
+        },
+        "parent_sha256": "adc4f29d2b962d6fab45911e40d9a823500aed52e745fe2a78c4ff84d77bb627",
+        "sha256": "baed2f523e5e1bb11fae89ad42c0f58fad85dd309ea5d46792d3c16a69af863e"
+      },
+      {
+        "sequence": 2,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:6cad679ecdbcb3ed5f5af885"
+        },
+        "parent_sha256": "baed2f523e5e1bb11fae89ad42c0f58fad85dd309ea5d46792d3c16a69af863e",
+        "sha256": "e3a5d0b6b1aaad328ceae839cccc90909942cb95edc96fa9e01d6cc27271366e"
+      },
+      {
+        "sequence": 3,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:dfce9212c90a6607dcbd87b1"
+        },
+        "parent_sha256": "e3a5d0b6b1aaad328ceae839cccc90909942cb95edc96fa9e01d6cc27271366e",
+        "sha256": "d108138c08784ddfd7475bfafeb3b314c91876ad45ee9d7eab74e32ff5e3aca9"
+      },
+      {
+        "sequence": 4,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:6d877d7b7395852a270685f4"
+        },
+        "parent_sha256": "d108138c08784ddfd7475bfafeb3b314c91876ad45ee9d7eab74e32ff5e3aca9",
+        "sha256": "0cd23c832bd8a7772447f6ca1f9776955b0bdeaa73f68d376dc4c1e98a8a0f0b"
+      },
+      {
+        "sequence": 5,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:164261bc351f64adc06bad3a"
+        },
+        "parent_sha256": "0cd23c832bd8a7772447f6ca1f9776955b0bdeaa73f68d376dc4c1e98a8a0f0b",
+        "sha256": "006358fb76576a8b5beb447651587cacbcd1ec58be800a56537b4fc12ed9b587"
+      },
+      {
+        "sequence": 6,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:67bd2b2db6fd6172b6630965"
+        },
+        "parent_sha256": "006358fb76576a8b5beb447651587cacbcd1ec58be800a56537b4fc12ed9b587",
+        "sha256": "52f1decfe18a4ef175b4bb3b0f4c5ec8f96db6ddc1b941b94795945eb747d1df"
+      },
+      {
+        "sequence": 7,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:1ea35dd992a3a3955de1e1d8"
+        },
+        "parent_sha256": "52f1decfe18a4ef175b4bb3b0f4c5ec8f96db6ddc1b941b94795945eb747d1df",
+        "sha256": "955c1770ff23f2b6c13d41438e03fb9a8b29e0737b03ca3efc7f009fb3a07e2e"
+      },
+      {
+        "sequence": 8,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:b6fc4c18301e165a780f1167"
+        },
+        "parent_sha256": "955c1770ff23f2b6c13d41438e03fb9a8b29e0737b03ca3efc7f009fb3a07e2e",
+        "sha256": "1efe3958f5922e48306236f02fb3a11f48333229836c74402f5f4fe66012bdc0"
+      },
+      {
+        "sequence": 9,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:e0911c31db084aa86c3eab9f"
+        },
+        "parent_sha256": "1efe3958f5922e48306236f02fb3a11f48333229836c74402f5f4fe66012bdc0",
+        "sha256": "af1043c646c36a142e7c963f9a51bdf16c271423f7a6bff785d1e355435132cf"
+      },
+      {
+        "sequence": 10,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:b163cac755be37ea7e9f3698"
+        },
+        "parent_sha256": "af1043c646c36a142e7c963f9a51bdf16c271423f7a6bff785d1e355435132cf",
+        "sha256": "b605797dcab4aafb5c3292bde3ce50cf30230560a93a51f330ca9cd1b95f43ed"
+      },
+      {
+        "sequence": 11,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:8dcd6cfa16f0d9c07c110bc9"
+        },
+        "parent_sha256": "b605797dcab4aafb5c3292bde3ce50cf30230560a93a51f330ca9cd1b95f43ed",
+        "sha256": "a384764e5e0bc5ded2126396c354ada7daff2eb09b597671191120d2eebc358b"
+      },
+      {
+        "sequence": 12,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:8c0ae51581290011cd196367"
+        },
+        "parent_sha256": "a384764e5e0bc5ded2126396c354ada7daff2eb09b597671191120d2eebc358b",
+        "sha256": "59a20debd2e56806ae0fe877ab6f5276c00bfd29e673b9cc22808b9e81d88b72"
+      },
+      {
+        "sequence": 13,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:946a9b8cb71422afd88ec603"
+        },
+        "parent_sha256": "59a20debd2e56806ae0fe877ab6f5276c00bfd29e673b9cc22808b9e81d88b72",
+        "sha256": "37530f2a003ceebe9492ceb12eab1db39cf0f4b72d79a57362889a0a8c26efa1"
+      },
+      {
+        "sequence": 14,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:3836909320b46c8849fbf667"
+        },
+        "parent_sha256": "37530f2a003ceebe9492ceb12eab1db39cf0f4b72d79a57362889a0a8c26efa1",
+        "sha256": "7487ffb75596e644d25bd56e7c25dc4b9e703f678e33c200085182efa8caae91"
+      },
+      {
+        "sequence": 15,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:5d50f17156d8a312ac81a6fb"
+        },
+        "parent_sha256": "7487ffb75596e644d25bd56e7c25dc4b9e703f678e33c200085182efa8caae91",
+        "sha256": "4c34570512c307cfb1017f43fc39c15f3fe7f0c2a7c09f719c12ba6baf26cf16"
+      },
+      {
+        "sequence": 16,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:0d6141a98565c44f241a6240"
+        },
+        "parent_sha256": "4c34570512c307cfb1017f43fc39c15f3fe7f0c2a7c09f719c12ba6baf26cf16",
+        "sha256": "121c459fb11d31583ada791243d381d359b2e14595aef2eed7c4f30aaf7f1f5f"
+      },
+      {
+        "sequence": 17,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:79b75331313ac55482f8cb31"
+        },
+        "parent_sha256": "121c459fb11d31583ada791243d381d359b2e14595aef2eed7c4f30aaf7f1f5f",
+        "sha256": "3ab61a5c12b0f3562c21a7520f3903c4e64f0d9d8a30db30213431cf0c5641ea"
+      },
+      {
+        "sequence": 18,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:a982a667ffed47fe4f4bf04c"
+        },
+        "parent_sha256": "3ab61a5c12b0f3562c21a7520f3903c4e64f0d9d8a30db30213431cf0c5641ea",
+        "sha256": "0c132ffd1671f725cb4b70485c698e3b7c03593faf1c3fd8c6efa1b946621387"
+      },
+      {
+        "sequence": 19,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:2c8d9dbf6592ed4a247ab2c0"
+        },
+        "parent_sha256": "0c132ffd1671f725cb4b70485c698e3b7c03593faf1c3fd8c6efa1b946621387",
+        "sha256": "a30e2147a18f64473f81027d3911ed7dc35633a7246397a6f34b7b2c29041cf3"
+      },
+      {
+        "sequence": 20,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:cd406fef06c89e0808f526de"
+        },
+        "parent_sha256": "a30e2147a18f64473f81027d3911ed7dc35633a7246397a6f34b7b2c29041cf3",
+        "sha256": "b1772746b373ac3f6d29a51f01b1cbc2ce1068df894fdafe884b3df9f390dcfe"
+      },
+      {
+        "sequence": 21,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:15f5bfaab8409800b75d2d31"
+        },
+        "parent_sha256": "b1772746b373ac3f6d29a51f01b1cbc2ce1068df894fdafe884b3df9f390dcfe",
+        "sha256": "53a032907484eadb7e684679eab7ff52b8e96cba224f28562a161694491ce46e"
+      },
+      {
+        "sequence": 22,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:a980c73cf7257686ec61ff0c"
+        },
+        "parent_sha256": "53a032907484eadb7e684679eab7ff52b8e96cba224f28562a161694491ce46e",
+        "sha256": "e4252d42d4f864518b66c9b4ce8deeed8f76600d67a6b31881dd892cb4703e8a"
+      },
+      {
+        "sequence": 23,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:19b4044c16f2cbb4a80f8c95"
+        },
+        "parent_sha256": "e4252d42d4f864518b66c9b4ce8deeed8f76600d67a6b31881dd892cb4703e8a",
+        "sha256": "3fb5b69f6e9cca02a25d37f7a599ceb987da05f96d7ab5f2817391ed6089f9e1"
+      },
+      {
+        "sequence": 24,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:e82f59e295acd0a2b581fd9e"
+        },
+        "parent_sha256": "3fb5b69f6e9cca02a25d37f7a599ceb987da05f96d7ab5f2817391ed6089f9e1",
+        "sha256": "6136086897d451b19753626d6e2829ba67778d73fa8ed31ef4eab81e871f1316"
+      },
+      {
+        "sequence": 25,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:888e3124e8a6f865fa189076"
+        },
+        "parent_sha256": "6136086897d451b19753626d6e2829ba67778d73fa8ed31ef4eab81e871f1316",
+        "sha256": "4e762bb5a48aa6f2d4d4482792412990fb90be2dd48124d744ec2144e1ef316c"
+      },
+      {
+        "sequence": 26,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:fa1f8a77d9ec12905d386313"
+        },
+        "parent_sha256": "4e762bb5a48aa6f2d4d4482792412990fb90be2dd48124d744ec2144e1ef316c",
+        "sha256": "2f0bd18dd50c6fad8ac29f567dbe12b2473fca5b9acffa4efa1e2b1b9a086dba"
+      }
+    ],
+    "operative": false,
+    "world_state_authority": "NONE",
+    "construction_problems": []
+  },
+  "view": {
+    "statements": {
+      "STATEMENT:e2d2ef1f9640e70b4010bd3b": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan A cools twenty households",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Plan A cools twenty households",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "Plan A cools twenty households"
+            },
+            "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:e2d2ef1f9640e70b4010bd3b",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:6cad679ecdbcb3ed5f5af885": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan A requires demolishing Mira's occupied home, leaving her without housing",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "requires demolishing Mira's occupied home, leaving her without housing",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "requires demolishing Mira's occupied home, leaving her without housing"
+            },
+            "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:6cad679ecdbcb3ed5f5af885",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:dfce9212c90a6607dcbd87b1": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan B cools twelve of those same households and displaces nobody",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Plan B cools twelve of those same households and displaces nobody",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "Plan B cools twelve of those same households and displaces nobody"
+            },
+            "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:dfce9212c90a6607dcbd87b1",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:6d877d7b7395852a270685f4": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan C cools Jo's home, which has the greatest heat exposure of any home in this case",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Plan C cools Jo's home, which has the greatest heat exposure of any home in this case",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "Plan C cools Jo's home, which has the greatest heat exposure of any home in this case"
+            },
+            "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:6d877d7b7395852a270685f4",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:164261bc351f64adc06bad3a": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Plan C requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period"
+            },
+            "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:164261bc351f64adc06bad3a",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:67bd2b2db6fd6172b6630965": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Jo's home is not cooled by A or B",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Jo's home is not cooled by A or B.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "Jo's home is not cooled by A or B."
+            },
+            "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:67bd2b2db6fd6172b6630965",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:1ea35dd992a3a3955de1e1d8": {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "The council ought to choose the plan that maximizes overall welfare (utilitarian principle)",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:1ea35dd992a3a3955de1e1d8",
+        "lifecycle": "ACTIVE",
+        "support_status": "CONDITIONAL",
+        "effective_hypotheses": [
+          "STATEMENT:1ea35dd992a3a3955de1e1d8"
+        ]
+      },
+      "STATEMENT:b6fc4c18301e165a780f1167": {
+        "kind": "INTERPRETIVE_PREMISE",
+        "text": "Homelessness for Mira imposes a very large welfare loss that outweighs the incremental cooling benefit to the eight additional households cooled only by Plan A",
+        "polarity": "AFFIRMED",
+        "modality": "POSSIBLE",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:b6fc4c18301e165a780f1167",
+        "lifecycle": "ACTIVE",
+        "support_status": "CONDITIONAL",
+        "effective_hypotheses": [
+          "STATEMENT:b6fc4c18301e165a780f1167"
+        ]
+      },
+      "STATEMENT:e0911c31db084aa86c3eab9f": {
+        "kind": "INTERPRETIVE_PREMISE",
+        "text": "Eight weeks of lost income for Sal is a moderate welfare loss, smaller than homelessness but non-trivial",
+        "polarity": "AFFIRMED",
+        "modality": "POSSIBLE",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:e0911c31db084aa86c3eab9f",
+        "lifecycle": "ACTIVE",
+        "support_status": "CONDITIONAL",
+        "effective_hypotheses": [
+          "STATEMENT:e0911c31db084aa86c3eab9f"
+        ]
+      },
+      "STATEMENT:b163cac755be37ea7e9f3698": {
+        "kind": "INTERPRETIVE_PREMISE",
+        "text": "Cooling Jo’s especially exposed home benefits Jo but does not compensate for simultaneously leaving 12 households uncooled and depriving Sal of income when compared with Plan B",
+        "polarity": "AFFIRMED",
+        "modality": "POSSIBLE",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:b163cac755be37ea7e9f3698",
+        "lifecycle": "ACTIVE",
+        "support_status": "CONDITIONAL",
+        "effective_hypotheses": [
+          "STATEMENT:b163cac755be37ea7e9f3698"
+        ]
+      },
+      "STATEMENT:8dcd6cfa16f0d9c07c110bc9": {
+        "kind": "NORMATIVE_JUDGMENT",
+        "text": "Plan B yields higher net welfare than Plan A",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:8dcd6cfa16f0d9c07c110bc9",
+        "lifecycle": "ACTIVE",
+        "support_status": "REQUIRES_REASSESSMENT",
+        "effective_hypotheses": [
+          "STATEMENT:1ea35dd992a3a3955de1e1d8",
+          "STATEMENT:b6fc4c18301e165a780f1167"
+        ]
+      },
+      "STATEMENT:8c0ae51581290011cd196367": {
+        "kind": "NORMATIVE_JUDGMENT",
+        "text": "Plan B yields higher net welfare than Plan C",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:8c0ae51581290011cd196367",
+        "lifecycle": "ACTIVE",
+        "support_status": "REQUIRES_REASSESSMENT",
+        "effective_hypotheses": [
+          "STATEMENT:1ea35dd992a3a3955de1e1d8",
+          "STATEMENT:b163cac755be37ea7e9f3698",
+          "STATEMENT:e0911c31db084aa86c3eab9f"
+        ]
+      },
+      "STATEMENT:946a9b8cb71422afd88ec603": {
+        "kind": "NORMATIVE_JUDGMENT",
+        "text": "Plan B maximizes overall welfare among the three options",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:946a9b8cb71422afd88ec603",
+        "lifecycle": "ACTIVE",
+        "support_status": "REQUIRES_REASSESSMENT",
+        "effective_hypotheses": [
+          "STATEMENT:1ea35dd992a3a3955de1e1d8",
+          "STATEMENT:b163cac755be37ea7e9f3698",
+          "STATEMENT:b6fc4c18301e165a780f1167",
+          "STATEMENT:e0911c31db084aa86c3eab9f"
+        ]
+      }
+    },
+    "support_routes": {
+      "SUPPORT:3836909320b46c8849fbf667": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:5d50f17156d8a312ac81a6fb": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:0d6141a98565c44f241a6240": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:79b75331313ac55482f8cb31": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:a982a667ffed47fe4f4bf04c": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:2c8d9dbf6592ed4a247ab2c0": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:cd406fef06c89e0808f526de": {
+        "status": "CONDITIONAL",
+        "issues": [],
+        "effective_hypotheses": [
+          "STATEMENT:1ea35dd992a3a3955de1e1d8"
+        ]
+      },
+      "SUPPORT:15f5bfaab8409800b75d2d31": {
+        "status": "CONDITIONAL",
+        "issues": [],
+        "effective_hypotheses": [
+          "STATEMENT:b6fc4c18301e165a780f1167"
+        ]
+      },
+      "SUPPORT:a980c73cf7257686ec61ff0c": {
+        "status": "CONDITIONAL",
+        "issues": [],
+        "effective_hypotheses": [
+          "STATEMENT:e0911c31db084aa86c3eab9f"
+        ]
+      },
+      "SUPPORT:19b4044c16f2cbb4a80f8c95": {
+        "status": "CONDITIONAL",
+        "issues": [],
+        "effective_hypotheses": [
+          "STATEMENT:b163cac755be37ea7e9f3698"
+        ]
+      },
+      "SUPPORT:e82f59e295acd0a2b581fd9e": {
+        "status": "REQUIRES_REASSESSMENT",
+        "issues": [
+          "PREMISE_REQUIRES_REASSESSMENT"
+        ],
+        "effective_hypotheses": [
+          "STATEMENT:1ea35dd992a3a3955de1e1d8",
+          "STATEMENT:b6fc4c18301e165a780f1167"
+        ]
+      },
+      "SUPPORT:888e3124e8a6f865fa189076": {
+        "status": "REQUIRES_REASSESSMENT",
+        "issues": [
+          "PREMISE_REQUIRES_REASSESSMENT"
+        ],
+        "effective_hypotheses": [
+          "STATEMENT:1ea35dd992a3a3955de1e1d8",
+          "STATEMENT:b163cac755be37ea7e9f3698",
+          "STATEMENT:e0911c31db084aa86c3eab9f"
+        ]
+      },
+      "SUPPORT:fa1f8a77d9ec12905d386313": {
+        "status": "REQUIRES_REASSESSMENT",
+        "issues": [
+          "PREMISE_REQUIRES_REASSESSMENT",
+          "NORMATIVE_PREMISE_MISSING"
+        ],
+        "effective_hypotheses": [
+          "STATEMENT:1ea35dd992a3a3955de1e1d8",
+          "STATEMENT:b163cac755be37ea7e9f3698",
+          "STATEMENT:b6fc4c18301e165a780f1167",
+          "STATEMENT:e0911c31db084aa86c3eab9f"
+        ]
+      }
+    },
+    "active_statement_ids": [
+      "STATEMENT:e2d2ef1f9640e70b4010bd3b",
+      "STATEMENT:6cad679ecdbcb3ed5f5af885",
+      "STATEMENT:dfce9212c90a6607dcbd87b1",
+      "STATEMENT:6d877d7b7395852a270685f4",
+      "STATEMENT:164261bc351f64adc06bad3a",
+      "STATEMENT:67bd2b2db6fd6172b6630965",
+      "STATEMENT:1ea35dd992a3a3955de1e1d8",
+      "STATEMENT:b6fc4c18301e165a780f1167",
+      "STATEMENT:e0911c31db084aa86c3eab9f",
+      "STATEMENT:b163cac755be37ea7e9f3698",
+      "STATEMENT:8dcd6cfa16f0d9c07c110bc9",
+      "STATEMENT:8c0ae51581290011cd196367",
+      "STATEMENT:946a9b8cb71422afd88ec603"
+    ],
+    "operative": false,
+    "semantic_support": "ATTRIBUTED_ASSESSMENTS_NOT_AUTOMATIC_TRUTH"
+  },
+  "comparison_review": {
+    "version": "complaint-comparison/0.1",
+    "findings": [
+      {
+        "code": "BURDEN_TRANSITION_MISMATCH",
+        "record_id": "COMP_AB",
+        "burden_id": "B_H12_HEAT",
+        "claim": "retained_burden_ids",
+        "observed": [
+          "ABSENT",
+          "ABSENT"
+        ],
+        "expected": [
+          "PRESENT",
+          "PRESENT"
+        ]
+      },
+      {
+        "code": "RETAINED_BURDEN_OMITTED",
+        "record_id": "COMP_AB",
+        "burden_id": "B_JO_HEAT"
+      },
+      {
+        "code": "UNKNOWN_REMAINING_COMPLAINT",
+        "record_id": "C1"
+      }
+    ],
+    "status": "REVIEW_REQUIRED",
+    "matrix_authority": "MODEL_PROPOSED_NOT_SOURCE_VERIFIED",
+    "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+    "moral_ranking_computed": false,
+    "operative": false,
+    "recommendation_status": "PROVISIONAL_PREFERENCE",
+    "remaining_complaint_ids": [
+      "C1"
+    ]
+  },
+  "status": "STAGED_PARTIAL_ARGUMENT"
+}

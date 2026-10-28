@@ -1,0 +1,978 @@
+{
+  "version": "neutral-framework-pilot/0.2",
+  "framework": "care",
+  "raw_response": {
+    "persons": [
+      {
+        "id": "P_Rowan",
+        "label": "Rowan",
+        "source_quotes": [
+          "Rowan has an 80% chance of survival"
+        ]
+      },
+      {
+        "id": "P_Sasha",
+        "label": "Sasha",
+        "source_quotes": [
+          "Sasha has a 60% chance of survival"
+        ]
+      },
+      {
+        "id": "P_Ellis",
+        "label": "Ellis",
+        "source_quotes": [
+          "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both"
+        ]
+      }
+    ],
+    "burdens": [
+      {
+        "id": "B_Rowan_Death",
+        "person_id": "P_Rowan",
+        "description": "Risk of dying from exposure"
+      },
+      {
+        "id": "B_Sasha_Death",
+        "person_id": "P_Sasha",
+        "description": "Risk of dying from exposure"
+      }
+    ],
+    "burden_positions": [
+      {
+        "burden_id": "B_Rowan_Death",
+        "action_id": "A",
+        "status": "PRESENT",
+        "position": "20% chance Rowan dies if Rowan gets blanket",
+        "ground_handles": [
+          "F_Rowan80"
+        ]
+      },
+      {
+        "burden_id": "B_Rowan_Death",
+        "action_id": "B",
+        "status": "PRESENT",
+        "position": "100% chance Rowan dies if Sasha gets blanket",
+        "ground_handles": [
+          "F_HikerNoBlanketDies"
+        ]
+      },
+      {
+        "burden_id": "B_Sasha_Death",
+        "action_id": "A",
+        "status": "PRESENT",
+        "position": "100% chance Sasha dies if Rowan gets blanket",
+        "ground_handles": [
+          "F_HikerNoBlanketDies"
+        ]
+      },
+      {
+        "burden_id": "B_Sasha_Death",
+        "action_id": "B",
+        "status": "PRESENT",
+        "position": "40% chance Sasha dies if Sasha gets blanket",
+        "ground_handles": [
+          "F_Sasha60"
+        ]
+      }
+    ],
+    "principles": [
+      {
+        "id": "PR_Maximize_Care_Effectiveness",
+        "statement_handle": "N_CareCompetence",
+        "action_ids": [
+          "A",
+          "B"
+        ]
+      },
+      {
+        "id": "PR_Prioritize_Higher_Vulnerability",
+        "statement_handle": "N_VulnerabilityPriority",
+        "action_ids": [
+          "A",
+          "B"
+        ]
+      }
+    ],
+    "statements": [
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+          }
+        ],
+        "handle": "F_Rowan80"
+      },
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+          }
+        ],
+        "handle": "F_Sasha60"
+      },
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "The hiker who does not get the blanket will die.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "The hiker who does not get the blanket will die."
+          }
+        ],
+        "handle": "F_HikerNoBlanketDies"
+      },
+      {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "In care contexts, the caregiver should act in the way most likely to preserve life when relationships and expressed needs are otherwise equal.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "N_CareCompetence"
+      },
+      {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "When two people need the same care, priority may be given to the more vulnerable person even if the chance of success is lower.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "N_VulnerabilityPriority"
+      },
+      {
+        "kind": "NORMATIVE_JUDGMENT",
+        "text": "Ellis has stronger reason of care to give the blanket to Rowan than to Sasha.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "J_StrongerReason_Rowan"
+      },
+      {
+        "kind": "EVALUATIVE_COMPARISON",
+        "text": "Giving the blanket to Rowan better meets the competence-of-care norm than giving it to Sasha.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "C_CareCompetence_Comparison"
+      },
+      {
+        "kind": "EVALUATIVE_COMPARISON",
+        "text": "Sasha may be considered more vulnerable, which could support giving the blanket to Sasha.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "C_Vulnerability_Comparison"
+      }
+    ],
+    "supports": [
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "F_Rowan80",
+        "explanation": "/scene quote exact"
+      },
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "F_Sasha60",
+        "explanation": "/scene quote exact"
+      },
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "F_HikerNoBlanketDies",
+        "explanation": "/scene quote exact"
+      },
+      {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "N_CareCompetence",
+        "explanation": "common care ethic idea of competent responsiveness"
+      },
+      {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "N_VulnerabilityPriority",
+        "explanation": "possible care ethic weight on vulnerability"
+      },
+      {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "F_Rowan80",
+          "F_Sasha60",
+          "N_CareCompetence"
+        ],
+        "output": "C_CareCompetence_Comparison",
+        "explanation": "80% survival indicates higher competence"
+      },
+      {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "F_Sasha60",
+          "F_Rowan80",
+          "N_VulnerabilityPriority"
+        ],
+        "output": "C_Vulnerability_Comparison",
+        "explanation": "Lower baseline robustness can signal greater vulnerability"
+      },
+      {
+        "operation": "NORM_PRIORITY",
+        "inputs": [
+          "C_CareCompetence_Comparison",
+          "C_Vulnerability_Comparison",
+          "N_CareCompetence"
+        ],
+        "output": "J_StrongerReason_Rowan",
+        "explanation": "Competence norm outweighs vulnerability norm when difference in success is significant and relationships equal"
+      }
+    ],
+    "reasons": [
+      {
+        "id": "R1",
+        "person_id": null,
+        "principle_id": "PR_Maximize_Care_Effectiveness",
+        "action_id": "A",
+        "stance": "FOR",
+        "value": "Higher survival chance (80%)",
+        "conclusion_handle": "C_CareCompetence_Comparison",
+        "ground_handles": [
+          "F_Rowan80",
+          "F_Sasha60"
+        ],
+        "warrant_handles": [
+          "N_CareCompetence"
+        ],
+        "generic_basis": "competence of care"
+      },
+      {
+        "id": "R2",
+        "person_id": null,
+        "principle_id": "PR_Prioritize_Higher_Vulnerability",
+        "action_id": "B",
+        "stance": "FOR",
+        "value": "Sasha may be more vulnerable",
+        "conclusion_handle": "C_Vulnerability_Comparison",
+        "ground_handles": [
+          "F_Sasha60"
+        ],
+        "warrant_handles": [
+          "N_VulnerabilityPriority"
+        ],
+        "generic_basis": "vulnerability consideration"
+      }
+    ],
+    "comparisons": [
+      {
+        "id": "COMP_A_vs_B",
+        "from_action_id": "A",
+        "to_action_id": "B",
+        "status": "FAVORS_FROM",
+        "relieved_burden_ids": [
+          "B_Rowan_Death"
+        ],
+        "introduced_burden_ids": [],
+        "retained_burden_ids": [
+          "B_Sasha_Death"
+        ],
+        "reason_ids": [
+          "R1",
+          "R2"
+        ],
+        "judgment_handle": "J_StrongerReason_Rowan",
+        "explanation": "Action A lowers one death risk from 100% to 20%, whereas Action B lowers a different death risk from 100% to 40%. Competence-of-care norm judged weightier than additional vulnerability concern."
+      }
+    ],
+    "challenges": [
+      {
+        "id": "O1",
+        "kind": "UNDERMINING",
+        "target_kind": "STATEMENT",
+        "target_id": "N_CareCompetence",
+        "challenge_handle": "Chall_VulnerabilityPriority",
+        "response_handle": "J_StrongerReason_Rowan",
+        "status": "ANSWERED"
+      }
+    ],
+    "action_assessments": [
+      {
+        "action_id": "A",
+        "conclusion_handle": "J_StrongerReason_Rowan",
+        "assessment": "DEFENSIBLE"
+      },
+      {
+        "action_id": "B",
+        "conclusion_handle": "C_Vulnerability_Comparison",
+        "assessment": "UNRESOLVED"
+      }
+    ],
+    "recommendation_action_id": "A",
+    "recommendation_status": "PROVISIONAL_PREFERENCE",
+    "recommendation_comparison_ids": [
+      "COMP_A_vs_B"
+    ],
+    "remaining_complaint_ids": [
+      "R2"
+    ],
+    "conclusion": "Care ethics provisionally recommends giving the blanket to Rowan because this is the more competent, life-preserving response when relational factors are equal, although a reasonable objection appealing to Sasha’s greater vulnerability remains.",
+    "strongest_objection": "Sasha’s lower survival probability suggests greater fragility; a carer could prioritize the more vulnerable even when success chances are lower.",
+    "answer_to_objection": "The competence-of-care norm gives decisive weight to the action that is more likely to save a life when other relationships are equal; here the 20-percentage-point difference is substantial, so responding to Rowan better fulfils the core caring aim of sustaining life.",
+    "reversal_condition": "If new facts showed Sasha faced special relational ties to Ellis or Rowan’s higher probability were only marginal (e.g., 62% vs 60%), the vulnerability consideration could override and favor Sasha.",
+    "residual_disagreement": [
+      "Whether vulnerability should outweigh competence when the gap in success probability is significant"
+    ]
+  },
+  "source_text_sha256": "e1a856a6df3cf57fa227cd016a4a0d3c6b3c95278ab433c7db2828b0c9d9c74f",
+  "source_status": "FROZEN_TEXT_NOT_ADMITTED_WORLD",
+  "operative": false,
+  "world_state_authority": "NONE",
+  "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+  "paper_attribution": {
+    "authors": [
+      "Luis Marcos-Vidal",
+      "Giulio Antonio Abbo",
+      "Tony Belpaeme"
+    ],
+    "title": "A Contractualist Argumentation Framework for Moral Decision-Making",
+    "version": "arXiv:2608.01937v1",
+    "url": "https://arxiv.org/html/2608.01937v1",
+    "used_sections": [
+      "5.1",
+      "5.2",
+      "5.3"
+    ],
+    "formal_semantics_implemented": false
+  },
+  "instruction_version": "argument-framework-instructions/0.3",
+  "issues": [
+    {
+      "kind": "PRINCIPLE_KIND_MISMATCH",
+      "record_id": "PR_Maximize_Care_Effectiveness"
+    },
+    {
+      "kind": "PRINCIPLE_KIND_MISMATCH",
+      "record_id": "PR_Prioritize_Higher_Vulnerability"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "O1"
+    },
+    {
+      "kind": "VERDICT_USED_AS_PREMISE",
+      "record_id": "STATEMENT:433c8de52f63f5f4f5d3fa79"
+    }
+  ],
+  "argument": {
+    "version": "argument-support/0.1",
+    "world_sha256": "e1a856a6df3cf57fa227cd016a4a0d3c6b3c95278ab433c7db2828b0c9d9c74f",
+    "evidence": [
+      {
+        "ref": "SCENE",
+        "kind": "EXACT_SCENARIO",
+        "value": "A mountain rescue shelter has one thermal blanket. Rescuer Ellis can give the blanket to Rowan or Sasha, but not both. Both hikers are stranded in the cold, and no other rescue or warming equipment will arrive in time. If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival. If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival. The hiker who does not get the blanket will die. Ellis has made no promise or assurance to either hiker about receiving the blanket. Whom should Ellis give the blanket to?"
+      }
+    ],
+    "issue_id": "blanket_no_assurance:care",
+    "statements": {
+      "STATEMENT:6331f7c3a24c320c757f17f8": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:effb3b4ab3993ee60f126e9e": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:8ea818db7b1341d2502fa463": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "The hiker who does not get the blanket will die.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "The hiker who does not get the blanket will die.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "The hiker who does not get the blanket will die."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:c2e8e58b352d92f4425f8fbe": {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "In care contexts, the caregiver should act in the way most likely to preserve life when relationships and expressed needs are otherwise equal.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:7f2b77a201db7b2ad8782e84": {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "When two people need the same care, priority may be given to the more vulnerable person even if the chance of success is lower.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:433c8de52f63f5f4f5d3fa79": {
+        "kind": "NORMATIVE_JUDGMENT",
+        "text": "Ellis has stronger reason of care to give the blanket to Rowan than to Sasha.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:2025a94c9d39c3706d4618fe": {
+        "kind": "EVALUATIVE_COMPARISON",
+        "text": "Giving the blanket to Rowan better meets the competence-of-care norm than giving it to Sasha.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:7d40f9b09b39b718f5e2eda7": {
+        "kind": "EVALUATIVE_COMPARISON",
+        "text": "Sasha may be considered more vulnerable, which could support giving the blanket to Sasha.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      }
+    },
+    "handles": {
+      "F_Rowan80": "STATEMENT:6331f7c3a24c320c757f17f8",
+      "F_Sasha60": "STATEMENT:effb3b4ab3993ee60f126e9e",
+      "F_HikerNoBlanketDies": "STATEMENT:8ea818db7b1341d2502fa463",
+      "N_CareCompetence": "STATEMENT:c2e8e58b352d92f4425f8fbe",
+      "N_VulnerabilityPriority": "STATEMENT:7f2b77a201db7b2ad8782e84",
+      "J_StrongerReason_Rowan": "STATEMENT:433c8de52f63f5f4f5d3fa79",
+      "C_CareCompetence_Comparison": "STATEMENT:2025a94c9d39c3706d4618fe",
+      "C_Vulnerability_Comparison": "STATEMENT:7d40f9b09b39b718f5e2eda7"
+    },
+    "routes": {
+      "SUPPORT:0c7d39899d41adb89e7159ab": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:6331f7c3a24c320c757f17f8",
+        "explanation": "/scene quote exact"
+      },
+      "SUPPORT:43640da7e54d1fea28fa3656": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:effb3b4ab3993ee60f126e9e",
+        "explanation": "/scene quote exact"
+      },
+      "SUPPORT:656218c6cca8b54c82399676": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:8ea818db7b1341d2502fa463",
+        "explanation": "/scene quote exact"
+      },
+      "SUPPORT:0c2f90edfe4081f78dcd909b": {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "STATEMENT:c2e8e58b352d92f4425f8fbe",
+        "explanation": "common care ethic idea of competent responsiveness"
+      },
+      "SUPPORT:373406e689c7927786bd3afa": {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "STATEMENT:7f2b77a201db7b2ad8782e84",
+        "explanation": "possible care ethic weight on vulnerability"
+      },
+      "SUPPORT:7390da76cbabc5f04ca4befb": {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "STATEMENT:6331f7c3a24c320c757f17f8",
+          "STATEMENT:effb3b4ab3993ee60f126e9e",
+          "STATEMENT:c2e8e58b352d92f4425f8fbe"
+        ],
+        "output": "STATEMENT:2025a94c9d39c3706d4618fe",
+        "explanation": "80% survival indicates higher competence"
+      },
+      "SUPPORT:e78d78dad5c99051f348b33e": {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "STATEMENT:effb3b4ab3993ee60f126e9e",
+          "STATEMENT:6331f7c3a24c320c757f17f8",
+          "STATEMENT:7f2b77a201db7b2ad8782e84"
+        ],
+        "output": "STATEMENT:7d40f9b09b39b718f5e2eda7",
+        "explanation": "Lower baseline robustness can signal greater vulnerability"
+      },
+      "SUPPORT:42886f5e670de61a8c76ddb3": {
+        "operation": "NORM_PRIORITY",
+        "inputs": [
+          "STATEMENT:2025a94c9d39c3706d4618fe",
+          "STATEMENT:7d40f9b09b39b718f5e2eda7",
+          "STATEMENT:c2e8e58b352d92f4425f8fbe"
+        ],
+        "output": "STATEMENT:433c8de52f63f5f4f5d3fa79",
+        "explanation": "Competence norm outweighs vulnerability norm when difference in success is significant and relationships equal"
+      }
+    },
+    "events": [
+      {
+        "sequence": 1,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:6331f7c3a24c320c757f17f8"
+        },
+        "parent_sha256": "563ddccbd2f4a986d4cf16620b5473c605ad94736b196696d8cac400fcf5c60b",
+        "sha256": "ecc1b33a118d47d496ffd9efb8853e926c1061b18eb78ab5d3f15ddf4e33a4f8"
+      },
+      {
+        "sequence": 2,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:effb3b4ab3993ee60f126e9e"
+        },
+        "parent_sha256": "ecc1b33a118d47d496ffd9efb8853e926c1061b18eb78ab5d3f15ddf4e33a4f8",
+        "sha256": "dcc3e514088719026fcf218628b9400826cba895c2508ae2e31f2de30451bf1e"
+      },
+      {
+        "sequence": 3,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:8ea818db7b1341d2502fa463"
+        },
+        "parent_sha256": "dcc3e514088719026fcf218628b9400826cba895c2508ae2e31f2de30451bf1e",
+        "sha256": "594f677d8b93e864d91bc6d19ca5e874bfbe3517913941b5365ee5b6bfad4197"
+      },
+      {
+        "sequence": 4,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:c2e8e58b352d92f4425f8fbe"
+        },
+        "parent_sha256": "594f677d8b93e864d91bc6d19ca5e874bfbe3517913941b5365ee5b6bfad4197",
+        "sha256": "2985556b95b9e0e4d7c71c93937ca376e8628e5b7e800bd064a3dc8d3dd35192"
+      },
+      {
+        "sequence": 5,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:7f2b77a201db7b2ad8782e84"
+        },
+        "parent_sha256": "2985556b95b9e0e4d7c71c93937ca376e8628e5b7e800bd064a3dc8d3dd35192",
+        "sha256": "e62af96d3aa879dfd0978c4b307a47338a4c400d75581c5022a88d43f1c31846"
+      },
+      {
+        "sequence": 6,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:433c8de52f63f5f4f5d3fa79"
+        },
+        "parent_sha256": "e62af96d3aa879dfd0978c4b307a47338a4c400d75581c5022a88d43f1c31846",
+        "sha256": "47b61da0ae3a066c2c391c9911e165f185c1d2a90ea55e98cd5bee83ae1a3b13"
+      },
+      {
+        "sequence": 7,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:2025a94c9d39c3706d4618fe"
+        },
+        "parent_sha256": "47b61da0ae3a066c2c391c9911e165f185c1d2a90ea55e98cd5bee83ae1a3b13",
+        "sha256": "6063bd4c6b9ba8c871dae2cf6c73868823aeb226b46f142bbe6186b2db4e2cab"
+      },
+      {
+        "sequence": 8,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:7d40f9b09b39b718f5e2eda7"
+        },
+        "parent_sha256": "6063bd4c6b9ba8c871dae2cf6c73868823aeb226b46f142bbe6186b2db4e2cab",
+        "sha256": "964a6401a3672d0442ed58eea8120b648f24509359983ba001dbf77d223d6489"
+      },
+      {
+        "sequence": 9,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:0c7d39899d41adb89e7159ab"
+        },
+        "parent_sha256": "964a6401a3672d0442ed58eea8120b648f24509359983ba001dbf77d223d6489",
+        "sha256": "fbf06a4ce3cc82e789a2ffd40865800b5f2538877184215eb8b943a51c2e8edf"
+      },
+      {
+        "sequence": 10,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:43640da7e54d1fea28fa3656"
+        },
+        "parent_sha256": "fbf06a4ce3cc82e789a2ffd40865800b5f2538877184215eb8b943a51c2e8edf",
+        "sha256": "91ff0b21f8c295b9312cc06edfad3200c5e300c9ebbf29092c19325227faa933"
+      },
+      {
+        "sequence": 11,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:656218c6cca8b54c82399676"
+        },
+        "parent_sha256": "91ff0b21f8c295b9312cc06edfad3200c5e300c9ebbf29092c19325227faa933",
+        "sha256": "3efe17e9d389d391d02501c32630acc1edf348ad3dfe408b2b7f5f8611a9f827"
+      },
+      {
+        "sequence": 12,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:0c2f90edfe4081f78dcd909b"
+        },
+        "parent_sha256": "3efe17e9d389d391d02501c32630acc1edf348ad3dfe408b2b7f5f8611a9f827",
+        "sha256": "80ae5ecf83ee67b04b8c11a6be620fbe9530531747575076f87f8ad35b0545f2"
+      },
+      {
+        "sequence": 13,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:373406e689c7927786bd3afa"
+        },
+        "parent_sha256": "80ae5ecf83ee67b04b8c11a6be620fbe9530531747575076f87f8ad35b0545f2",
+        "sha256": "a06df8b9da4355863564aefde4e4c4fb63bfa1cacf9809628f8cfaaead8eb4af"
+      },
+      {
+        "sequence": 14,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:7390da76cbabc5f04ca4befb"
+        },
+        "parent_sha256": "a06df8b9da4355863564aefde4e4c4fb63bfa1cacf9809628f8cfaaead8eb4af",
+        "sha256": "f0b5f4f01cf0fcc4f65f549ca5dbe32e2aa78bf1892c50b7390f89599c88814b"
+      },
+      {
+        "sequence": 15,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:e78d78dad5c99051f348b33e"
+        },
+        "parent_sha256": "f0b5f4f01cf0fcc4f65f549ca5dbe32e2aa78bf1892c50b7390f89599c88814b",
+        "sha256": "863666dae23fc9f1f3bbb181d511aeb9dc42181debee62d8797ff5087c6de4d4"
+      },
+      {
+        "sequence": 16,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:42886f5e670de61a8c76ddb3"
+        },
+        "parent_sha256": "863666dae23fc9f1f3bbb181d511aeb9dc42181debee62d8797ff5087c6de4d4",
+        "sha256": "34bb5461f6b43e8d34944104b4e7c5a18300cf82a06496b6c4644b46118789de"
+      }
+    ],
+    "operative": false,
+    "world_state_authority": "NONE",
+    "construction_problems": []
+  },
+  "view": {
+    "statements": {
+      "STATEMENT:6331f7c3a24c320c757f17f8": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:6331f7c3a24c320c757f17f8",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:effb3b4ab3993ee60f126e9e": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:effb3b4ab3993ee60f126e9e",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:8ea818db7b1341d2502fa463": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "The hiker who does not get the blanket will die.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "The hiker who does not get the blanket will die.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "The hiker who does not get the blanket will die."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:8ea818db7b1341d2502fa463",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:c2e8e58b352d92f4425f8fbe": {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "In care contexts, the caregiver should act in the way most likely to preserve life when relationships and expressed needs are otherwise equal.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:c2e8e58b352d92f4425f8fbe",
+        "lifecycle": "ACTIVE",
+        "support_status": "CONDITIONAL",
+        "effective_hypotheses": [
+          "STATEMENT:c2e8e58b352d92f4425f8fbe"
+        ]
+      },
+      "STATEMENT:7f2b77a201db7b2ad8782e84": {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "When two people need the same care, priority may be given to the more vulnerable person even if the chance of success is lower.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:7f2b77a201db7b2ad8782e84",
+        "lifecycle": "ACTIVE",
+        "support_status": "CONDITIONAL",
+        "effective_hypotheses": [
+          "STATEMENT:7f2b77a201db7b2ad8782e84"
+        ]
+      },
+      "STATEMENT:2025a94c9d39c3706d4618fe": {
+        "kind": "EVALUATIVE_COMPARISON",
+        "text": "Giving the blanket to Rowan better meets the competence-of-care norm than giving it to Sasha.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:2025a94c9d39c3706d4618fe",
+        "lifecycle": "ACTIVE",
+        "support_status": "REQUIRES_REASSESSMENT",
+        "effective_hypotheses": [
+          "STATEMENT:c2e8e58b352d92f4425f8fbe"
+        ]
+      },
+      "STATEMENT:7d40f9b09b39b718f5e2eda7": {
+        "kind": "EVALUATIVE_COMPARISON",
+        "text": "Sasha may be considered more vulnerable, which could support giving the blanket to Sasha.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:7d40f9b09b39b718f5e2eda7",
+        "lifecycle": "ACTIVE",
+        "support_status": "REQUIRES_REASSESSMENT",
+        "effective_hypotheses": [
+          "STATEMENT:7f2b77a201db7b2ad8782e84"
+        ]
+      },
+      "STATEMENT:433c8de52f63f5f4f5d3fa79": {
+        "kind": "NORMATIVE_JUDGMENT",
+        "text": "Ellis has stronger reason of care to give the blanket to Rowan than to Sasha.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:433c8de52f63f5f4f5d3fa79",
+        "lifecycle": "ACTIVE",
+        "support_status": "REQUIRES_REASSESSMENT",
+        "effective_hypotheses": [
+          "STATEMENT:7f2b77a201db7b2ad8782e84",
+          "STATEMENT:c2e8e58b352d92f4425f8fbe"
+        ]
+      }
+    },
+    "support_routes": {
+      "SUPPORT:0c7d39899d41adb89e7159ab": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:43640da7e54d1fea28fa3656": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:656218c6cca8b54c82399676": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:0c2f90edfe4081f78dcd909b": {
+        "status": "CONDITIONAL",
+        "issues": [],
+        "effective_hypotheses": [
+          "STATEMENT:c2e8e58b352d92f4425f8fbe"
+        ]
+      },
+      "SUPPORT:373406e689c7927786bd3afa": {
+        "status": "CONDITIONAL",
+        "issues": [],
+        "effective_hypotheses": [
+          "STATEMENT:7f2b77a201db7b2ad8782e84"
+        ]
+      },
+      "SUPPORT:7390da76cbabc5f04ca4befb": {
+        "status": "REQUIRES_REASSESSMENT",
+        "issues": [
+          "PREMISE_REQUIRES_REASSESSMENT"
+        ],
+        "effective_hypotheses": [
+          "STATEMENT:c2e8e58b352d92f4425f8fbe"
+        ]
+      },
+      "SUPPORT:e78d78dad5c99051f348b33e": {
+        "status": "REQUIRES_REASSESSMENT",
+        "issues": [
+          "PREMISE_REQUIRES_REASSESSMENT"
+        ],
+        "effective_hypotheses": [
+          "STATEMENT:7f2b77a201db7b2ad8782e84"
+        ]
+      },
+      "SUPPORT:42886f5e670de61a8c76ddb3": {
+        "status": "REQUIRES_REASSESSMENT",
+        "issues": [
+          "PREMISE_REQUIRES_REASSESSMENT"
+        ],
+        "effective_hypotheses": [
+          "STATEMENT:7f2b77a201db7b2ad8782e84",
+          "STATEMENT:c2e8e58b352d92f4425f8fbe"
+        ]
+      }
+    },
+    "active_statement_ids": [
+      "STATEMENT:6331f7c3a24c320c757f17f8",
+      "STATEMENT:effb3b4ab3993ee60f126e9e",
+      "STATEMENT:8ea818db7b1341d2502fa463",
+      "STATEMENT:c2e8e58b352d92f4425f8fbe",
+      "STATEMENT:7f2b77a201db7b2ad8782e84",
+      "STATEMENT:2025a94c9d39c3706d4618fe",
+      "STATEMENT:7d40f9b09b39b718f5e2eda7",
+      "STATEMENT:433c8de52f63f5f4f5d3fa79"
+    ],
+    "operative": false,
+    "semantic_support": "ATTRIBUTED_ASSESSMENTS_NOT_AUTOMATIC_TRUTH"
+  },
+  "comparison_review": {
+    "version": "complaint-comparison/0.1",
+    "findings": [
+      {
+        "code": "BURDEN_TRANSITION_MISMATCH",
+        "record_id": "COMP_A_vs_B",
+        "burden_id": "B_Rowan_Death",
+        "claim": "relieved_burden_ids",
+        "observed": [
+          "PRESENT",
+          "PRESENT"
+        ],
+        "expected": [
+          "PRESENT",
+          "ABSENT"
+        ]
+      },
+      {
+        "code": "RETAINED_BURDEN_OMITTED",
+        "record_id": "COMP_A_vs_B",
+        "burden_id": "B_Rowan_Death"
+      }
+    ],
+    "status": "REVIEW_REQUIRED",
+    "matrix_authority": "MODEL_PROPOSED_NOT_SOURCE_VERIFIED",
+    "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+    "moral_ranking_computed": false,
+    "operative": false,
+    "recommendation_status": "PROVISIONAL_PREFERENCE",
+    "remaining_complaint_ids": [
+      "R2"
+    ]
+  },
+  "status": "STAGED_PARTIAL_ARGUMENT"
+}

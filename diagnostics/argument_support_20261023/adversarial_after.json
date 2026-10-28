@@ -1,0 +1,1031 @@
+{
+  "origin": "AUTHOR_LABELED_ADVERSARIAL_DIAGNOSTICS_NOT_PREVALENCE_ESTIMATE",
+  "api_calls": 0,
+  "cases": [
+    {
+      "id": "kind_laundering",
+      "mapping": {
+        "claims": [
+          {
+            "id": "physical",
+            "kind": "PHYSICAL_CONTRIBUTION",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The worker triggers a sensor that speeds closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "A sensor activates when a worker passes, speeding gate closure. The operator does not know this and acts to close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "goal",
+            "kind": "PURPOSE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The worker triggers a sensor that speeds closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "A sensor activates when a worker passes, speeding gate closure. The operator does not know this and acts to close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "belief",
+            "kind": "BELIEF",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The worker triggers a sensor that speeds closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "A sensor activates when a worker passes, speeding gate closure. The operator does not know this and acts to close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "use",
+            "kind": "PURPOSIVE_USE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The worker triggers a sensor that speeds closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "A sensor activates when a worker passes, speeding gate closure. The operator does not know this and acts to close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "intended",
+            "kind": "INTENDED_USE",
+            "interpretation_mode": "ATTRIBUTED_INFERENCE",
+            "text": "The operator uses the worker intentionally.",
+            "supports": [],
+            "condition_ids": []
+          }
+        ],
+        "bridges": [
+          {
+            "id": "b0",
+            "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+            "premise_ids": [
+              "physical",
+              "goal",
+              "belief",
+              "use"
+            ],
+            "assumption_ids": [],
+            "conclusion_id": "intended",
+            "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "outcome": "operate the gate",
+            "provenance": [
+              {
+                "excerpt": "A sensor activates when a worker passes, speeding gate closure. The operator does not know this and acts to close the gate."
+              }
+            ]
+          }
+        }
+      ],
+      "review_finding_expected": true,
+      "clean_error_expected": false,
+      "lesson": "Relabeling the same causal text as belief/use should not establish those claims.",
+      "findings": [],
+      "exception_type": null,
+      "expectation_met": false
+    },
+    {
+      "id": "negated_practical_premises",
+      "mapping": {
+        "claims": [
+          {
+            "id": "physical",
+            "kind": "PHYSICAL_CONTRIBUTION",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The attempted mechanism does not close the gate.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator does not believe Jo can help and does not employ Jo for the rescue; Jo merely happens to be present."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "goal",
+            "kind": "PURPOSE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator seeks gate closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator does not believe Jo can help and does not employ Jo for the rescue; Jo merely happens to be present."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "belief",
+            "kind": "BELIEF",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator does not believe employing Jo will help.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator does not believe Jo can help and does not employ Jo for the rescue; Jo merely happens to be present."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "use",
+            "kind": "PURPOSIVE_USE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator does not employ Jo for the rescue.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator does not believe Jo can help and does not employ Jo for the rescue; Jo merely happens to be present."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "intended",
+            "kind": "INTENDED_USE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "Jo is employed as a means within the stipulated practical reasoning.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator does not believe Jo can help and does not employ Jo for the rescue; Jo merely happens to be present."
+              }
+            ],
+            "condition_ids": []
+          }
+        ],
+        "bridges": [
+          {
+            "id": "b0",
+            "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+            "premise_ids": [
+              "physical",
+              "goal",
+              "belief",
+              "use"
+            ],
+            "assumption_ids": [],
+            "conclusion_id": "intended",
+            "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "outcome": "operate the gate",
+            "provenance": [
+              {
+                "excerpt": "The operator does not believe Jo can help and does not employ Jo for the rescue; Jo merely happens to be present."
+              }
+            ]
+          }
+        }
+      ],
+      "review_finding_expected": true,
+      "clean_error_expected": false,
+      "lesson": "BELIEF/USE kinds do not encode affirmative versus denied claims.",
+      "findings": [],
+      "exception_type": null,
+      "expectation_met": false
+    },
+    {
+      "id": "indirect_conditional_promotion",
+      "mapping": {
+        "claims": [
+          {
+            "id": "maxim",
+            "kind": "MAXIM",
+            "interpretation_mode": "CONDITIONAL",
+            "text": "Suppose the operator pursues rescue without relying on exposure.",
+            "supports": [],
+            "condition_ids": []
+          },
+          {
+            "id": "goal",
+            "kind": "PURPOSE",
+            "interpretation_mode": "ATTRIBUTED_INFERENCE",
+            "text": "Rescue is the proposed end.",
+            "supports": [],
+            "condition_ids": [
+              "maxim"
+            ]
+          },
+          {
+            "id": "belief",
+            "kind": "BELIEF",
+            "interpretation_mode": "ATTRIBUTED_INFERENCE",
+            "text": "The proposed policy does not rely on exposing staff.",
+            "supports": [],
+            "condition_ids": [
+              "maxim"
+            ]
+          },
+          {
+            "id": "use",
+            "kind": "PURPOSIVE_USE",
+            "interpretation_mode": "ATTRIBUTED_INFERENCE",
+            "text": "No person is employed through exposure in this proposed policy.",
+            "supports": [],
+            "condition_ids": [
+              "maxim"
+            ]
+          },
+          {
+            "id": "intended",
+            "kind": "INTENDED_USE",
+            "interpretation_mode": "ATTRIBUTED_INFERENCE",
+            "text": "The absence of instrumental employment is conditional on that policy.",
+            "supports": [],
+            "condition_ids": []
+          }
+        ],
+        "bridges": [
+          {
+            "id": "b0",
+            "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+            "premise_ids": [
+              "goal",
+              "belief",
+              "use"
+            ],
+            "assumption_ids": [],
+            "conclusion_id": "intended",
+            "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "outcome": "operate the gate",
+            "provenance": [
+              {
+                "excerpt": "The gate is opened to reach a trapped worker; fumes may expose others. The operator's complete policy is not stated."
+              }
+            ]
+          }
+        }
+      ],
+      "review_finding_expected": true,
+      "clean_error_expected": false,
+      "lesson": "Conditional ancestry must propagate through intermediate claims.",
+      "findings": [
+        {
+          "code": "CONDITIONAL_SCOPE_NOT_PRESERVED",
+          "bridge_id": "b0",
+          "conclusion_id": "intended",
+          "status": "REVIEW_REQUESTED"
+        }
+      ],
+      "exception_type": null,
+      "expectation_met": true
+    },
+    {
+      "id": "matching_quote_overclaim",
+      "mapping": {
+        "claims": [
+          {
+            "id": "source",
+            "kind": "PHYSICAL_CONTRIBUTION",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The source describes opening the door.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "purpose",
+            "kind": "PURPOSE",
+            "interpretation_mode": "ATTRIBUTED_INFERENCE",
+            "text": "Rescue is the sole actual purpose.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+              }
+            ],
+            "condition_ids": []
+          }
+        ],
+        "bridges": [
+          {
+            "id": "b0",
+            "rule_id": "SOURCE_TO_INTERPRETATION",
+            "premise_ids": [
+              "source"
+            ],
+            "assumption_ids": [],
+            "conclusion_id": "purpose",
+            "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "outcome": "operate the gate",
+            "provenance": [
+              {
+                "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+              }
+            ]
+          }
+        }
+      ],
+      "review_finding_expected": true,
+      "clean_error_expected": false,
+      "lesson": "An exact quote supporting purpose does not establish sole purpose.",
+      "findings": [],
+      "exception_type": null,
+      "expectation_met": false
+    },
+    {
+      "id": "unknown_is_not_asserted_promotion",
+      "mapping": {
+        "claims": [
+          {
+            "id": "maxim",
+            "kind": "MAXIM",
+            "interpretation_mode": "CONDITIONAL",
+            "text": "Suppose the operator pursues rescue without relying on exposure.",
+            "supports": [],
+            "condition_ids": []
+          },
+          {
+            "id": "goal",
+            "kind": "PURPOSE",
+            "interpretation_mode": "CONDITIONAL",
+            "text": "Rescue is the proposed end.",
+            "supports": [],
+            "condition_ids": [
+              "maxim"
+            ]
+          },
+          {
+            "id": "belief",
+            "kind": "BELIEF",
+            "interpretation_mode": "CONDITIONAL",
+            "text": "The proposed policy does not rely on exposing staff.",
+            "supports": [],
+            "condition_ids": [
+              "maxim"
+            ]
+          },
+          {
+            "id": "use",
+            "kind": "PURPOSIVE_USE",
+            "interpretation_mode": "CONDITIONAL",
+            "text": "No person is employed through exposure in this proposed policy.",
+            "supports": [],
+            "condition_ids": [
+              "maxim"
+            ]
+          },
+          {
+            "id": "intended",
+            "kind": "INTENDED_USE",
+            "interpretation_mode": "UNKNOWN",
+            "text": "The absence of instrumental employment is conditional on that policy.",
+            "supports": [],
+            "condition_ids": [
+              "maxim"
+            ]
+          }
+        ],
+        "bridges": [
+          {
+            "id": "b0",
+            "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+            "premise_ids": [
+              "goal",
+              "belief",
+              "use"
+            ],
+            "assumption_ids": [
+              "maxim"
+            ],
+            "conclusion_id": "intended",
+            "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "outcome": "operate the gate",
+            "provenance": [
+              {
+                "excerpt": "The gate is opened to reach a trapped worker; fumes may expose others. The operator's complete policy is not stated."
+              }
+            ]
+          }
+        }
+      ],
+      "review_finding_expected": false,
+      "clean_error_expected": false,
+      "lesson": "An explicitly unknown conclusion is not an asserted unqualified conclusion.",
+      "findings": [],
+      "exception_type": null,
+      "expectation_met": true
+    },
+    {
+      "id": "malformed_null_text",
+      "mapping": {
+        "claims": [
+          {
+            "id": "physical",
+            "kind": "PHYSICAL_CONTRIBUTION",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": null,
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "goal",
+            "kind": "PURPOSE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator seeks gate closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "belief",
+            "kind": "BELIEF",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator believes employing Jo will achieve closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "use",
+            "kind": "PURPOSIVE_USE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator employs Jo for closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "intended",
+            "kind": "INTENDED_USE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "Jo is employed as a means within the stipulated practical reasoning.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          }
+        ],
+        "bridges": [
+          {
+            "id": "b0",
+            "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+            "premise_ids": [
+              "physical",
+              "goal",
+              "belief",
+              "use"
+            ],
+            "assumption_ids": [],
+            "conclusion_id": "intended",
+            "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "outcome": "operate the gate",
+            "provenance": [
+              {
+                "excerpt": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ]
+          }
+        }
+      ],
+      "review_finding_expected": false,
+      "clean_error_expected": true,
+      "lesson": "Malformed input should give a controlled contract error.",
+      "findings": [],
+      "exception_type": "ValueError",
+      "error": "Malformed argument record: 'NoneType' object has no attribute 'strip'",
+      "expectation_met": true
+    },
+    {
+      "id": "dangling_reference_control",
+      "mapping": {
+        "claims": [
+          {
+            "id": "physical",
+            "kind": "PHYSICAL_CONTRIBUTION",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The attempted mechanism does not close the gate.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "goal",
+            "kind": "PURPOSE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator seeks gate closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "belief",
+            "kind": "BELIEF",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator believes employing Jo will achieve closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "use",
+            "kind": "PURPOSIVE_USE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator employs Jo for closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "intended",
+            "kind": "INTENDED_USE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "Jo is employed as a means within the stipulated practical reasoning.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          }
+        ],
+        "bridges": [
+          {
+            "id": "b0",
+            "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+            "premise_ids": [
+              "missing"
+            ],
+            "assumption_ids": [],
+            "conclusion_id": "intended",
+            "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "outcome": "operate the gate",
+            "provenance": [
+              {
+                "excerpt": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ]
+          }
+        }
+      ],
+      "review_finding_expected": false,
+      "clean_error_expected": true,
+      "lesson": "Dangling references should be rejected.",
+      "findings": [],
+      "exception_type": "ValueError",
+      "error": "Dangling bridge premise or condition",
+      "expectation_met": true
+    },
+    {
+      "id": "forged_quote_control",
+      "mapping": {
+        "claims": [
+          {
+            "id": "physical",
+            "kind": "PHYSICAL_CONTRIBUTION",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The attempted mechanism does not close the gate.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "invented quotation"
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "goal",
+            "kind": "PURPOSE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator seeks gate closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "belief",
+            "kind": "BELIEF",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator believes employing Jo will achieve closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "use",
+            "kind": "PURPOSIVE_USE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator employs Jo for closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "intended",
+            "kind": "INTENDED_USE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "Jo is employed as a means within the stipulated practical reasoning.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          }
+        ],
+        "bridges": [
+          {
+            "id": "b0",
+            "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+            "premise_ids": [
+              "physical",
+              "goal",
+              "belief",
+              "use"
+            ],
+            "assumption_ids": [],
+            "conclusion_id": "intended",
+            "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "outcome": "operate the gate",
+            "provenance": [
+              {
+                "excerpt": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ]
+          }
+        }
+      ],
+      "review_finding_expected": false,
+      "clean_error_expected": true,
+      "lesson": "Fabricated quote text should be rejected.",
+      "findings": [],
+      "exception_type": "ValueError",
+      "error": "Support quote does not match evidence location",
+      "expectation_met": true
+    },
+    {
+      "id": "valid_conditional_control",
+      "mapping": {
+        "claims": [
+          {
+            "id": "maxim",
+            "kind": "MAXIM",
+            "interpretation_mode": "CONDITIONAL",
+            "text": "Suppose the operator pursues rescue without relying on exposure.",
+            "supports": [],
+            "condition_ids": []
+          },
+          {
+            "id": "goal",
+            "kind": "PURPOSE",
+            "interpretation_mode": "CONDITIONAL",
+            "text": "Rescue is the proposed end.",
+            "supports": [],
+            "condition_ids": [
+              "maxim"
+            ]
+          },
+          {
+            "id": "belief",
+            "kind": "BELIEF",
+            "interpretation_mode": "CONDITIONAL",
+            "text": "The proposed policy does not rely on exposing staff.",
+            "supports": [],
+            "condition_ids": [
+              "maxim"
+            ]
+          },
+          {
+            "id": "use",
+            "kind": "PURPOSIVE_USE",
+            "interpretation_mode": "CONDITIONAL",
+            "text": "No person is employed through exposure in this proposed policy.",
+            "supports": [],
+            "condition_ids": [
+              "maxim"
+            ]
+          },
+          {
+            "id": "intended",
+            "kind": "INTENDED_USE",
+            "interpretation_mode": "CONDITIONAL",
+            "text": "The absence of instrumental employment is conditional on that policy.",
+            "supports": [],
+            "condition_ids": [
+              "maxim"
+            ]
+          }
+        ],
+        "bridges": [
+          {
+            "id": "b0",
+            "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+            "premise_ids": [
+              "goal",
+              "belief",
+              "use"
+            ],
+            "assumption_ids": [
+              "maxim"
+            ],
+            "conclusion_id": "intended",
+            "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "outcome": "operate the gate",
+            "provenance": [
+              {
+                "excerpt": "The gate is opened to reach a trapped worker; fumes may expose others. The operator's complete policy is not stated."
+              }
+            ]
+          }
+        }
+      ],
+      "review_finding_expected": false,
+      "clean_error_expected": false,
+      "lesson": "Conditional candidates should remain available.",
+      "findings": [],
+      "exception_type": null,
+      "expectation_met": true
+    },
+    {
+      "id": "valid_mistaken_belief_control",
+      "mapping": {
+        "claims": [
+          {
+            "id": "physical",
+            "kind": "PHYSICAL_CONTRIBUTION",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The attempted mechanism does not close the gate.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "goal",
+            "kind": "PURPOSE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator seeks gate closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "belief",
+            "kind": "BELIEF",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator believes employing Jo will achieve closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "use",
+            "kind": "PURPOSIVE_USE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The operator employs Jo for closure.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "intended",
+            "kind": "INTENDED_USE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "Jo is employed as a means within the stipulated practical reasoning.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ],
+            "condition_ids": []
+          }
+        ],
+        "bridges": [
+          {
+            "id": "b0",
+            "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+            "premise_ids": [
+              "physical",
+              "goal",
+              "belief",
+              "use"
+            ],
+            "assumption_ids": [],
+            "conclusion_id": "intended",
+            "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+          }
+        ]
+      },
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "outcome": "operate the gate",
+            "provenance": [
+              {
+                "excerpt": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+              }
+            ]
+          }
+        }
+      ],
+      "review_finding_expected": false,
+      "clean_error_expected": false,
+      "lesson": "Failed efficacy must not erase stipulated practical reasoning.",
+      "findings": [],
+      "exception_type": null,
+      "expectation_met": true
+    }
+  ],
+  "expectations_met": 7,
+  "gaps": [
+    "kind_laundering",
+    "negated_practical_premises",
+    "matching_quote_overclaim"
+  ]
+}

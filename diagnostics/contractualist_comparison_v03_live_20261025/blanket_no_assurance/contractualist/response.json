@@ -1,0 +1,351 @@
+{
+  "persons": [
+    {
+      "id": "Rowan",
+      "label": "Rowan (stranded hiker)",
+      "source_quotes": [
+        "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+      ]
+    },
+    {
+      "id": "Sasha",
+      "label": "Sasha (stranded hiker)",
+      "source_quotes": [
+        "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+      ]
+    },
+    {
+      "id": "Ellis",
+      "label": "Ellis (rescuer)",
+      "source_quotes": [
+        "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+      ]
+    }
+  ],
+  "burdens": [
+    {
+      "id": "B1",
+      "person_id": "Rowan",
+      "description": "Risk of death from hypothermia"
+    },
+    {
+      "id": "B2",
+      "person_id": "Sasha",
+      "description": "Risk of death from hypothermia"
+    }
+  ],
+  "burden_positions": [
+    {
+      "burden_id": "B1",
+      "action_id": "A",
+      "status": "PRESENT",
+      "position": "Rowan faces a 20% chance of death (80% survival) if blanket goes to Rowan.",
+      "ground_handles": [
+        "FP1"
+      ]
+    },
+    {
+      "burden_id": "B1",
+      "action_id": "B",
+      "status": "PRESENT",
+      "position": "Rowan faces certain death (0% survival) if blanket goes to Sasha.",
+      "ground_handles": [
+        "FP2"
+      ]
+    },
+    {
+      "burden_id": "B2",
+      "action_id": "A",
+      "status": "PRESENT",
+      "position": "Sasha faces certain death (0% survival) if blanket goes to Rowan.",
+      "ground_handles": [
+        "FP3"
+      ]
+    },
+    {
+      "burden_id": "B2",
+      "action_id": "B",
+      "status": "PRESENT",
+      "position": "Sasha faces a 40% chance of death (60% survival) if blanket goes to Sasha.",
+      "ground_handles": [
+        "FP4"
+      ]
+    }
+  ],
+  "principles": [
+    {
+      "id": "P_highChance",
+      "statement_handle": "PR1",
+      "action_ids": [
+        "A"
+      ]
+    },
+    {
+      "id": "P_lowerChance",
+      "statement_handle": "PR2",
+      "action_ids": [
+        "B"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+        }
+      ],
+      "handle": "FP1"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "If Ellis gives the blanket to Sasha, Rowan will die.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "The hiker who does not get the blanket will die."
+        }
+      ],
+      "handle": "FP2"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "If Ellis gives the blanket to Rowan, Sasha will die.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "The hiker who does not get the blanket will die."
+        }
+      ],
+      "handle": "FP3"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+        }
+      ],
+      "handle": "FP4"
+    },
+    {
+      "kind": "PRINCIPLE",
+      "text": "When only one person can receive a life-saving resource, it should be given to the person with the higher probability of survival.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "PR1"
+    },
+    {
+      "kind": "PRINCIPLE",
+      "text": "When only one person can receive a life-saving resource, it should be given to the person whose prospects will improve the most (higher absolute gain), even if their final chance is lower.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "PR2"
+    },
+    {
+      "kind": "NORMATIVE_PREMISE",
+      "text": "A complaint is stronger when it involves a larger loss in probability of survival compared with what that person could have under an alternative principle.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "NP1"
+    },
+    {
+      "kind": "NORMATIVE_JUDGMENT",
+      "text": "Rowan’s complaint against principle PR2 (blanket to Sasha) is stronger than Sasha’s complaint against principle PR1 (blanket to Rowan).",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "NJ1"
+    },
+    {
+      "kind": "NORMATIVE_JUDGMENT",
+      "text": "Principle PR1 is not reasonably rejectable; principle PR2 is reasonably rejectable.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "NJ2"
+    },
+    {
+      "kind": "NORMATIVE_JUDGMENT",
+      "text": "Action A (give blanket to Rowan) is defensible under the least reasonably rejectable principle.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "CONC"
+    }
+  ],
+  "supports": [
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "FP1",
+      "explanation": "/exact quotation/"
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "FP2",
+      "explanation": "/exact quotation/"
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "FP3",
+      "explanation": "/exact quotation/"
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "FP4",
+      "explanation": "/exact quotation/"
+    },
+    {
+      "operation": "ASSUMPTION",
+      "inputs": [],
+      "output": "NP1",
+      "explanation": "Contractualist yardstick for reasonable rejection"
+    },
+    {
+      "operation": "NORM_APPLICATION",
+      "inputs": [
+        "FP1",
+        "FP2",
+        "FP3",
+        "FP4",
+        "NP1"
+      ],
+      "output": "NJ1",
+      "explanation": "Compare probability losses: Rowan loses 80% if PR2 chosen; Sasha loses 60% if PR1 chosen."
+    },
+    {
+      "operation": "NORM_APPLICATION",
+      "inputs": [
+        "NJ1"
+      ],
+      "output": "NJ2",
+      "explanation": "If Rowan’s complaint is stronger, PR2 is reasonably rejectable, PR1 survives."
+    },
+    {
+      "operation": "NORM_APPLICATION",
+      "inputs": [
+        "NJ2"
+      ],
+      "output": "CONC",
+      "explanation": "Action A follows the non-rejectable principle."
+    }
+  ],
+  "reasons": [
+    {
+      "id": "R_Rowan_against_B",
+      "person_id": "Rowan",
+      "principle_id": "P_lowerChance",
+      "action_id": "B",
+      "stance": "AGAINST",
+      "value": "avoiding certain death",
+      "conclusion_handle": "NJ1",
+      "ground_handles": [
+        "FP1",
+        "FP2"
+      ],
+      "warrant_handles": [
+        "NP1"
+      ],
+      "generic_basis": "Would lose an 80% survival chance."
+    },
+    {
+      "id": "R_Sasha_against_A",
+      "person_id": "Sasha",
+      "principle_id": "P_highChance",
+      "action_id": "A",
+      "stance": "AGAINST",
+      "value": "avoiding certain death",
+      "conclusion_handle": "NJ1",
+      "ground_handles": [
+        "FP3",
+        "FP4"
+      ],
+      "warrant_handles": [
+        "NP1"
+      ],
+      "generic_basis": "Would lose a 60% survival chance."
+    }
+  ],
+  "comparisons": [
+    {
+      "id": "C1",
+      "from_action_id": "B",
+      "to_action_id": "A",
+      "status": "FAVORS_TO",
+      "relieved_burden_ids": [],
+      "introduced_burden_ids": [],
+      "retained_burden_ids": [
+        "B1",
+        "B2"
+      ],
+      "reason_ids": [
+        "R_Rowan_against_B",
+        "R_Sasha_against_A"
+      ],
+      "judgment_handle": "NJ1",
+      "explanation": "Rowan’s stronger complaint shifts comparison to A."
+    }
+  ],
+  "challenges": [],
+  "action_assessments": [
+    {
+      "action_id": "A",
+      "conclusion_handle": "CONC",
+      "assessment": "DEFENSIBLE"
+    },
+    {
+      "action_id": "B",
+      "conclusion_handle": "NJ2",
+      "assessment": "REJECTED"
+    }
+  ],
+  "recommendation_action_id": "A",
+  "recommendation_status": "UNIQUE_DEFENSIBLE",
+  "recommendation_comparison_ids": [
+    "C1"
+  ],
+  "remaining_complaint_ids": [
+    "R_Sasha_against_A"
+  ],
+  "conclusion": "Giving the blanket to Rowan (Action A) is uniquely defensible because the strongest reasonable rejection falls on the alternative principle that would give the blanket to Sasha.",
+  "strongest_objection": "Sasha reasonably objects that she faces certain death under Action A while she would have a 60 % survival chance under Action B.",
+  "answer_to_objection": "Rowan’s symmetrical objection under Action B is even stronger, since he would lose an 80 % survival chance, making Sasha’s objection insufficient to overturn the comparison.",
+  "reversal_condition": "If the survival probabilities were equal, or Sasha’s survival advantage exceeded Rowan’s lost chance (e.g., 90 % vs 50 %), Sasha’s complaint could become strongest, reversing the recommendation.",
+  "residual_disagreement": [
+    "Whether a 20 % difference in lost survival chance is enough to make one complaint decisively stronger remains open to reasonable dispute."
+  ]
+}

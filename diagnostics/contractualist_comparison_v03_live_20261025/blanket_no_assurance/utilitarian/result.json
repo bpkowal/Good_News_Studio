@@ -1,0 +1,871 @@
+{
+  "version": "neutral-framework-pilot/0.2",
+  "framework": "utilitarian",
+  "raw_response": {
+    "persons": [
+      {
+        "id": "P1",
+        "label": "Rowan",
+        "source_quotes": [
+          "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+        ]
+      },
+      {
+        "id": "P2",
+        "label": "Sasha",
+        "source_quotes": [
+          "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+        ]
+      }
+    ],
+    "burdens": [
+      {
+        "id": "B1",
+        "person_id": "P1",
+        "description": "Risk of death from hypothermia"
+      },
+      {
+        "id": "B2",
+        "person_id": "P2",
+        "description": "Risk of death from hypothermia"
+      }
+    ],
+    "burden_positions": [
+      {
+        "burden_id": "B1",
+        "action_id": "A",
+        "status": "PRESENT",
+        "position": "20 % chance of death remains for Rowan",
+        "ground_handles": [
+          "S1"
+        ]
+      },
+      {
+        "burden_id": "B2",
+        "action_id": "A",
+        "status": "PRESENT",
+        "position": "100 % chance of death for Sasha",
+        "ground_handles": [
+          "S3"
+        ]
+      },
+      {
+        "burden_id": "B1",
+        "action_id": "B",
+        "status": "PRESENT",
+        "position": "100 % chance of death for Rowan",
+        "ground_handles": [
+          "S2"
+        ]
+      },
+      {
+        "burden_id": "B2",
+        "action_id": "B",
+        "status": "PRESENT",
+        "position": "40 % chance of death remains for Sasha",
+        "ground_handles": [
+          "S4"
+        ]
+      }
+    ],
+    "principles": [
+      {
+        "id": "PR1",
+        "statement_handle": "N1",
+        "action_ids": [
+          "A",
+          "B"
+        ]
+      }
+    ],
+    "statements": [
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+          }
+        ],
+        "handle": "S1"
+      },
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Rowan, the hiker who does not get the blanket (Sasha) will die.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "The hiker who does not get the blanket will die."
+          }
+        ],
+        "handle": "S3"
+      },
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+          }
+        ],
+        "handle": "S4"
+      },
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Sasha, the hiker who does not get the blanket (Rowan) will die.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "The hiker who does not get the blanket will die."
+          }
+        ],
+        "handle": "S2"
+      },
+      {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "Ellis morally ought to choose the option with the higher expected number of survivors.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "N1"
+      },
+      {
+        "kind": "EVALUATIVE_COMPARISON",
+        "text": "Action A yields an expected 0.8 survivors; action B yields an expected 0.6 survivors.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "C1"
+      }
+    ],
+    "supports": [
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S1",
+        "explanation": "/"
+      },
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S3",
+        "explanation": "/"
+      },
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S4",
+        "explanation": "/"
+      },
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S2",
+        "explanation": "/"
+      },
+      {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "N1",
+        "explanation": "Utilitarian maximizing expected survival"
+      },
+      {
+        "operation": "CALCULATION",
+        "inputs": [
+          "S1",
+          "S3"
+        ],
+        "output": "C1",
+        "explanation": "0.8 expected survivor when Rowan gets blanket"
+      },
+      {
+        "operation": "CALCULATION",
+        "inputs": [
+          "S4",
+          "S2"
+        ],
+        "output": "C1",
+        "explanation": "0.6 expected survivor when Sasha gets blanket"
+      },
+      {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "N1",
+          "C1"
+        ],
+        "output": "J1",
+        "explanation": "Higher expected survivors makes A preferable"
+      }
+    ],
+    "reasons": [
+      {
+        "id": "R1",
+        "person_id": null,
+        "principle_id": "PR1",
+        "action_id": "A",
+        "stance": "FOR",
+        "value": "Higher expected survival (0.8)",
+        "conclusion_handle": "J1",
+        "ground_handles": [
+          "C1"
+        ],
+        "warrant_handles": [
+          "N1"
+        ],
+        "generic_basis": "aggregate welfare"
+      }
+    ],
+    "comparisons": [
+      {
+        "id": "COMP1",
+        "from_action_id": "A",
+        "to_action_id": "B",
+        "status": "FAVORS_FROM",
+        "relieved_burden_ids": [],
+        "introduced_burden_ids": [],
+        "retained_burden_ids": [
+          "B1",
+          "B2"
+        ],
+        "reason_ids": [
+          "R1"
+        ],
+        "judgment_handle": "J1",
+        "explanation": "0.8 expected survivors vs 0.6"
+      }
+    ],
+    "challenges": [
+      {
+        "id": "O1",
+        "kind": "REBUTTING",
+        "target_kind": "STATEMENT",
+        "target_id": "N1",
+        "challenge_handle": "O1H",
+        "response_handle": "O1R",
+        "status": "ANSWERED"
+      }
+    ],
+    "action_assessments": [
+      {
+        "action_id": "A",
+        "conclusion_handle": "J1",
+        "assessment": "DEFENSIBLE"
+      },
+      {
+        "action_id": "B",
+        "conclusion_handle": "J1",
+        "assessment": "REJECTED"
+      }
+    ],
+    "recommendation_action_id": "A",
+    "recommendation_status": "UNIQUE_DEFENSIBLE",
+    "recommendation_comparison_ids": [
+      "COMP1"
+    ],
+    "remaining_complaint_ids": [],
+    "conclusion": "Giving the blanket to Rowan uniquely maximizes expected survival and is therefore the utilitarian choice.",
+    "strongest_objection": "Aggregation is unfair because it ignores Sasha’s greater need once Rowan already has a higher chance; fairness demands an equal chance, so Ellis should flip a coin.",
+    "answer_to_objection": "Under utilitarianism, equal chances are not an independent moral good; expected welfare dominates unless giving Sasha an equal chance would increase overall welfare, which it does not. Hence maximizing 0.8 expected survivors remains preferable.",
+    "reversal_condition": "If new evidence showed Sasha’s survival probability with the blanket exceeded Rowan’s (e.g., 90 %), utilitarian calculation would reverse and favor giving the blanket to Sasha.",
+    "residual_disagreement": []
+  },
+  "source_text_sha256": "e1a856a6df3cf57fa227cd016a4a0d3c6b3c95278ab433c7db2828b0c9d9c74f",
+  "source_status": "FROZEN_TEXT_NOT_ADMITTED_WORLD",
+  "operative": false,
+  "world_state_authority": "NONE",
+  "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+  "paper_attribution": {
+    "authors": [
+      "Luis Marcos-Vidal",
+      "Giulio Antonio Abbo",
+      "Tony Belpaeme"
+    ],
+    "title": "A Contractualist Argumentation Framework for Moral Decision-Making",
+    "version": "arXiv:2608.01937v1",
+    "url": "https://arxiv.org/html/2608.01937v1",
+    "used_sections": [
+      "5.1",
+      "5.2",
+      "5.3"
+    ],
+    "formal_semantics_implemented": false
+  },
+  "instruction_version": "argument-framework-instructions/0.3",
+  "issues": [
+    {
+      "kind": "CONSTRUCTION",
+      "path": "supports/7",
+      "proposal": {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "N1",
+          "C1"
+        ],
+        "output": "J1",
+        "explanation": "Higher expected survivors makes A preferable"
+      },
+      "error": "Dangling support reference"
+    },
+    {
+      "kind": "PRINCIPLE_KIND_MISMATCH",
+      "record_id": "PR1"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "R1"
+    },
+    {
+      "kind": "DETACHED_REASON_SUPPORT",
+      "record_id": "R1"
+    },
+    {
+      "kind": "DETACHED_REASON_SUPPORT",
+      "record_id": "R1"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "COMP1"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "O1"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "O1"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "A"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "B"
+    }
+  ],
+  "argument": {
+    "version": "argument-support/0.1",
+    "world_sha256": "e1a856a6df3cf57fa227cd016a4a0d3c6b3c95278ab433c7db2828b0c9d9c74f",
+    "evidence": [
+      {
+        "ref": "SCENE",
+        "kind": "EXACT_SCENARIO",
+        "value": "A mountain rescue shelter has one thermal blanket. Rescuer Ellis can give the blanket to Rowan or Sasha, but not both. Both hikers are stranded in the cold, and no other rescue or warming equipment will arrive in time. If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival. If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival. The hiker who does not get the blanket will die. Ellis has made no promise or assurance to either hiker about receiving the blanket. Whom should Ellis give the blanket to?"
+      }
+    ],
+    "issue_id": "blanket_no_assurance:utilitarian",
+    "statements": {
+      "STATEMENT:dc73f024d9109607eb4fa315": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:20d2d07432f80463015f5eb2": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Rowan, the hiker who does not get the blanket (Sasha) will die.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "The hiker who does not get the blanket will die.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "The hiker who does not get the blanket will die."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:92cdb7736342cdadc8c69ce3": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:f93476b5ae4f8d697f6540ba": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Sasha, the hiker who does not get the blanket (Rowan) will die.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "The hiker who does not get the blanket will die.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "The hiker who does not get the blanket will die."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:18700d278e035c0251555586": {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "Ellis morally ought to choose the option with the higher expected number of survivors.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:133c708a32b37837f74242f8": {
+        "kind": "EVALUATIVE_COMPARISON",
+        "text": "Action A yields an expected 0.8 survivors; action B yields an expected 0.6 survivors.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      }
+    },
+    "handles": {
+      "S1": "STATEMENT:dc73f024d9109607eb4fa315",
+      "S3": "STATEMENT:20d2d07432f80463015f5eb2",
+      "S4": "STATEMENT:92cdb7736342cdadc8c69ce3",
+      "S2": "STATEMENT:f93476b5ae4f8d697f6540ba",
+      "N1": "STATEMENT:18700d278e035c0251555586",
+      "C1": "STATEMENT:133c708a32b37837f74242f8"
+    },
+    "routes": {
+      "SUPPORT:ddc0c9b9b4c361b2e27368a1": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:dc73f024d9109607eb4fa315",
+        "explanation": "/"
+      },
+      "SUPPORT:03961426b7f3cfe8ab1336e0": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:20d2d07432f80463015f5eb2",
+        "explanation": "/"
+      },
+      "SUPPORT:d71f82860a8a1eaf939565e5": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:92cdb7736342cdadc8c69ce3",
+        "explanation": "/"
+      },
+      "SUPPORT:ce65276e2f64806e77d0cfa1": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:f93476b5ae4f8d697f6540ba",
+        "explanation": "/"
+      },
+      "SUPPORT:0f0294bb96545bae3f42becd": {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "STATEMENT:18700d278e035c0251555586",
+        "explanation": "Utilitarian maximizing expected survival"
+      },
+      "SUPPORT:4dbff60eda326f984efa081c": {
+        "operation": "CALCULATION",
+        "inputs": [
+          "STATEMENT:dc73f024d9109607eb4fa315",
+          "STATEMENT:20d2d07432f80463015f5eb2"
+        ],
+        "output": "STATEMENT:133c708a32b37837f74242f8",
+        "explanation": "0.8 expected survivor when Rowan gets blanket"
+      },
+      "SUPPORT:a8bf357e0fc55856d51598ef": {
+        "operation": "CALCULATION",
+        "inputs": [
+          "STATEMENT:92cdb7736342cdadc8c69ce3",
+          "STATEMENT:f93476b5ae4f8d697f6540ba"
+        ],
+        "output": "STATEMENT:133c708a32b37837f74242f8",
+        "explanation": "0.6 expected survivor when Sasha gets blanket"
+      }
+    },
+    "events": [
+      {
+        "sequence": 1,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:dc73f024d9109607eb4fa315"
+        },
+        "parent_sha256": "c45fbcce7be74dae8edf031dec7dfceeee48a7959e5f667083dd4c554a3a845a",
+        "sha256": "439b5ad19417969d70dc0a81d745f807e7f18ed647b3e0255b7b2808536985c6"
+      },
+      {
+        "sequence": 2,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:20d2d07432f80463015f5eb2"
+        },
+        "parent_sha256": "439b5ad19417969d70dc0a81d745f807e7f18ed647b3e0255b7b2808536985c6",
+        "sha256": "71c33899a63c2f2bb1013bfca193b6dc38de38dc14ac186b0c5a2a2a4563eb4f"
+      },
+      {
+        "sequence": 3,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:92cdb7736342cdadc8c69ce3"
+        },
+        "parent_sha256": "71c33899a63c2f2bb1013bfca193b6dc38de38dc14ac186b0c5a2a2a4563eb4f",
+        "sha256": "7a0c157daeaa5c59187df97620bcccba1f7cb34ad4732c344fc9291d43364c0b"
+      },
+      {
+        "sequence": 4,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:f93476b5ae4f8d697f6540ba"
+        },
+        "parent_sha256": "7a0c157daeaa5c59187df97620bcccba1f7cb34ad4732c344fc9291d43364c0b",
+        "sha256": "03d09dcbecd880ac37565d4fbb11cbb4e36741875c43e527e2f82b5d4c482bd5"
+      },
+      {
+        "sequence": 5,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:18700d278e035c0251555586"
+        },
+        "parent_sha256": "03d09dcbecd880ac37565d4fbb11cbb4e36741875c43e527e2f82b5d4c482bd5",
+        "sha256": "22c8704058494d68b7faa681abd23f3c0c6505310749d7814365f4adc1a243f9"
+      },
+      {
+        "sequence": 6,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:133c708a32b37837f74242f8"
+        },
+        "parent_sha256": "22c8704058494d68b7faa681abd23f3c0c6505310749d7814365f4adc1a243f9",
+        "sha256": "e0d5003dda29f36da484fa1d71ea2e2860cde7d9feb0e89ff42ddab593258658"
+      },
+      {
+        "sequence": 7,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:ddc0c9b9b4c361b2e27368a1"
+        },
+        "parent_sha256": "e0d5003dda29f36da484fa1d71ea2e2860cde7d9feb0e89ff42ddab593258658",
+        "sha256": "2a8826f5016b36c8e76725b83c2292038f7d81b6c4b36cded05d7ea15f9ed70e"
+      },
+      {
+        "sequence": 8,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:03961426b7f3cfe8ab1336e0"
+        },
+        "parent_sha256": "2a8826f5016b36c8e76725b83c2292038f7d81b6c4b36cded05d7ea15f9ed70e",
+        "sha256": "c6b8d534fa81fa70b2f4d9e7ac148c241c9a6d36fd84797be02c385c10e4da94"
+      },
+      {
+        "sequence": 9,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:d71f82860a8a1eaf939565e5"
+        },
+        "parent_sha256": "c6b8d534fa81fa70b2f4d9e7ac148c241c9a6d36fd84797be02c385c10e4da94",
+        "sha256": "11e2ddd31dd911d6d783c0480a53a9b67eda37f4b745ee0fc91560b190808547"
+      },
+      {
+        "sequence": 10,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:ce65276e2f64806e77d0cfa1"
+        },
+        "parent_sha256": "11e2ddd31dd911d6d783c0480a53a9b67eda37f4b745ee0fc91560b190808547",
+        "sha256": "426f36788ae63e9b5c989a20984bcd415d0e83864fc796be3761cf18c804de54"
+      },
+      {
+        "sequence": 11,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:0f0294bb96545bae3f42becd"
+        },
+        "parent_sha256": "426f36788ae63e9b5c989a20984bcd415d0e83864fc796be3761cf18c804de54",
+        "sha256": "bf677a53112d4df6b76749e389f8683b097e3a56d237a84961b3769681c47011"
+      },
+      {
+        "sequence": 12,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:4dbff60eda326f984efa081c"
+        },
+        "parent_sha256": "bf677a53112d4df6b76749e389f8683b097e3a56d237a84961b3769681c47011",
+        "sha256": "839c7a0df5795ecdf4e1f8ba1197d61037e2cc3412a388ca1476c946ece57ea9"
+      },
+      {
+        "sequence": 13,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:a8bf357e0fc55856d51598ef"
+        },
+        "parent_sha256": "839c7a0df5795ecdf4e1f8ba1197d61037e2cc3412a388ca1476c946ece57ea9",
+        "sha256": "67b047a7fcd2084907b4638aabf687db2969d61e56dac0d542e726352d0bcf54"
+      }
+    ],
+    "operative": false,
+    "world_state_authority": "NONE",
+    "construction_problems": [
+      {
+        "path": "supports/7",
+        "proposal": {
+          "operation": "NORM_APPLICATION",
+          "inputs": [
+            "N1",
+            "C1"
+          ],
+          "output": "J1",
+          "explanation": "Higher expected survivors makes A preferable"
+        },
+        "error": "Dangling support reference"
+      }
+    ]
+  },
+  "view": {
+    "statements": {
+      "STATEMENT:dc73f024d9109607eb4fa315": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:dc73f024d9109607eb4fa315",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:20d2d07432f80463015f5eb2": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Rowan, the hiker who does not get the blanket (Sasha) will die.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "The hiker who does not get the blanket will die.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "The hiker who does not get the blanket will die."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:20d2d07432f80463015f5eb2",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:92cdb7736342cdadc8c69ce3": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:92cdb7736342cdadc8c69ce3",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:f93476b5ae4f8d697f6540ba": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Sasha, the hiker who does not get the blanket (Rowan) will die.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "The hiker who does not get the blanket will die.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "The hiker who does not get the blanket will die."
+            },
+            "resolved_value_sha256": "0ff26b23fddf6eb1ad4aefb52bae98714d4b70ffd3a42401a897936e0853f0a8",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:f93476b5ae4f8d697f6540ba",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:18700d278e035c0251555586": {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "Ellis morally ought to choose the option with the higher expected number of survivors.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:18700d278e035c0251555586",
+        "lifecycle": "ACTIVE",
+        "support_status": "CONDITIONAL",
+        "effective_hypotheses": [
+          "STATEMENT:18700d278e035c0251555586"
+        ]
+      },
+      "STATEMENT:133c708a32b37837f74242f8": {
+        "kind": "EVALUATIVE_COMPARISON",
+        "text": "Action A yields an expected 0.8 survivors; action B yields an expected 0.6 survivors.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:133c708a32b37837f74242f8",
+        "lifecycle": "ACTIVE",
+        "support_status": "REQUIRES_REASSESSMENT",
+        "effective_hypotheses": []
+      }
+    },
+    "support_routes": {
+      "SUPPORT:ddc0c9b9b4c361b2e27368a1": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:03961426b7f3cfe8ab1336e0": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:d71f82860a8a1eaf939565e5": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:ce65276e2f64806e77d0cfa1": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:0f0294bb96545bae3f42becd": {
+        "status": "CONDITIONAL",
+        "issues": [],
+        "effective_hypotheses": [
+          "STATEMENT:18700d278e035c0251555586"
+        ]
+      },
+      "SUPPORT:4dbff60eda326f984efa081c": {
+        "status": "REQUIRES_REASSESSMENT",
+        "issues": [
+          "PREMISE_REQUIRES_REASSESSMENT",
+          "NUMERIC_VERIFIER_REQUIRED"
+        ],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:a8bf357e0fc55856d51598ef": {
+        "status": "REQUIRES_REASSESSMENT",
+        "issues": [
+          "PREMISE_REQUIRES_REASSESSMENT",
+          "NUMERIC_VERIFIER_REQUIRED"
+        ],
+        "effective_hypotheses": []
+      }
+    },
+    "active_statement_ids": [
+      "STATEMENT:dc73f024d9109607eb4fa315",
+      "STATEMENT:20d2d07432f80463015f5eb2",
+      "STATEMENT:92cdb7736342cdadc8c69ce3",
+      "STATEMENT:f93476b5ae4f8d697f6540ba",
+      "STATEMENT:18700d278e035c0251555586",
+      "STATEMENT:133c708a32b37837f74242f8"
+    ],
+    "operative": false,
+    "semantic_support": "ATTRIBUTED_ASSESSMENTS_NOT_AUTOMATIC_TRUTH"
+  },
+  "comparison_review": {
+    "version": "complaint-comparison/0.1",
+    "findings": [],
+    "status": "NO_STRUCTURAL_MISMATCH_FOUND",
+    "matrix_authority": "MODEL_PROPOSED_NOT_SOURCE_VERIFIED",
+    "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+    "moral_ranking_computed": false,
+    "operative": false,
+    "recommendation_status": "UNIQUE_DEFENSIBLE",
+    "remaining_complaint_ids": []
+  },
+  "status": "STAGED_PARTIAL_ARGUMENT"
+}

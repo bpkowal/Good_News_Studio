@@ -1,0 +1,433 @@
+{
+  "persons": [
+    {
+      "id": "P1",
+      "label": "Rowan",
+      "source_quotes": [
+        "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+      ]
+    },
+    {
+      "id": "P2",
+      "label": "Sasha",
+      "source_quotes": [
+        "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket."
+      ]
+    },
+    {
+      "id": "P3",
+      "label": "Ellis",
+      "source_quotes": [
+        "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+      ]
+    }
+  ],
+  "burdens": [
+    {
+      "id": "B1",
+      "person_id": "P1",
+      "description": "Risk of death for Rowan"
+    },
+    {
+      "id": "B2",
+      "person_id": "P2",
+      "description": "Risk of death for Sasha"
+    },
+    {
+      "id": "B3",
+      "person_id": "P2",
+      "description": "Broken promise to Sasha"
+    },
+    {
+      "id": "B4",
+      "person_id": "P3",
+      "description": "Moral wrongdoing of breaking a promise"
+    }
+  ],
+  "burden_positions": [
+    {
+      "burden_id": "B1",
+      "action_id": "A",
+      "status": "PRESENT",
+      "position": "Rowan faces 20% chance of death with blanket.",
+      "ground_handles": [
+        "S1"
+      ]
+    },
+    {
+      "burden_id": "B1",
+      "action_id": "B",
+      "status": "PRESENT",
+      "position": "Rowan faces 100% certain death without blanket.",
+      "ground_handles": [
+        "S2"
+      ]
+    },
+    {
+      "burden_id": "B2",
+      "action_id": "A",
+      "status": "PRESENT",
+      "position": "Sasha faces 100% certain death without blanket.",
+      "ground_handles": [
+        "S3"
+      ]
+    },
+    {
+      "burden_id": "B2",
+      "action_id": "B",
+      "status": "PRESENT",
+      "position": "Sasha faces 40% chance of death with blanket.",
+      "ground_handles": [
+        "S4"
+      ]
+    },
+    {
+      "burden_id": "B3",
+      "action_id": "A",
+      "status": "PRESENT",
+      "position": "Ellis breaks promise to Sasha.",
+      "ground_handles": [
+        "S5"
+      ]
+    },
+    {
+      "burden_id": "B3",
+      "action_id": "B",
+      "status": "ABSENT",
+      "position": "Ellis keeps promise to Sasha.",
+      "ground_handles": [
+        "S5"
+      ]
+    },
+    {
+      "burden_id": "B4",
+      "action_id": "A",
+      "status": "PRESENT",
+      "position": "Ellis commits wrongdoing of breaking promise.",
+      "ground_handles": [
+        "S5"
+      ]
+    },
+    {
+      "burden_id": "B4",
+      "action_id": "B",
+      "status": "ABSENT",
+      "position": "No promise broken.",
+      "ground_handles": [
+        "S5"
+      ]
+    }
+  ],
+  "principles": [
+    {
+      "id": "PR1",
+      "statement_handle": "NP1",
+      "action_ids": [
+        "A",
+        "B"
+      ]
+    },
+    {
+      "id": "PR2",
+      "statement_handle": "NP2",
+      "action_ids": [
+        "A",
+        "B"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+        }
+      ],
+      "handle": "S1"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "Rowan will die if Ellis does not give Rowan the blanket.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "The hiker who does not get the blanket will die."
+        }
+      ],
+      "handle": "S2"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+        }
+      ],
+      "handle": "S3"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "Sasha will die if Ellis does not give Sasha the blanket.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "The hiker who does not get the blanket will die."
+        }
+      ],
+      "handle": "S4"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket."
+        }
+      ],
+      "handle": "S5"
+    },
+    {
+      "kind": "NORMATIVE_PREMISE",
+      "text": "Promises generate a prima facie duty to keep them.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "NP1"
+    },
+    {
+      "kind": "NORMATIVE_PREMISE",
+      "text": "There is a duty of rescue to prevent avoidable deaths when possible without equivalent wrongdoing.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "NP2"
+    },
+    {
+      "kind": "NORMATIVE_JUDGMENT",
+      "text": "Breaking Sasha\u0019s promise is morally wrong unless overridden by a stronger duty.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "NJ1"
+    },
+    {
+      "kind": "NORMATIVE_JUDGMENT",
+      "text": "Failing to give the blanket to the person with the higher chance of survival violates the duty of rescue.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "NJ2"
+    },
+    {
+      "kind": "EVALUATIVE_COMPARISON",
+      "text": "Saving Rowan (80%) rather than Sasha (60%) better fulfills the duty of rescue.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "EC1"
+    },
+    {
+      "kind": "EVALUATIVE_COMPARISON",
+      "text": "Keeping the promise to Sasha better fulfills the duty of fidelity.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "EC2"
+    },
+    {
+      "kind": "NORMATIVE_JUDGMENT",
+      "text": "The duty of rescue outweighs the duty of promise-keeping when many more lives or a substantially higher chance of life is at stake.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "NPriority"
+    }
+  ],
+  "supports": [
+    {
+      "operation": "ASSUMPTION",
+      "inputs": [],
+      "output": "NP1",
+      "explanation": "Introduce prima facie promise duty."
+    },
+    {
+      "operation": "ASSUMPTION",
+      "inputs": [],
+      "output": "NP2",
+      "explanation": "Introduce rescue duty."
+    },
+    {
+      "operation": "NORM_APPLICATION",
+      "inputs": [
+        "S5",
+        "NP1"
+      ],
+      "output": "NJ1",
+      "explanation": "Apply promise duty to Ellis\u0019s specific promise."
+    },
+    {
+      "operation": "NORM_APPLICATION",
+      "inputs": [
+        "S1",
+        "S3",
+        "NP2"
+      ],
+      "output": "NJ2",
+      "explanation": "Apply rescue duty to choose higher survival chance."
+    },
+    {
+      "operation": "PARAPHRASE",
+      "inputs": [
+        "NJ2"
+      ],
+      "output": "EC1",
+      "explanation": "Translate into comparative evaluation of actions."
+    },
+    {
+      "operation": "PARAPHRASE",
+      "inputs": [
+        "NJ1"
+      ],
+      "output": "EC2",
+      "explanation": "Comparative evaluation for promise keeping."
+    },
+    {
+      "operation": "NORM_PRIORITY",
+      "inputs": [
+        "EC1",
+        "EC2",
+        "NPriority"
+      ],
+      "output": "PRIORITY1",
+      "explanation": "Resolve conflict: rescue outweighs fidelity."
+    },
+    {
+      "operation": "ASSUMPTION",
+      "inputs": [],
+      "output": "NPriority",
+      "explanation": "State priority principle."
+    }
+  ],
+  "reasons": [
+    {
+      "id": "R1",
+      "person_id": null,
+      "principle_id": "PR2",
+      "action_id": "A",
+      "stance": "FOR",
+      "value": "Higher chance of saving a life",
+      "conclusion_handle": "EC1",
+      "ground_handles": [
+        "S1",
+        "S3"
+      ],
+      "warrant_handles": [
+        "NP2"
+      ],
+      "generic_basis": "duty of rescue"
+    },
+    {
+      "id": "R2",
+      "person_id": null,
+      "principle_id": "PR1",
+      "action_id": "B",
+      "stance": "FOR",
+      "value": "Keeps promise",
+      "conclusion_handle": "EC2",
+      "ground_handles": [
+        "S5"
+      ],
+      "warrant_handles": [
+        "NP1"
+      ],
+      "generic_basis": "duty of fidelity"
+    }
+  ],
+  "comparisons": [
+    {
+      "id": "C1",
+      "from_action_id": "A",
+      "to_action_id": "B",
+      "status": "FAVORS_FROM",
+      "relieved_burden_ids": [
+        "B2"
+      ],
+      "introduced_burden_ids": [
+        "B3",
+        "B4"
+      ],
+      "retained_burden_ids": [
+        "B1"
+      ],
+      "reason_ids": [
+        "R1",
+        "R2"
+      ],
+      "judgment_handle": "PRIORITY1",
+      "explanation": "Rescue duty outweighs fidelity; action A removes certain death from Sasha? (error) Actually A leaves Sasha to die. Wait A favors rescue for higher chance but introduces broken promise."
+    }
+  ],
+  "challenges": [],
+  "action_assessments": [
+    {
+      "action_id": "A",
+      "conclusion_handle": "PRIORITY1",
+      "assessment": "DEFENSIBLE"
+    },
+    {
+      "action_id": "B",
+      "conclusion_handle": "EC2",
+      "assessment": "DEFENSIBLE"
+    }
+  ],
+  "recommendation_action_id": "A",
+  "recommendation_status": "PROVISIONAL_PREFERENCE",
+  "recommendation_comparison_ids": [
+    "C1"
+  ],
+  "remaining_complaint_ids": [
+    "B3",
+    "B4"
+  ],
+  "conclusion": "Given the significantly higher chance of saving a life, Ellis should provisionally give the blanket to Rowan, although this breaks the earlier promise to Sasha.",
+  "strongest_objection": "Breaking the promise to Sasha violates a clear duty of fidelity that normally binds even when circumstances change.",
+  "answer_to_objection": "The rescue duty is weightier here because the difference between an 80% and a 60% survival chance is morally significant enough to override the prima facie promise; fulfilling the promise would foreseeably allow a preventable death with higher probability.",
+  "reversal_condition": "If the survival chances were equal or Sasha’s chance were higher, the promise-keeping duty would no longer be overridden, shifting the decision to honoring the promise.",
+  "residual_disagreement": [
+    "Some maintain that promises are categorical and cannot be overridden by probabilistic benefits, so they would still choose B."
+  ]
+}

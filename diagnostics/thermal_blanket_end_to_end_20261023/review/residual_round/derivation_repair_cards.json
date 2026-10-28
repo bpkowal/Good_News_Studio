@@ -1,0 +1,328 @@
+{
+  "operative": false,
+  "cards": [
+    {
+      "card_id": "REPAIR:5014bf3f21844477d2191ea4",
+      "version": "derivation-repair/0.1",
+      "family": "PERSON_ROLE_CONSISTENCY",
+      "action_id": "A0",
+      "record_id": "DEON_ASSESSMENT:deontological:A0",
+      "world_sha256": "4964884253cec8f00d671307f31938a82dab4f9cb44bb2ae8ba054880cd731fe",
+      "record_sha256": "a7bb440e4c75292fbad8caf3b28d9a5c8f7691bebf6f1de0c17e6b79690dc918",
+      "issue_records": [
+        {
+          "kind": "CALIBRATION",
+          "message": "candidate maxim person-role conflicts with means classification",
+          "status": "ACTIVE"
+        }
+      ],
+      "target_paths": [
+        "means_relation",
+        "candidate_maxim.person_role",
+        "candidate_maxim.instrumental_belief",
+        "candidate_maxim.instrumental_use",
+        "candidate_maxim.practical_reasoning",
+        "candidate_maxim.means_effect_ids",
+        "candidate_maxim.end_effect_ids"
+      ],
+      "current_values": {
+        "means_relation": "NO_INSTRUMENTALIZATION",
+        "candidate_maxim.person_role": "FORESEEN_AFFECTED",
+        "candidate_maxim.instrumental_belief": "DOES_NOT_RELY",
+        "candidate_maxim.instrumental_use": "DOES_NOT_USE",
+        "candidate_maxim.practical_reasoning": "believes greater survival justifies breaking promise",
+        "candidate_maxim.means_effect_ids": [
+          "E1"
+        ],
+        "candidate_maxim.end_effect_ids": [
+          "E2"
+        ]
+      },
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "gives the blanket to Rowan",
+            "relation": "GIVE",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "RESOURCE_TRANSFER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "gives the blanket to Rowan",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        },
+        {
+          "ref": "E2",
+          "path": "/effects/1",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "Rowan has an 80% chance of survival",
+            "relation": "SURVIVE",
+            "polarity": "BENEFICIAL",
+            "directness": "DOWNSTREAM",
+            "modality": "PROBABILISTIC",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [
+              "80% chance"
+            ],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "Rowan has an 80% chance of survival",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        },
+        {
+          "ref": "E5",
+          "path": "/effects/4",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "effect_id": "E5",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "does not receive one thermal blanket",
+            "relation": "NOT_RECEIVES",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [
+              "one"
+            ],
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "A mountain rescue shelter has one thermal blanket."
+              },
+              {
+                "clause_id": "C1",
+                "excerpt": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "A mountain rescue shelter has one thermal blanket.",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+            "derivation_explanation": "Only one thermal blanket exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        },
+        {
+          "ref": "E7",
+          "path": "/effects/6",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "effect_id": "E7",
+            "action_id": "A0",
+            "party_id": "P4",
+            "outcome": "does not get the blanket",
+            "relation": "DIE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "CERTAIN",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C5",
+                "excerpt": "The hiker who does not get the blanket will die."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "does not get the blanket",
+            "source_effect_ids": [
+              "E5"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        },
+        {
+          "ref": "LINK:0",
+          "path": "/causal_links/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "source_id": "E1",
+            "relation": "ENABLES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+              }
+            ],
+            "action_id": "A0"
+          }
+        },
+        {
+          "ref": "LINK:2",
+          "path": "/causal_links/2",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "source_id": "E5",
+            "relation": "ENABLES",
+            "target_id": "E7",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C5",
+                "excerpt": "The hiker who does not get the blanket will die."
+              }
+            ],
+            "action_id": "A0"
+          }
+        },
+        {
+          "ref": "LINK:4",
+          "path": "/causal_links/4",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "source_id": "E1",
+            "relation": "CAUSES",
+            "target_id": "E5",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C0",
+                "excerpt": "A mountain rescue shelter has one thermal blanket."
+              },
+              {
+                "clause_id": "C1",
+                "excerpt": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+              },
+              {
+                "clause_id": "C3",
+                "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+              }
+            ],
+            "action_id": "A0"
+          }
+        },
+        {
+          "ref": "ARGUMENT:means_relation",
+          "path": "DEON_ASSESSMENT:deontological:A0/means_relation",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "NO_INSTRUMENTALIZATION"
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.person_role",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.person_role",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "FORESEEN_AFFECTED"
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.instrumental_belief",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_belief",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "DOES_NOT_RELY"
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.instrumental_use",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_use",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "DOES_NOT_USE"
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.practical_reasoning",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.practical_reasoning",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "believes greater survival justifies breaking promise"
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.means_effect_ids",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.means_effect_ids",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": [
+            "E1"
+          ]
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.end_effect_ids",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.end_effect_ids",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": [
+            "E2"
+          ]
+        }
+      ],
+      "violated_invariant": "Means relation, person role, instrumental belief/use and same-action means/end references must be mutually consistent; physical necessity is not proof of intention.",
+      "required_repair": "Repair the person-role bundle atomically, or leave it unresolved. Do not infer actual intentions, consent or a moral verdict.",
+      "invalidate_if_changed": [
+        "verdict",
+        "governing_norm",
+        "priority_basis",
+        "resolution_status",
+        "priority_rule",
+        "reason",
+        "candidate_maxim.action_permissibility",
+        "candidate_maxim.maxim_assessment",
+        "candidate_maxim.universalization"
+      ],
+      "authority": "VALIDATOR_DERIVED_REPAIR_SCOPE_NOT_MORAL_VERDICT"
+    }
+  ]
+}

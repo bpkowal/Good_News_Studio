@@ -1,0 +1,886 @@
+{
+  "version": "complaint-consequence-reply/0.1",
+  "source_text_sha256": "6ad4ede758624e0219f89b7fd4481343d0f1b02f10359f3aa0b8a26baccf01ed",
+  "authority": "MODEL_POSITION_PROJECTION_NOT_SOURCE_VERIFIED",
+  "source_priority": "Exact source overrides projected interpretations; a bound quote does not prove entailment.",
+  "actions": [
+    {
+      "id": "A",
+      "label": "Adopt cooling plan A"
+    },
+    {
+      "id": "B",
+      "label": "Adopt cooling plan B"
+    },
+    {
+      "id": "C",
+      "label": "Adopt cooling plan C"
+    }
+  ],
+  "proposed_person_labels": [
+    {
+      "id": "M",
+      "label": "Mira",
+      "source_quotes": [
+        "requires demolishing Mira's occupied home, leaving her without housing; she refuses"
+      ]
+    },
+    {
+      "id": "S",
+      "label": "Sal",
+      "source_quotes": [
+        "requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period.",
+        "Sal freely agrees to that closure after being informed of those consequences, without pressure"
+      ]
+    },
+    {
+      "id": "J",
+      "label": "Jo",
+      "source_quotes": [
+        "Plan C cools Jo's home, which has the greatest heat exposure of any home in this case",
+        "Jo's home is not cooled by A or B"
+      ]
+    },
+    {
+      "id": "H12",
+      "label": "Twelve households (subset of 20)",
+      "source_quotes": [
+        "Plan A cools twenty households",
+        "Plan B cools twelve of those same households"
+      ]
+    },
+    {
+      "id": "H8",
+      "label": "Eight additional households (of the 20)",
+      "source_quotes": [
+        "Plan A cools twenty households",
+        "Plan B cools twelve of those same households"
+      ]
+    }
+  ],
+  "position_rows": [
+    {
+      "id": "row0",
+      "person_id": "M",
+      "burden_id": "B_M_displace",
+      "proposed_burden_label": "Home demolished and left without housing",
+      "burden_path": "/burdens/0",
+      "action_id": "A",
+      "claimed_status": "PRESENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/0",
+          "claimed_status": "PRESENT",
+          "claimed_position": "Mira loses her home",
+          "grounds": [
+            {
+              "handle": "f_M_home",
+              "prior_path": "/statements/1",
+              "claimed_kind": "FACTUAL_PREMISE",
+              "claimed_text": "Plan A requires demolishing Mira's occupied home, leaving her without housing; she refuses",
+              "source_anchor_ids": [
+                "e0"
+              ],
+              "binding_issues": []
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row1",
+      "person_id": "M",
+      "burden_id": "B_M_displace",
+      "proposed_burden_label": "Home demolished and left without housing",
+      "burden_path": "/burdens/0",
+      "action_id": "B",
+      "claimed_status": "ABSENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/1",
+          "claimed_status": "ABSENT",
+          "claimed_position": "Mira keeps home",
+          "grounds": [
+            {
+              "handle": "f_no_M_home_B",
+              "prior_path": null,
+              "claimed_kind": null,
+              "claimed_text": null,
+              "source_anchor_ids": [],
+              "binding_issues": [
+                "MISSING_OR_DUPLICATE_STATEMENT"
+              ]
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row2",
+      "person_id": "M",
+      "burden_id": "B_M_displace",
+      "proposed_burden_label": "Home demolished and left without housing",
+      "burden_path": "/burdens/0",
+      "action_id": "C",
+      "claimed_status": "ABSENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/2",
+          "claimed_status": "ABSENT",
+          "claimed_position": "Mira keeps home",
+          "grounds": [
+            {
+              "handle": "f_no_M_home_C",
+              "prior_path": null,
+              "claimed_kind": null,
+              "claimed_text": null,
+              "source_anchor_ids": [],
+              "binding_issues": [
+                "MISSING_OR_DUPLICATE_STATEMENT"
+              ]
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row3",
+      "person_id": "S",
+      "burden_id": "B_S_income",
+      "proposed_burden_label": "Loss of shop income for eight weeks",
+      "burden_path": "/burdens/1",
+      "action_id": "A",
+      "claimed_status": "ABSENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/3",
+          "claimed_status": "ABSENT",
+          "claimed_position": "Sal keeps income",
+          "grounds": [
+            {
+              "handle": "f_no_S_loss_A",
+              "prior_path": null,
+              "claimed_kind": null,
+              "claimed_text": null,
+              "source_anchor_ids": [],
+              "binding_issues": [
+                "MISSING_OR_DUPLICATE_STATEMENT"
+              ]
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row4",
+      "person_id": "S",
+      "burden_id": "B_S_income",
+      "proposed_burden_label": "Loss of shop income for eight weeks",
+      "burden_path": "/burdens/1",
+      "action_id": "B",
+      "claimed_status": "ABSENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/4",
+          "claimed_status": "ABSENT",
+          "claimed_position": "Sal keeps income",
+          "grounds": [
+            {
+              "handle": "f_no_S_loss_B",
+              "prior_path": null,
+              "claimed_kind": null,
+              "claimed_text": null,
+              "source_anchor_ids": [],
+              "binding_issues": [
+                "MISSING_OR_DUPLICATE_STATEMENT"
+              ]
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row5",
+      "person_id": "S",
+      "burden_id": "B_S_income",
+      "proposed_burden_label": "Loss of shop income for eight weeks",
+      "burden_path": "/burdens/1",
+      "action_id": "C",
+      "claimed_status": "PRESENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/5",
+          "claimed_status": "PRESENT",
+          "claimed_position": "Sal loses eight-weeks income (consented)",
+          "grounds": [
+            {
+              "handle": "f_S_loss",
+              "prior_path": "/statements/2",
+              "claimed_kind": "FACTUAL_PREMISE",
+              "claimed_text": "Plan C requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period.",
+              "source_anchor_ids": [
+                "e1"
+              ],
+              "binding_issues": []
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row6",
+      "person_id": "J",
+      "burden_id": "B_J_heat",
+      "proposed_burden_label": "Severest heat exposure remains unmitigated",
+      "burden_path": "/burdens/2",
+      "action_id": "A",
+      "claimed_status": "PRESENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/6",
+          "claimed_status": "PRESENT",
+          "claimed_position": "Jo still hottest home uncooled",
+          "grounds": [
+            {
+              "handle": "f_J_notA",
+              "prior_path": null,
+              "claimed_kind": null,
+              "claimed_text": null,
+              "source_anchor_ids": [],
+              "binding_issues": [
+                "MISSING_OR_DUPLICATE_STATEMENT"
+              ]
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row7",
+      "person_id": "J",
+      "burden_id": "B_J_heat",
+      "proposed_burden_label": "Severest heat exposure remains unmitigated",
+      "burden_path": "/burdens/2",
+      "action_id": "B",
+      "claimed_status": "PRESENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/7",
+          "claimed_status": "PRESENT",
+          "claimed_position": "Jo still hottest home uncooled",
+          "grounds": [
+            {
+              "handle": "f_J_notB",
+              "prior_path": null,
+              "claimed_kind": null,
+              "claimed_text": null,
+              "source_anchor_ids": [],
+              "binding_issues": [
+                "MISSING_OR_DUPLICATE_STATEMENT"
+              ]
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row8",
+      "person_id": "J",
+      "burden_id": "B_J_heat",
+      "proposed_burden_label": "Severest heat exposure remains unmitigated",
+      "burden_path": "/burdens/2",
+      "action_id": "C",
+      "claimed_status": "ABSENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/8",
+          "claimed_status": "ABSENT",
+          "claimed_position": "Jo’s home cooled",
+          "grounds": [
+            {
+              "handle": "f_J_Cooled",
+              "prior_path": null,
+              "claimed_kind": null,
+              "claimed_text": null,
+              "source_anchor_ids": [],
+              "binding_issues": [
+                "MISSING_OR_DUPLICATE_STATEMENT"
+              ]
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row9",
+      "person_id": "H12",
+      "burden_id": "B_H12_heat",
+      "proposed_burden_label": "Heat exposure not mitigated for 12 households",
+      "burden_path": "/burdens/3",
+      "action_id": "A",
+      "claimed_status": "ABSENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/9",
+          "claimed_status": "ABSENT",
+          "claimed_position": "12 households cooled",
+          "grounds": [
+            {
+              "handle": "f_12_cool_A",
+              "prior_path": null,
+              "claimed_kind": null,
+              "claimed_text": null,
+              "source_anchor_ids": [],
+              "binding_issues": [
+                "MISSING_OR_DUPLICATE_STATEMENT"
+              ]
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row10",
+      "person_id": "H12",
+      "burden_id": "B_H12_heat",
+      "proposed_burden_label": "Heat exposure not mitigated for 12 households",
+      "burden_path": "/burdens/3",
+      "action_id": "B",
+      "claimed_status": "ABSENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/10",
+          "claimed_status": "ABSENT",
+          "claimed_position": "12 households cooled",
+          "grounds": [
+            {
+              "handle": "f_12_cool_B",
+              "prior_path": null,
+              "claimed_kind": null,
+              "claimed_text": null,
+              "source_anchor_ids": [],
+              "binding_issues": [
+                "MISSING_OR_DUPLICATE_STATEMENT"
+              ]
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row11",
+      "person_id": "H12",
+      "burden_id": "B_H12_heat",
+      "proposed_burden_label": "Heat exposure not mitigated for 12 households",
+      "burden_path": "/burdens/3",
+      "action_id": "C",
+      "claimed_status": "PRESENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/11",
+          "claimed_status": "PRESENT",
+          "claimed_position": "12 households uncooled",
+          "grounds": [
+            {
+              "handle": "f_12_uncool_C",
+              "prior_path": null,
+              "claimed_kind": null,
+              "claimed_text": null,
+              "source_anchor_ids": [],
+              "binding_issues": [
+                "MISSING_OR_DUPLICATE_STATEMENT"
+              ]
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row12",
+      "person_id": "H8",
+      "burden_id": "B_H8_heat",
+      "proposed_burden_label": "Heat exposure not mitigated for 8 households",
+      "burden_path": "/burdens/4",
+      "action_id": "A",
+      "claimed_status": "ABSENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/12",
+          "claimed_status": "ABSENT",
+          "claimed_position": "8 households cooled",
+          "grounds": [
+            {
+              "handle": "f_8_cool_A",
+              "prior_path": null,
+              "claimed_kind": null,
+              "claimed_text": null,
+              "source_anchor_ids": [],
+              "binding_issues": [
+                "MISSING_OR_DUPLICATE_STATEMENT"
+              ]
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row13",
+      "person_id": "H8",
+      "burden_id": "B_H8_heat",
+      "proposed_burden_label": "Heat exposure not mitigated for 8 households",
+      "burden_path": "/burdens/4",
+      "action_id": "B",
+      "claimed_status": "PRESENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/13",
+          "claimed_status": "PRESENT",
+          "claimed_position": "8 households uncooled",
+          "grounds": [
+            {
+              "handle": "f_8_uncool_B",
+              "prior_path": null,
+              "claimed_kind": null,
+              "claimed_text": null,
+              "source_anchor_ids": [],
+              "binding_issues": [
+                "MISSING_OR_DUPLICATE_STATEMENT"
+              ]
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row14",
+      "person_id": "H8",
+      "burden_id": "B_H8_heat",
+      "proposed_burden_label": "Heat exposure not mitigated for 8 households",
+      "burden_path": "/burdens/4",
+      "action_id": "C",
+      "claimed_status": "PRESENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/14",
+          "claimed_status": "PRESENT",
+          "claimed_position": "8 households uncooled",
+          "grounds": [
+            {
+              "handle": "f_8_uncool_C",
+              "prior_path": null,
+              "claimed_kind": null,
+              "claimed_text": null,
+              "source_anchor_ids": [],
+              "binding_issues": [
+                "MISSING_OR_DUPLICATE_STATEMENT"
+              ]
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    }
+  ],
+  "cited_source_spans": [
+    {
+      "id": "e0",
+      "text": "requires demolishing Mira's occupied home, leaving her without housing; she refuses",
+      "occurrences": [
+        {
+          "start": 128,
+          "end": 211
+        }
+      ]
+    },
+    {
+      "id": "e1",
+      "text": "requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period",
+      "occurrences": [
+        {
+          "start": 371,
+          "end": 484
+        }
+      ]
+    },
+    {
+      "id": "e2",
+      "text": "Plan A cools twenty households",
+      "occurrences": [
+        {
+          "start": 93,
+          "end": 123
+        }
+      ]
+    },
+    {
+      "id": "e3",
+      "text": "Sal freely agrees to that closure after being informed of those consequences, without pressure",
+      "occurrences": [
+        {
+          "start": 486,
+          "end": 580
+        }
+      ]
+    },
+    {
+      "id": "e4",
+      "text": "Jo's home is not cooled by A or B",
+      "occurrences": [
+        {
+          "start": 582,
+          "end": 615
+        }
+      ]
+    },
+    {
+      "id": "e5",
+      "text": "Plan C cools Jo's home",
+      "occurrences": [
+        {
+          "start": 280,
+          "end": 302
+        }
+      ]
+    }
+  ],
+  "factual_premise_claims": [
+    {
+      "handle": "f_20_cool_A",
+      "prior_path": "/statements/0",
+      "claimed_kind": "FACTUAL_PREMISE",
+      "claimed_text": "Plan A cools twenty households",
+      "source_anchor_ids": [
+        "e2"
+      ],
+      "binding_issues": []
+    },
+    {
+      "handle": "f_M_home",
+      "prior_path": "/statements/1",
+      "claimed_kind": "FACTUAL_PREMISE",
+      "claimed_text": "Plan A requires demolishing Mira's occupied home, leaving her without housing; she refuses",
+      "source_anchor_ids": [
+        "e0"
+      ],
+      "binding_issues": []
+    },
+    {
+      "handle": "f_S_loss",
+      "prior_path": "/statements/2",
+      "claimed_kind": "FACTUAL_PREMISE",
+      "claimed_text": "Plan C requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period.",
+      "source_anchor_ids": [
+        "e1"
+      ],
+      "binding_issues": []
+    },
+    {
+      "handle": "f_S_consent",
+      "prior_path": "/statements/3",
+      "claimed_kind": "FACTUAL_PREMISE",
+      "claimed_text": "Sal freely agrees to that closure after being informed of those consequences, without pressure.",
+      "source_anchor_ids": [
+        "e3"
+      ],
+      "binding_issues": []
+    },
+    {
+      "handle": "f_J_notAB",
+      "prior_path": "/statements/4",
+      "claimed_kind": "FACTUAL_PREMISE",
+      "claimed_text": "Jo's home is not cooled by A or B",
+      "source_anchor_ids": [
+        "e4"
+      ],
+      "binding_issues": []
+    },
+    {
+      "handle": "f_J_C",
+      "prior_path": "/statements/5",
+      "claimed_kind": "FACTUAL_PREMISE",
+      "claimed_text": "Plan C cools Jo's home",
+      "source_anchor_ids": [
+        "e5"
+      ],
+      "binding_issues": []
+    }
+  ],
+  "pair_changes": [
+    {
+      "comparison_id": "comp_A_B",
+      "from_action_id": "A",
+      "to_action_id": "B",
+      "positions": [
+        {
+          "burden_id": "B_M_displace",
+          "person_id": "M",
+          "description": "Home demolished and left without housing",
+          "from": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              0
+            ],
+            "descriptions": [
+              "Mira loses her home"
+            ]
+          },
+          "to": {
+            "status": "ABSENT",
+            "raw_position_indices": [
+              1
+            ],
+            "descriptions": [
+              "Mira keeps home"
+            ]
+          },
+          "change": "RELIEVED"
+        },
+        {
+          "burden_id": "B_S_income",
+          "person_id": "S",
+          "description": "Loss of shop income for eight weeks",
+          "from": {
+            "status": "ABSENT",
+            "raw_position_indices": [
+              3
+            ],
+            "descriptions": [
+              "Sal keeps income"
+            ]
+          },
+          "to": {
+            "status": "ABSENT",
+            "raw_position_indices": [
+              4
+            ],
+            "descriptions": [
+              "Sal keeps income"
+            ]
+          },
+          "change": "ABSENT_IN_BOTH"
+        },
+        {
+          "burden_id": "B_J_heat",
+          "person_id": "J",
+          "description": "Severest heat exposure remains unmitigated",
+          "from": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              6
+            ],
+            "descriptions": [
+              "Jo still hottest home uncooled"
+            ]
+          },
+          "to": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              7
+            ],
+            "descriptions": [
+              "Jo still hottest home uncooled"
+            ]
+          },
+          "change": "REMAINS_WITH_POSSIBLY_DIFFERENT_EXTENT"
+        },
+        {
+          "burden_id": "B_H12_heat",
+          "person_id": "H12",
+          "description": "Heat exposure not mitigated for 12 households",
+          "from": {
+            "status": "ABSENT",
+            "raw_position_indices": [
+              9
+            ],
+            "descriptions": [
+              "12 households cooled"
+            ]
+          },
+          "to": {
+            "status": "ABSENT",
+            "raw_position_indices": [
+              10
+            ],
+            "descriptions": [
+              "12 households cooled"
+            ]
+          },
+          "change": "ABSENT_IN_BOTH"
+        },
+        {
+          "burden_id": "B_H8_heat",
+          "person_id": "H8",
+          "description": "Heat exposure not mitigated for 8 households",
+          "from": {
+            "status": "ABSENT",
+            "raw_position_indices": [
+              12
+            ],
+            "descriptions": [
+              "8 households cooled"
+            ]
+          },
+          "to": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              13
+            ],
+            "descriptions": [
+              "8 households uncooled"
+            ]
+          },
+          "change": "INTRODUCED"
+        }
+      ],
+      "authority": "DERIVED_FROM_MODEL_MATRIX_NOT_SOURCE_VERIFIED",
+      "moral_ranking_computed": false
+    },
+    {
+      "comparison_id": "comp_B_C",
+      "from_action_id": "B",
+      "to_action_id": "C",
+      "positions": [
+        {
+          "burden_id": "B_M_displace",
+          "person_id": "M",
+          "description": "Home demolished and left without housing",
+          "from": {
+            "status": "ABSENT",
+            "raw_position_indices": [
+              1
+            ],
+            "descriptions": [
+              "Mira keeps home"
+            ]
+          },
+          "to": {
+            "status": "ABSENT",
+            "raw_position_indices": [
+              2
+            ],
+            "descriptions": [
+              "Mira keeps home"
+            ]
+          },
+          "change": "ABSENT_IN_BOTH"
+        },
+        {
+          "burden_id": "B_S_income",
+          "person_id": "S",
+          "description": "Loss of shop income for eight weeks",
+          "from": {
+            "status": "ABSENT",
+            "raw_position_indices": [
+              4
+            ],
+            "descriptions": [
+              "Sal keeps income"
+            ]
+          },
+          "to": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              5
+            ],
+            "descriptions": [
+              "Sal loses eight-weeks income (consented)"
+            ]
+          },
+          "change": "INTRODUCED"
+        },
+        {
+          "burden_id": "B_J_heat",
+          "person_id": "J",
+          "description": "Severest heat exposure remains unmitigated",
+          "from": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              7
+            ],
+            "descriptions": [
+              "Jo still hottest home uncooled"
+            ]
+          },
+          "to": {
+            "status": "ABSENT",
+            "raw_position_indices": [
+              8
+            ],
+            "descriptions": [
+              "Jo’s home cooled"
+            ]
+          },
+          "change": "RELIEVED"
+        },
+        {
+          "burden_id": "B_H12_heat",
+          "person_id": "H12",
+          "description": "Heat exposure not mitigated for 12 households",
+          "from": {
+            "status": "ABSENT",
+            "raw_position_indices": [
+              10
+            ],
+            "descriptions": [
+              "12 households cooled"
+            ]
+          },
+          "to": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              11
+            ],
+            "descriptions": [
+              "12 households uncooled"
+            ]
+          },
+          "change": "INTRODUCED"
+        },
+        {
+          "burden_id": "B_H8_heat",
+          "person_id": "H8",
+          "description": "Heat exposure not mitigated for 8 households",
+          "from": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              13
+            ],
+            "descriptions": [
+              "8 households uncooled"
+            ]
+          },
+          "to": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              14
+            ],
+            "descriptions": [
+              "8 households uncooled"
+            ]
+          },
+          "change": "REMAINS_WITH_POSSIBLY_DIFFERENT_EXTENT"
+        }
+      ],
+      "authority": "DERIVED_FROM_MODEL_MATRIX_NOT_SOURCE_VERIFIED",
+      "moral_ranking_computed": false
+    }
+  ],
+  "unassigned_positions": [],
+  "coverage": "Only supplied burdens; omitted burdens and missing facts remain unknown.",
+  "moral_ranking_computed": false,
+  "operative": false
+}

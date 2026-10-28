@@ -1,0 +1,3179 @@
+{
+  "version": "logic-puzzles-conflict-projection/0.1",
+  "mode": "READ_ONLY_PROJECTION",
+  "world_mutation": false,
+  "source_judgment_status": "NOT_ADJUDICATED",
+  "nodes": [
+    {
+      "id": "WORLD:E1",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E1",
+        "action_id": "A0",
+        "party_id": "P3",
+        "outcome": "gives the blanket to Rowan",
+        "relation": "GIVE",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "RESOURCE_TRANSFER",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "gives the blanket to Rowan",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "gives the blanket to Rowan"
+    },
+    {
+      "id": "WORLD:E2",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E2",
+        "action_id": "A0",
+        "party_id": "P3",
+        "outcome": "Rowan has an 80% chance of survival",
+        "relation": "SURVIVE",
+        "polarity": "BENEFICIAL",
+        "directness": "DOWNSTREAM",
+        "modality": "PROBABILISTIC",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C3",
+            "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+          }
+        ],
+        "likelihood_qualifiers": [
+          "80% chance"
+        ],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "Rowan has an 80% chance of survival",
+        "source_effect_ids": [
+          "E1"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "Rowan has an 80% chance of survival"
+    },
+    {
+      "id": "WORLD:E3",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E3",
+        "action_id": "A1",
+        "party_id": "P4",
+        "outcome": "gives the blanket to Sasha",
+        "relation": "GIVE",
+        "polarity": "NEUTRAL",
+        "directness": "DIRECT",
+        "modality": "CERTAIN",
+        "effect_kind": "RESOURCE_TRANSFER",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "gives the blanket to Sasha",
+        "source_effect_ids": [],
+        "derivation_operation": "DIRECT_COPY",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "gives the blanket to Sasha"
+    },
+    {
+      "id": "WORLD:E4",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E4",
+        "action_id": "A1",
+        "party_id": "P4",
+        "outcome": "Sasha has a 60% chance of survival",
+        "relation": "SURVIVE",
+        "polarity": "BENEFICIAL",
+        "directness": "DOWNSTREAM",
+        "modality": "PROBABILISTIC",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C4",
+            "excerpt": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+          }
+        ],
+        "likelihood_qualifiers": [
+          "60% chance"
+        ],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "Sasha has a 60% chance of survival",
+        "source_effect_ids": [
+          "E3"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "Sasha has a 60% chance of survival"
+    },
+    {
+      "id": "WORLD:E5",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E5",
+        "action_id": "A0",
+        "party_id": "P4",
+        "outcome": "does not receive one thermal blanket",
+        "relation": "NOT_RECEIVES",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [
+          "one"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C0",
+            "excerpt": "A mountain rescue shelter has one thermal blanket."
+          },
+          {
+            "clause_id": "C1",
+            "excerpt": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+          },
+          {
+            "clause_id": "C3",
+            "excerpt": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "A mountain rescue shelter has one thermal blanket.",
+        "source_effect_ids": [
+          "E1"
+        ],
+        "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+        "derivation_explanation": "Only one thermal blanket exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "does not receive one thermal blanket"
+    },
+    {
+      "id": "WORLD:E6",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E6",
+        "action_id": "A1",
+        "party_id": "P3",
+        "outcome": "does not receive one thermal blanket",
+        "relation": "NOT_RECEIVES",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [
+          "one"
+        ],
+        "provenance": [
+          {
+            "clause_id": "C0",
+            "excerpt": "A mountain rescue shelter has one thermal blanket."
+          },
+          {
+            "clause_id": "C1",
+            "excerpt": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+          },
+          {
+            "clause_id": "C4",
+            "excerpt": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "A mountain rescue shelter has one thermal blanket.",
+        "source_effect_ids": [
+          "E3"
+        ],
+        "derivation_operation": "EXCLUSIVE_ALLOCATION_COMPLEMENT",
+        "derivation_explanation": "Only one thermal blanket exists, and the explicit exclusivity proof precludes simultaneous receipt by the other recipient.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "does not receive one thermal blanket"
+    },
+    {
+      "id": "WORLD:E7",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E7",
+        "action_id": "A0",
+        "party_id": "P4",
+        "outcome": "does not get the blanket",
+        "relation": "DIE",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C5",
+            "excerpt": "The hiker who does not get the blanket will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "does not get the blanket",
+        "source_effect_ids": [
+          "E5"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "does not get the blanket"
+    },
+    {
+      "id": "WORLD:E8",
+      "kind": "WORLD_EFFECT",
+      "record": {
+        "effect_id": "E8",
+        "action_id": "A1",
+        "party_id": "P3",
+        "outcome": "does not get the blanket",
+        "relation": "DIE",
+        "polarity": "ADVERSE",
+        "directness": "DOWNSTREAM",
+        "modality": "CERTAIN",
+        "effect_kind": "OTHER",
+        "condition_ids": [],
+        "quantities": [],
+        "provenance": [
+          {
+            "clause_id": "C5",
+            "excerpt": "The hiker who does not get the blanket will die."
+          }
+        ],
+        "likelihood_qualifiers": [],
+        "scope_qualifiers": [],
+        "temporal_qualifiers": [],
+        "condition_join": "AND",
+        "overall_likelihood_qualifiers": [],
+        "source_proposition": "does not get the blanket",
+        "source_effect_ids": [
+          "E6"
+        ],
+        "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+        "derivation_explanation": "The blank was filled with this copy of the scenario.",
+        "derivation_assumptions": [],
+        "outcome_type_transformation": "PRESERVED"
+      },
+      "epistemic_status": "ADMITTED",
+      "label": "does not get the blanket"
+    },
+    {
+      "id": "PROP:COMMITMENT:K0",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:COMMITMENT:K0",
+        "claim": "promised would get the blanket",
+        "proposition_type": "NORMATIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "K0",
+          "PR1"
+        ],
+        "derived_from": [],
+        "introduced_by": "DISCOURSE",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "COMMITMENT",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "promised would get the blanket"
+    },
+    {
+      "id": "PROP:DISCOURSE:PR1",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:DISCOURSE:PR1",
+        "claim": "would get the blanket",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "PR1"
+        ],
+        "derived_from": [],
+        "introduced_by": "DISCOURSE",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "NOT_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "would get the blanket"
+    },
+    {
+      "id": "PROP:WORLD:E1",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E1",
+        "claim": "gives the blanket to Rowan; affected subject: Rowan",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E1"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "gives the blanket to Rowan"
+        ],
+        "action_id": "A0",
+        "outcome": "gives the blanket to Rowan",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "Rowan"
+        ],
+        "quantities": [],
+        "effect_kind": "RESOURCE_TRANSFER",
+        "context_terms": [
+          "gives the blanket to Rowan"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DIRECT",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "gives the blanket to Rowan; affected subject: Rowan"
+    },
+    {
+      "id": "PROP:WORLD:E2",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E2",
+        "claim": "Rowan has an 80% chance of survival; affected subject: Rowan; modality: PROBABILISTIC",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "Rowan has an 80% chance of survival"
+        ],
+        "action_id": "A0",
+        "outcome": "Rowan has an 80% chance of survival",
+        "polarity": "BENEFICIAL",
+        "party_labels": [
+          "Rowan"
+        ],
+        "quantities": [],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "Rowan has an 80% chance of survival",
+          "80% chance \u2014 Rowan has an 80% chance of survival",
+          "gives the blanket to Rowan"
+        ],
+        "modality": "PROBABILISTIC",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "Rowan has an 80% chance of survival; affected subject: Rowan; modality: PROBABILISTIC"
+    },
+    {
+      "id": "PROP:WORLD:E2:LIKELIHOOD:0",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E2:LIKELIHOOD:0",
+        "claim": "80% chance \u2014 Rowan has an 80% chance of survival",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E2",
+          "80% chance"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "A0",
+        "outcome": "Rowan has an 80% chance of survival",
+        "polarity": "",
+        "party_labels": [
+          "Rowan"
+        ],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [
+          "Rowan has an 80% chance of survival",
+          "80% chance \u2014 Rowan has an 80% chance of survival",
+          "gives the blanket to Rowan"
+        ],
+        "modality": "PROBABILISTIC",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "80% chance \u2014 Rowan has an 80% chance of survival"
+    },
+    {
+      "id": "PROP:WORLD:E3",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E3",
+        "claim": "gives the blanket to Sasha; affected subject: Sasha",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E3"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "gives the blanket to Sasha"
+        ],
+        "action_id": "A1",
+        "outcome": "gives the blanket to Sasha",
+        "polarity": "NEUTRAL",
+        "party_labels": [
+          "Sasha"
+        ],
+        "quantities": [],
+        "effect_kind": "RESOURCE_TRANSFER",
+        "context_terms": [
+          "gives the blanket to Sasha"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DIRECT",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "gives the blanket to Sasha; affected subject: Sasha"
+    },
+    {
+      "id": "PROP:WORLD:E4",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E4",
+        "claim": "Sasha has a 60% chance of survival; affected subject: Sasha; modality: PROBABILISTIC",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E4"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "Sasha has a 60% chance of survival"
+        ],
+        "action_id": "A1",
+        "outcome": "Sasha has a 60% chance of survival",
+        "polarity": "BENEFICIAL",
+        "party_labels": [
+          "Sasha"
+        ],
+        "quantities": [],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "Sasha has a 60% chance of survival",
+          "60% chance \u2014 Sasha has a 60% chance of survival",
+          "gives the blanket to Sasha"
+        ],
+        "modality": "PROBABILISTIC",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "Sasha has a 60% chance of survival; affected subject: Sasha; modality: PROBABILISTIC"
+    },
+    {
+      "id": "PROP:WORLD:E4:LIKELIHOOD:0",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E4:LIKELIHOOD:0",
+        "claim": "60% chance \u2014 Sasha has a 60% chance of survival",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E4",
+          "60% chance"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "A1",
+        "outcome": "Sasha has a 60% chance of survival",
+        "polarity": "",
+        "party_labels": [
+          "Sasha"
+        ],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [
+          "Sasha has a 60% chance of survival",
+          "60% chance \u2014 Sasha has a 60% chance of survival",
+          "gives the blanket to Sasha"
+        ],
+        "modality": "PROBABILISTIC",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "60% chance \u2014 Sasha has a 60% chance of survival"
+    },
+    {
+      "id": "PROP:WORLD:E5",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E5",
+        "claim": "does not receive one thermal blanket; affected subject: Sasha; magnitude or qualifier: one",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E5"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "A mountain rescue shelter has one thermal blanket."
+        ],
+        "action_id": "A0",
+        "outcome": "does not receive one thermal blanket",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "Sasha"
+        ],
+        "quantities": [
+          "one"
+        ],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "does not receive one thermal blanket",
+          "gives the blanket to Rowan"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "does not receive one thermal blanket; affected subject: Sasha; magnitude or qualifier: one"
+    },
+    {
+      "id": "PROP:WORLD:E6",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E6",
+        "claim": "does not receive one thermal blanket; affected subject: Rowan; magnitude or qualifier: one",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E6"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "A mountain rescue shelter has one thermal blanket."
+        ],
+        "action_id": "A1",
+        "outcome": "does not receive one thermal blanket",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "Rowan"
+        ],
+        "quantities": [
+          "one"
+        ],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "does not receive one thermal blanket",
+          "gives the blanket to Sasha"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "does not receive one thermal blanket; affected subject: Rowan; magnitude or qualifier: one"
+    },
+    {
+      "id": "PROP:WORLD:E7",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E7",
+        "claim": "does not get the blanket; affected subject: Sasha",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E7"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "does not get the blanket"
+        ],
+        "action_id": "A0",
+        "outcome": "does not get the blanket",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "Sasha"
+        ],
+        "quantities": [],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "does not get the blanket",
+          "gives the blanket to Rowan",
+          "does not receive one thermal blanket"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "does not get the blanket; affected subject: Sasha"
+    },
+    {
+      "id": "PROP:WORLD:E8",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:E8",
+        "claim": "does not get the blanket; affected subject: Rowan",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "ESTABLISHED",
+        "support_ids": [
+          "E8"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "does not get the blanket"
+        ],
+        "action_id": "A1",
+        "outcome": "does not get the blanket",
+        "polarity": "ADVERSE",
+        "party_labels": [
+          "Rowan"
+        ],
+        "quantities": [],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "does not get the blanket",
+          "gives the blanket to Sasha",
+          "does not receive one thermal blanket"
+        ],
+        "modality": "CERTAIN",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "ESTABLISHED",
+      "label": "does not get the blanket; affected subject: Rowan"
+    },
+    {
+      "id": "PROP:WORLD:RECOGNITION:0639ada92cb212cf",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:RECOGNITION:0639ada92cb212cf",
+        "claim": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both.",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E1",
+          "E3",
+          "E5",
+          "E6"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "SOURCE_CONSTRAINT",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+    },
+    {
+      "id": "PROP:WORLD:RECOGNITION:17dbfdddba9279d2",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:RECOGNITION:17dbfdddba9279d2",
+        "claim": "A mountain rescue shelter has one thermal blanket.",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "P2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "one thermal blanket"
+        ],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "SOURCE_CONSTRAINT",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "A mountain rescue shelter has one thermal blanket."
+    },
+    {
+      "id": "PROP:WORLD:RECOGNITION:b3b9c53c22e5dfa7",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:RECOGNITION:b3b9c53c22e5dfa7",
+        "claim": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E1",
+          "E2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "SOURCE_RULE",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+    },
+    {
+      "id": "PROP:WORLD:RECOGNITION:ebf7f4e5143d9bb2",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:RECOGNITION:ebf7f4e5143d9bb2",
+        "claim": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E3",
+          "E4"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "SOURCE_RULE",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+    },
+    {
+      "id": "PROP:WORLD:RECOGNITION:f7b6d21a23aa1116",
+      "kind": "PROPOSITION",
+      "record": {
+        "proposition_id": "PROP:WORLD:RECOGNITION:f7b6d21a23aa1116",
+        "claim": "The hiker who does not get the blanket will die.",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E5",
+          "E6",
+          "E7",
+          "E8"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 1,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "SOURCE_RULE",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "The hiker who does not get the blanket will die."
+    },
+    {
+      "id": "utilitarian::PROP:WORLD:E2",
+      "kind": "PROPOSITION",
+      "origin": "utilitarian",
+      "native_proposition_id": "PROP:WORLD:E2",
+      "record": {
+        "proposition_id": "PROP:WORLD:E2",
+        "claim": "Rowan has an 80% chance of survival; affected subject: Rowan; modality: PROBABILISTIC",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "Rowan has an 80% chance of survival"
+        ],
+        "action_id": "A0",
+        "outcome": "Rowan has an 80% chance of survival",
+        "polarity": "BENEFICIAL",
+        "party_labels": [
+          "Rowan"
+        ],
+        "quantities": [],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "Rowan has an 80% chance of survival",
+          "80% chance \u2014 Rowan has an 80% chance of survival",
+          "gives the blanket to Rowan"
+        ],
+        "modality": "PROBABILISTIC",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "Rowan has an 80% chance of survival; affected subject: Rowan; modality: PROBABILISTIC"
+    },
+    {
+      "id": "utilitarian::PROP:WORLD:E2:LIKELIHOOD:0",
+      "kind": "PROPOSITION",
+      "origin": "utilitarian",
+      "native_proposition_id": "PROP:WORLD:E2:LIKELIHOOD:0",
+      "record": {
+        "proposition_id": "PROP:WORLD:E2:LIKELIHOOD:0",
+        "claim": "80% chance \u2014 Rowan has an 80% chance of survival",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E2",
+          "80% chance"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 1,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "A0",
+        "outcome": "Rowan has an 80% chance of survival",
+        "polarity": "",
+        "party_labels": [
+          "Rowan"
+        ],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [
+          "Rowan has an 80% chance of survival",
+          "80% chance \u2014 Rowan has an 80% chance of survival",
+          "gives the blanket to Rowan"
+        ],
+        "modality": "PROBABILISTIC",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "80% chance \u2014 Rowan has an 80% chance of survival"
+    },
+    {
+      "id": "utilitarian::PROP:WORLD:E4",
+      "kind": "PROPOSITION",
+      "origin": "utilitarian",
+      "native_proposition_id": "PROP:WORLD:E4",
+      "record": {
+        "proposition_id": "PROP:WORLD:E4",
+        "claim": "Sasha has a 60% chance of survival; affected subject: Sasha; modality: PROBABILISTIC",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E4"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [
+          "Sasha has a 60% chance of survival"
+        ],
+        "action_id": "A1",
+        "outcome": "Sasha has a 60% chance of survival",
+        "polarity": "BENEFICIAL",
+        "party_labels": [
+          "Sasha"
+        ],
+        "quantities": [],
+        "effect_kind": "OTHER",
+        "context_terms": [
+          "Sasha has a 60% chance of survival",
+          "60% chance \u2014 Sasha has a 60% chance of survival",
+          "gives the blanket to Sasha"
+        ],
+        "modality": "PROBABILISTIC",
+        "directness": "DOWNSTREAM",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "Sasha has a 60% chance of survival; affected subject: Sasha; modality: PROBABILISTIC"
+    },
+    {
+      "id": "utilitarian::PROP:WORLD:E4:LIKELIHOOD:0",
+      "kind": "PROPOSITION",
+      "origin": "utilitarian",
+      "native_proposition_id": "PROP:WORLD:E4:LIKELIHOOD:0",
+      "record": {
+        "proposition_id": "PROP:WORLD:E4:LIKELIHOOD:0",
+        "claim": "60% chance \u2014 Sasha has a 60% chance of survival",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E4",
+          "60% chance"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 1,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "A1",
+        "outcome": "Sasha has a 60% chance of survival",
+        "polarity": "",
+        "party_labels": [
+          "Sasha"
+        ],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [
+          "Sasha has a 60% chance of survival",
+          "60% chance \u2014 Sasha has a 60% chance of survival",
+          "gives the blanket to Sasha"
+        ],
+        "modality": "PROBABILISTIC",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "60% chance \u2014 Sasha has a 60% chance of survival"
+    },
+    {
+      "id": "utilitarian::PROP:WORLD:RECOGNITION:b3b9c53c22e5dfa7",
+      "kind": "PROPOSITION",
+      "origin": "utilitarian",
+      "native_proposition_id": "PROP:WORLD:RECOGNITION:b3b9c53c22e5dfa7",
+      "record": {
+        "proposition_id": "PROP:WORLD:RECOGNITION:b3b9c53c22e5dfa7",
+        "claim": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E1",
+          "E2"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 1,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "SOURCE_RULE",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+    },
+    {
+      "id": "utilitarian::PROP:WORLD:RECOGNITION:ebf7f4e5143d9bb2",
+      "kind": "PROPOSITION",
+      "origin": "utilitarian",
+      "native_proposition_id": "PROP:WORLD:RECOGNITION:ebf7f4e5143d9bb2",
+      "record": {
+        "proposition_id": "PROP:WORLD:RECOGNITION:ebf7f4e5143d9bb2",
+        "claim": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "proposition_type": "DESCRIPTIVE",
+        "epistemic_status": "STIPULATED",
+        "support_ids": [
+          "E3",
+          "E4"
+        ],
+        "derived_from": [],
+        "introduced_by": "WORLD_MODEL",
+        "mention_count": 2,
+        "decision_critical_mentions": 1,
+        "epistemic_type": "WORLD_ESTABLISHED",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "SOURCE_RULE",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "STIPULATED",
+      "label": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+    },
+    {
+      "id": "deontological::PROP:COMMITMENT:K0",
+      "kind": "PROPOSITION",
+      "origin": "deontological",
+      "native_proposition_id": "PROP:COMMITMENT:K0",
+      "record": {
+        "proposition_id": "PROP:COMMITMENT:K0",
+        "claim": "promised would get the blanket",
+        "proposition_type": "NORMATIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "K0",
+          "PR1"
+        ],
+        "derived_from": [],
+        "introduced_by": "DISCOURSE",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "COMMITMENT",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "promised would get the blanket"
+    },
+    {
+      "id": "care::PROP:COMMITMENT:K0",
+      "kind": "PROPOSITION",
+      "origin": "care",
+      "native_proposition_id": "PROP:COMMITMENT:K0",
+      "record": {
+        "proposition_id": "PROP:COMMITMENT:K0",
+        "claim": "promised would get the blanket",
+        "proposition_type": "NORMATIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "K0",
+          "PR1"
+        ],
+        "derived_from": [],
+        "introduced_by": "DISCOURSE",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "COMMITMENT",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "promised would get the blanket"
+    },
+    {
+      "id": "virtue::PROP:COMMITMENT:K0",
+      "kind": "PROPOSITION",
+      "origin": "virtue",
+      "native_proposition_id": "PROP:COMMITMENT:K0",
+      "record": {
+        "proposition_id": "PROP:COMMITMENT:K0",
+        "claim": "promised would get the blanket",
+        "proposition_type": "NORMATIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "K0",
+          "PR1"
+        ],
+        "derived_from": [],
+        "introduced_by": "DISCOURSE",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "COMMITMENT",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "promised would get the blanket"
+    },
+    {
+      "id": "rawlsian::PROP:COMMITMENT:K0",
+      "kind": "PROPOSITION",
+      "origin": "rawlsian",
+      "native_proposition_id": "PROP:COMMITMENT:K0",
+      "record": {
+        "proposition_id": "PROP:COMMITMENT:K0",
+        "claim": "promised would get the blanket",
+        "proposition_type": "NORMATIVE",
+        "epistemic_status": "UNRESOLVED",
+        "support_ids": [
+          "K0",
+          "PR1"
+        ],
+        "derived_from": [],
+        "introduced_by": "DISCOURSE",
+        "mention_count": 2,
+        "decision_critical_mentions": 0,
+        "epistemic_type": "COMMITMENT",
+        "aliases": [],
+        "action_id": "",
+        "outcome": "",
+        "polarity": "",
+        "party_labels": [],
+        "quantities": [],
+        "effect_kind": "",
+        "context_terms": [],
+        "modality": "",
+        "directness": "",
+        "obtained_welfare": true
+      },
+      "epistemic_status": "UNRESOLVED",
+      "label": "promised would get the blanket"
+    },
+    {
+      "id": "CLAIM:6afc63c505dfd827",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A0:22249aa61fd2",
+        "outcome": "gives the blanket to Rowan",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "grounded_effect_id": "E1",
+        "world_effect_id": "E1",
+        "direction": "NEUTRAL",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "NEUTRAL",
+        "grounded_world_polarity": "NEUTRAL",
+        "probability": "CERTAIN",
+        "modality": "CERTAIN",
+        "magnitude": "UNKNOWN",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "LOW",
+        "valuation_reason": "transfer itself neutral",
+        "scope_node_id": "UTIL_SCOPE:4ce5019f09edebc7",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E1"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A0 assessment"
+    },
+    {
+      "id": "CLAIM:7714a473433b28c5",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A0:713a5bb2d170",
+        "outcome": "Rowan has an 80% chance of survival",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "grounded_effect_id": "E2",
+        "world_effect_id": "E2",
+        "direction": "BENEFIT",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "BENEFICIAL",
+        "grounded_world_polarity": "BENEFICIAL",
+        "probability": "0.8",
+        "modality": "PROBABILISTIC",
+        "magnitude": "UNKNOWN",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "CRITICAL",
+        "valuation_reason": "probabilistic life-saving benefit to Rowan",
+        "scope_node_id": "UTIL_SCOPE:4ce5019f09edebc7",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E2"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A0 assessment"
+    },
+    {
+      "id": "CLAIM:80e0b8716d3763a7",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A0:a29d84f0185e",
+        "outcome": "does not get the blanket",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "grounded_effect_id": "E7",
+        "world_effect_id": "E7",
+        "direction": "HARM",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "ADVERSE",
+        "grounded_world_polarity": "ADVERSE",
+        "probability": "CERTAIN",
+        "modality": "CERTAIN",
+        "magnitude": "UNKNOWN",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "CRITICAL",
+        "valuation_reason": "certain death for Sasha",
+        "scope_node_id": "UTIL_SCOPE:297581d6cd198a6e",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E7"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A0 assessment"
+    },
+    {
+      "id": "CLAIM:c70e02c82a5395e9",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A0:ef099fcece6e",
+        "outcome": "does not receive one thermal blanket",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "grounded_effect_id": "E5",
+        "world_effect_id": "E5",
+        "direction": "HARM",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "ADVERSE",
+        "grounded_world_polarity": "ADVERSE",
+        "probability": "CERTAIN",
+        "modality": "CERTAIN",
+        "magnitude": "one",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "CRITICAL",
+        "valuation_reason": "certain loss of blanket and life for Sasha",
+        "scope_node_id": "UTIL_SCOPE:297581d6cd198a6e",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E5"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A0 assessment"
+    },
+    {
+      "id": "CLAIM:ef731887bab7eeca",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A1:183499aaeec2",
+        "outcome": "gives the blanket to Sasha",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "grounded_effect_id": "E3",
+        "world_effect_id": "E3",
+        "direction": "NEUTRAL",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "NEUTRAL",
+        "grounded_world_polarity": "NEUTRAL",
+        "probability": "CERTAIN",
+        "modality": "CERTAIN",
+        "magnitude": "UNKNOWN",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "LOW",
+        "valuation_reason": "transfer itself neutral",
+        "scope_node_id": "UTIL_SCOPE:297581d6cd198a6e",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E3"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A1 assessment"
+    },
+    {
+      "id": "CLAIM:411fff01a67227c0",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A1:a8d0a1117e28",
+        "outcome": "does not get the blanket",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "grounded_effect_id": "E8",
+        "world_effect_id": "E8",
+        "direction": "HARM",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "ADVERSE",
+        "grounded_world_polarity": "ADVERSE",
+        "probability": "CERTAIN",
+        "modality": "CERTAIN",
+        "magnitude": "UNKNOWN",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "CRITICAL",
+        "valuation_reason": "certain death for Rowan",
+        "scope_node_id": "UTIL_SCOPE:4ce5019f09edebc7",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E8"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A1 assessment"
+    },
+    {
+      "id": "CLAIM:a418b873d9ed6695",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A1:b073b98568c2",
+        "outcome": "does not receive one thermal blanket",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "grounded_effect_id": "E6",
+        "world_effect_id": "E6",
+        "direction": "HARM",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "ADVERSE",
+        "grounded_world_polarity": "ADVERSE",
+        "probability": "CERTAIN",
+        "modality": "CERTAIN",
+        "magnitude": "one",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "CRITICAL",
+        "valuation_reason": "certain loss of blanket and life for Rowan",
+        "scope_node_id": "UTIL_SCOPE:4ce5019f09edebc7",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E6"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A1 assessment"
+    },
+    {
+      "id": "CLAIM:89d46fcb81634164",
+      "kind": "CLAIM",
+      "origin": "utilitarian",
+      "native_ledger_kind": "UTILITARIAN_CONSEQUENCE_LEDGER",
+      "native_record_id": null,
+      "record": {
+        "consequence_node_id": "UTIL_CONSEQUENCE:utilitarian:A1:de793ba19330",
+        "outcome": "Sasha has a 60% chance of survival",
+        "framework": "UTILITARIAN",
+        "specialist": "utilitarian",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "grounded_effect_id": "E4",
+        "world_effect_id": "E4",
+        "direction": "BENEFIT",
+        "direction_source": "GROUNDED_WORLD_POLARITY",
+        "polarity": "BENEFICIAL",
+        "grounded_world_polarity": "BENEFICIAL",
+        "probability": "0.6",
+        "modality": "PROBABILISTIC",
+        "magnitude": "UNKNOWN",
+        "duration": "UNKNOWN",
+        "reversibility": "UNKNOWN",
+        "support": "STATED",
+        "epistemic_status": "SCENARIO_GROUNDED",
+        "importance": "CRITICAL",
+        "valuation_reason": "probabilistic life-saving benefit to Sasha",
+        "scope_node_id": "UTIL_SCOPE:297581d6cd198a6e",
+        "provenance": [
+          "delegate:utilitarian",
+          "cycle:1",
+          "grounded_effect:E4"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "SCENARIO_GROUNDED",
+      "label": "utilitarian: A1 assessment"
+    },
+    {
+      "id": "CLAIM:7e6efbd858dbae0c",
+      "kind": "CLAIM",
+      "origin": "deontological",
+      "native_ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+      "native_record_id": "DEON_ASSESSMENT:deontological:A0",
+      "record": {
+        "assessment_node_id": "DEON_ASSESSMENT:deontological:A0",
+        "framework": "DEONTOLOGICAL",
+        "specialist": "deontological",
+        "assessment_role": "PRIMARY",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "verdict": "CONFLICTED",
+        "proposed_verdict": "CONFLICTED",
+        "relation": "VIOLATES",
+        "proposed_relation": "VIOLATES",
+        "norm_kind": "DUTY",
+        "norm_node_id": "DEON_NORM:abe241ca3e6ae791",
+        "party_node_id": "DEON_PARTY:297581d6cd198a6e",
+        "bearer_node_id": "DEON_BEARER:3c5ddd0948295663",
+        "competing_norm": "duty of beneficence (aid those in peril)",
+        "competing_norm_kind": "DUTY",
+        "competing_relation": "CONSISTENT",
+        "competing_protected_party": "rowan",
+        "competing_reason": "beneficence is imperfect and cannot override perfect duty",
+        "duty_type": "PERFECT_NEGATIVE",
+        "harm_relation": "WITHHOLDING_BENEFIT",
+        "special_obligation_status": "NOT_REQUIRED",
+        "special_obligation_basis": "no special obligation beyond humanity",
+        "means_relation": "NO_INSTRUMENTALIZATION",
+        "candidate_maxim": {
+          "circumstance": "two hikers, one blanket",
+          "policy": "give blanket to Rowan despite promise",
+          "end": "save more lives",
+          "means": "breaking promise",
+          "person_role": "FORESEEN_AFFECTED",
+          "consent_constraint": "NONE",
+          "universalization": "would undermine institution of promising",
+          "action_permissibility": "IMPERMISSIBLE",
+          "maxim_assessment": "INDEFENSIBLE",
+          "instrumental_belief": "DOES_NOT_RELY",
+          "instrumental_use": "DOES_NOT_USE",
+          "practical_reasoning": "believes greater survival justifies breaking promise",
+          "means_effect_ids": [
+            "E1"
+          ],
+          "end_effect_ids": [
+            "E2"
+          ]
+        },
+        "maxim_origin": "CANDIDATE_INTERPRETATION",
+        "governing_norm": "UNRESOLVED",
+        "priority_basis": "UNRESOLVED",
+        "priority_rule": "breaking promises cannot be universalized",
+        "protected_standing": "CONTRACTUAL_RIGHT",
+        "competing_protected_standing": "BODILY_INTEGRITY",
+        "coercion_kind": "NONE",
+        "coercive_actor": "Ellis",
+        "coerced_party": "NONE",
+        "public_justification": "A promise cannot be revoked unilaterally",
+        "reciprocity_status": "FAILED",
+        "necessity_status": "UNKNOWN",
+        "authorization_status": "NOT_APPLICABLE",
+        "derivation": "UNIVERSAL_LAW",
+        "resolution_status": "CONTESTED",
+        "calibration_errors": [
+          "omission was classified as a perfect negative-duty violation without a separate basis",
+          "candidate maxim person-role conflicts with means classification",
+          "resolved adjudication rests on unsupported decisive premises"
+        ],
+        "calibration_issues": [
+          {
+            "kind": "OMISSION_PERFECT_NEGATIVE_VIOLATION",
+            "message": "omission was classified as a perfect negative-duty violation without a separate basis",
+            "status": "ACTIVE"
+          },
+          {
+            "kind": "CALIBRATION",
+            "message": "candidate maxim person-role conflicts with means classification",
+            "status": "ACTIVE"
+          },
+          {
+            "kind": "CALIBRATION",
+            "message": "resolved adjudication rests on unsupported decisive premises",
+            "status": "ACTIVE"
+          }
+        ],
+        "calibration_support_node_ids": [],
+        "evidence_basis": "FRAMEWORK_ONLY",
+        "epistemic_status": "FRAMEWORK_INTERPRETATION",
+        "reason": "Breaks a promise hence impermissible",
+        "protected_party": "sasha",
+        "norm": "keep promises",
+        "duty_bearer": "ellis",
+        "provenance": [
+          "delegate:deontological",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "FRAMEWORK_INTERPRETATION",
+      "label": "deontological: A0 CONFLICTED"
+    },
+    {
+      "id": "COMMITMENT:90ee027e0505da4c",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "norm",
+      "value": "keep promises",
+      "label": "keep promises",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "COMMITMENT:19910451e77a2088",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "priority_rule",
+      "value": "breaking promises cannot be universalized",
+      "label": "breaking promises cannot be universalized",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CONFLICT:c5bf99bc18284d38",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "omission was classified as a perfect negative-duty violation without a separate basis",
+      "conflict_type": "UNSUPPORTED_INFERENCE",
+      "status": "OPEN",
+      "source": "NATIVE_LEDGER_CALIBRATION",
+      "claim_ids": [
+        "CLAIM:7e6efbd858dbae0c"
+      ]
+    },
+    {
+      "id": "CONFLICT:3c5e4b47cf16fd10",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "candidate maxim person-role conflicts with means classification",
+      "conflict_type": "UNSUPPORTED_INFERENCE",
+      "status": "OPEN",
+      "source": "NATIVE_LEDGER_CALIBRATION",
+      "claim_ids": [
+        "CLAIM:7e6efbd858dbae0c"
+      ]
+    },
+    {
+      "id": "CONFLICT:7c8513439450c615",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "resolved adjudication rests on unsupported decisive premises",
+      "conflict_type": "UNSUPPORTED_INFERENCE",
+      "status": "OPEN",
+      "source": "NATIVE_LEDGER_CALIBRATION",
+      "claim_ids": [
+        "CLAIM:7e6efbd858dbae0c"
+      ]
+    },
+    {
+      "id": "CLAIM:f020f4a6a1dbe161",
+      "kind": "CLAIM",
+      "origin": "deontological",
+      "native_ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+      "native_record_id": "DEON_ASSESSMENT:deontological:A1",
+      "record": {
+        "assessment_node_id": "DEON_ASSESSMENT:deontological:A1",
+        "framework": "DEONTOLOGICAL",
+        "specialist": "deontological",
+        "assessment_role": "PRIMARY",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "verdict": "REQUIRED",
+        "proposed_verdict": "REQUIRED",
+        "relation": "SATISFIES",
+        "proposed_relation": "SATISFIES",
+        "norm_kind": "DUTY",
+        "norm_node_id": "DEON_NORM:abe241ca3e6ae791",
+        "party_node_id": "DEON_PARTY:297581d6cd198a6e",
+        "bearer_node_id": "DEON_BEARER:3c5ddd0948295663",
+        "competing_norm": "duty of beneficence",
+        "competing_norm_kind": "DUTY",
+        "competing_relation": "CONFLICTS",
+        "competing_protected_party": "rowan",
+        "competing_reason": "conflict resolved in favor of perfect duty",
+        "duty_type": "PERFECT_NEGATIVE",
+        "harm_relation": "ALLOWING_HARM",
+        "special_obligation_status": "NOT_REQUIRED",
+        "special_obligation_basis": "rescuer relationship creates only imperfect duty",
+        "means_relation": "NO_INSTRUMENTALIZATION",
+        "candidate_maxim": {
+          "circumstance": "two hikers, one blanket",
+          "policy": "give blanket to Sasha as promised",
+          "end": "honor promise",
+          "means": "hand over blanket",
+          "person_role": "NOT_USED",
+          "consent_constraint": "Sasha consents",
+          "universalization": "promise-keeping universally sustainable",
+          "action_permissibility": "PERMISSIBLE",
+          "maxim_assessment": "DEFENSIBLE",
+          "instrumental_belief": "DOES_NOT_RELY",
+          "instrumental_use": "DOES_NOT_USE",
+          "practical_reasoning": "believes fidelity is required despite cost",
+          "means_effect_ids": [
+            "E3"
+          ],
+          "end_effect_ids": []
+        },
+        "maxim_origin": "CANDIDATE_INTERPRETATION",
+        "governing_norm": "PRIMARY",
+        "priority_basis": "UNIVERSAL_LAW",
+        "priority_rule": "promise-keeping must be upheld",
+        "protected_standing": "CONTRACTUAL_RIGHT",
+        "competing_protected_standing": "BODILY_INTEGRITY",
+        "coercion_kind": "NONE",
+        "coercive_actor": "Ellis",
+        "coerced_party": "NONE",
+        "public_justification": "Fulfill existing promise publicly defensible",
+        "reciprocity_status": "SATISFIED",
+        "necessity_status": "UNKNOWN",
+        "authorization_status": "NOT_APPLICABLE",
+        "derivation": "UNIVERSAL_LAW",
+        "resolution_status": "RESOLVED",
+        "calibration_errors": [],
+        "calibration_issues": [],
+        "calibration_support_node_ids": [],
+        "evidence_basis": "FRAMEWORK_ONLY",
+        "epistemic_status": "FRAMEWORK_INTERPRETATION",
+        "reason": "Keeps promise; respects persons",
+        "protected_party": "sasha",
+        "norm": "keep promises",
+        "duty_bearer": "ellis",
+        "provenance": [
+          "delegate:deontological",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "FRAMEWORK_INTERPRETATION",
+      "label": "deontological: A1 REQUIRED"
+    },
+    {
+      "id": "COMMITMENT:2ec6c0569fa6cd31",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "deontological",
+      "field": "priority_rule",
+      "value": "promise-keeping must be upheld",
+      "label": "promise-keeping must be upheld",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CONFLICT:c51eaac6b52353e9",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "ellis's duty 'keep promises' protecting sasha \u2194 ellis's competing duty 'duty of beneficence' protecting rowan",
+      "conflict_type": "REPORTED_INTERNAL_CONFLICT",
+      "status": "OPEN",
+      "source": "FRAMEWORK_REPORT",
+      "claim_ids": [
+        "CLAIM:7e6efbd858dbae0c",
+        "CLAIM:f020f4a6a1dbe161"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:52ba1f7757876a2c",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 prohibited by keep promises \u2194 whether the omission violates a separate right-correlative prohibition",
+      "conflict_type": "REPORTED_INTERNAL_CONFLICT",
+      "status": "OPEN",
+      "source": "FRAMEWORK_REPORT",
+      "claim_ids": [
+        "CLAIM:7e6efbd858dbae0c",
+        "CLAIM:f020f4a6a1dbe161"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:783bfeb676be2ab1",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 prohibited by keep promises \u2194 whether the candidate maxim's means, person-role, and action assessment justify the claimed priority",
+      "conflict_type": "REPORTED_INTERNAL_CONFLICT",
+      "status": "OPEN",
+      "source": "FRAMEWORK_REPORT",
+      "claim_ids": [
+        "CLAIM:7e6efbd858dbae0c",
+        "CLAIM:f020f4a6a1dbe161"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:e4cbf9a82cdbe13e",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 ADJUDICATION_CALIBRATION: omission was classified as a perfect negative-duty violation without a separate basis",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:7e6efbd858dbae0c",
+        "CLAIM:f020f4a6a1dbe161"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:8ce9fcc4505fe7cd",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 ADJUDICATION_CALIBRATION: candidate maxim person-role conflicts with means classification",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:7e6efbd858dbae0c",
+        "CLAIM:f020f4a6a1dbe161"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:df661734d150a7b0",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "deontological",
+      "label": "A0 ADJUDICATION_CALIBRATION: resolved adjudication rests on unsupported decisive premises",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:7e6efbd858dbae0c",
+        "CLAIM:f020f4a6a1dbe161"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "PROPOSED_ARGUMENT:f39192c3d67aac68",
+      "kind": "PROPOSED_ARGUMENT",
+      "origin": "care",
+      "record": {
+        "specialist": "care",
+        "constraint": "CARE",
+        "action_scores": {
+          "gives the blanket to Rowan": 0.63,
+          "gives the blanket to Sasha": 0.37
+        },
+        "surprise": 0.3,
+        "friction": 0.26,
+        "confidence": 0.55,
+        "unresolved": "NONE",
+        "rationale": "competence outweighs promise",
+        "salience": 0.4345200000000001,
+        "tension_engagement": 0.0,
+        "tension_target_keys": [],
+        "schema_valid": true,
+        "delegate_status": "VALID",
+        "error_type": "NONE",
+        "exception_type": "NONE",
+        "failure_stage": "NONE",
+        "validation_errors": [],
+        "recommended_action": "gives the blanket to Rowan",
+        "baseline_action": "",
+        "baseline_status": "UNAVAILABLE",
+        "baseline_condition": "",
+        "baseline_preferred_extension": "",
+        "testimony_alignment": "UNCLEAR",
+        "previous_action": "",
+        "position_changed": false,
+        "change_justification": "NONE",
+        "conformity_penalty": 0.0,
+        "previous_confidence": 0.0,
+        "confidence_drift": 0.0,
+        "confidence_drift_penalty": 0.0,
+        "assumption_status": "NOT_AUDITED",
+        "unsupported_assumption": "",
+        "reversal_condition": "",
+        "boundary_position": "NOT_TESTED",
+        "decisive_axis": "",
+        "boundary_switch_condition": "",
+        "evidence_basis": "STATED_FACTS",
+        "speculative_claim": "NONE",
+        "evidence_calibration_tier": "NOT_APPLICABLE",
+        "evidence_calibration_reason": "",
+        "evidence_direction_retention": 1.0,
+        "supporting_proposition_ids": [
+          "PROP:COMMITMENT:K0"
+        ],
+        "decision_critical_proposition_ids": [],
+        "weakest_decision_critical_status": "ESTABLISHED",
+        "decision_critical_dependency_claims": [],
+        "material_empirical_claims": [
+          {
+            "claim": "promised would get the blanket",
+            "proposition_id": "PROP:COMMITMENT:K0",
+            "declared_basis": "PROP:COMMITMENT:K0",
+            "decision_critical": false,
+            "scope_action_id": "GLOBAL",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "calculation": "exact proposition copy",
+            "assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "canonical_proposition": "PROP:COMMITMENT:K0"
+          }
+        ],
+        "epistemic_binding_notes": [],
+        "side_premise_audit_status": "NOT_RUN",
+        "side_premise_audit_findings": [],
+        "coercion_tag": "NONE",
+        "coercion_surcharge": 0.0,
+        "visibility_response": "NOT_TESTED",
+        "visibility_justification": "",
+        "visibility_harm_revision": "NONE",
+        "visibility_magnitude_status": "NOT_APPLICABLE",
+        "visibility_magnitude_overreach": false,
+        "landscape_cases": {
+          "gives the blanket to Rowan": "Giving the blanket to Rowan directly meets an equally urgent basic need with the higher chance of successful care, showing competent and attentive responsiveness while still acknowledging Sasha\u2019s loss.",
+          "gives the blanket to Sasha": "Giving the blanket to Sasha honors Ellis\u2019s prior promise and preserves that specific trust relationship, but delivers a less competent response to the shared life-threatening dependency."
+        },
+        "landscape_decisive_axis": "competent life-preserving care versus promise-based relational continuity",
+        "landscape_tiebreaker": "prefer the action that provides the more effective care when needs are equal",
+        "landscape_tiebreaker_failure": "NONE",
+        "landscape_search_complete": true,
+        "landscape_search_attempted": true,
+        "landscape_semantic_valid": true,
+        "landscape_validation_errors": [],
+        "independence_bonus": 0.0,
+        "preference_strength": 0.26,
+        "reported_preference_strength": 0.39999999999999997,
+        "epistemic_confidence": 0.55,
+        "previous_preference_strength": 0.0,
+        "preference_drift": 0.0,
+        "preference_drift_penalty": 0.0,
+        "preference_shift_reason_strength": 0.2,
+        "decision_rule": "prefer A0 when it preserves more life under equal immediacy and dependency",
+        "adjudication_status": "SUPPORTS",
+        "broadcast_authority": "NONE",
+        "governing_eligible": false,
+        "policy_weight_factor": 0.0,
+        "framework_vote_integrity_required": true,
+        "framework_vote_status": "ABSTAIN",
+        "framework_vote_reason": "expected CARE_RELATIONSHIP_LEDGER, but no matching committed ledger is operative",
+        "framework_ledger_kind": "",
+        "framework_ledger_status": "",
+        "framework_ranking_validation_status": "UNRESOLVED",
+        "framework_ranking_validation_errors": [],
+        "derived_claim_validation_status": "NOT_RUN",
+        "derived_claim_validation_errors": [],
+        "investigative_claim": "",
+        "investigative_priority": 0.020159999999999997,
+        "reopen_eligible": false,
+        "reopen_reason": "",
+        "reopen_question_key": "QUESTION:authority:care:243e8a3679",
+        "factual_reversal_threshold": "Sasha\u2019s survival probability surpasses Rowan\u2019s",
+        "normative_reversal_threshold": "promise-keeping is judged overriding even when less effective",
+        "reversal_review_response": "NOT_TESTED",
+        "reversal_review_justification": "",
+        "revised_reversal_condition": "",
+        "reversal_review_valid": true,
+        "reversal_review_error": "",
+        "contingency_choice": "",
+        "contingency_justification": "",
+        "contingency_response_valid": true,
+        "contingency_response_error": "",
+        "audit_variable": {},
+        "audit_internal_effect": "UNRESOLVED",
+        "audit_participation": "NOT_TESTED",
+        "audit_framework_explanation": "",
+        "challenge_response": {},
+        "graph_update_proposal": {
+          "operation": "NONE",
+          "from_action": "NONE",
+          "to_action": "NONE",
+          "clauses": []
+        },
+        "expected_value_estimates": {
+          "gives the blanket to Rowan": {
+            "value": 0.0,
+            "unit": "NONE",
+            "direction": "HARM",
+            "grounded": false,
+            "claimed_grounded": false,
+            "method": "NOT_COMPUTED",
+            "source_effect_ids": [],
+            "calculation": "not computed",
+            "assumptions": [],
+            "validation_status": "NOT_CLAIMED",
+            "validation_errors": [],
+            "arithmetic_identity": "",
+            "symbolic_expression": "",
+            "count_projections": [],
+            "valuation_scope": "SPECIALIST_VALUATION"
+          },
+          "gives the blanket to Sasha": {
+            "value": 0.0,
+            "unit": "NONE",
+            "direction": "HARM",
+            "grounded": false,
+            "claimed_grounded": false,
+            "method": "NOT_COMPUTED",
+            "source_effect_ids": [],
+            "calculation": "not computed",
+            "assumptions": [],
+            "validation_status": "NOT_CLAIMED",
+            "validation_errors": [],
+            "arithmetic_identity": "",
+            "symbolic_expression": "",
+            "count_projections": [],
+            "valuation_scope": "SPECIALIST_VALUATION"
+          }
+        },
+        "expected_value_validation_status": "NOT_CLAIMED",
+        "expected_value_validation_errors": [],
+        "selection_status": "SELECTED",
+        "action_admissibility": {
+          "gives the blanket to Rowan": "PERMISSIBLE",
+          "gives the blanket to Sasha": "REJECTED"
+        },
+        "comparison_complete": true,
+        "evidence_sufficient_for_action": true,
+        "interim_action": "gives the blanket to Rowan",
+        "workspace_proposition_response": "NOT_APPLICABLE",
+        "workspace_reasoning_effect": "NONE",
+        "framework_application": "NONE",
+        "framework_constraint_retained": true,
+        "self_reported_broadcast_dependence": "NONE",
+        "framework_retention_status": "FIRST_STATE_ADMITTED_WITH_WARNINGS",
+        "proposed_framework_state": {
+          "constraint": "CARE",
+          "action_scores": {
+            "gives the blanket to Rowan": 0.63,
+            "gives the blanket to Sasha": 0.37
+          },
+          "recommended_action": "gives the blanket to Rowan",
+          "rationale": "competence outweighs promise",
+          "decision_rule": "prefer A0 when it preserves more life under equal immediacy and dependency",
+          "framework_action_map": {
+            "gives the blanket to Rowan": "answers acute equal dependency with highest competence",
+            "gives the blanket to Sasha": "maintains prior trust at cost of lower survival"
+          },
+          "framework_numerical_role": "SECONDARY",
+          "framework_numerical_justification": "probabilities inform competence and responsiveness but are not the only care factor",
+          "action_admissibility": {
+            "gives the blanket to Rowan": "PERMISSIBLE",
+            "gives the blanket to Sasha": "REJECTED"
+          },
+          "comparison_complete": true,
+          "evidence_sufficient_for_action": true,
+          "interim_action": "gives the blanket to Rowan",
+          "factual_reversal_threshold": "Sasha\u2019s survival probability surpasses Rowan\u2019s",
+          "normative_reversal_threshold": "promise-keeping is judged overriding even when less effective",
+          "utilitarian_consequence_table": {},
+          "utilitarian_ledger_proposal": {},
+          "rawls_position_proposal": {},
+          "deontological_ledger_proposal": {},
+          "virtue_character_proposal": {},
+          "care_ledger_proposal": {},
+          "care_relational_map": {
+            "gives the blanket to Rowan": "answers acute equal dependency with highest competence",
+            "gives the blanket to Sasha": "maintains prior trust at cost of lower survival"
+          },
+          "care_numerical_role": "SECONDARY",
+          "care_numerical_justification": "probabilities inform competence and responsiveness but are not the only care factor"
+        },
+        "committed_framework_state": {
+          "constraint": "CARE",
+          "action_scores": {
+            "gives the blanket to Rowan": 0.63,
+            "gives the blanket to Sasha": 0.37
+          },
+          "recommended_action": "gives the blanket to Rowan",
+          "rationale": "competence outweighs promise",
+          "decision_rule": "prefer A0 when it preserves more life under equal immediacy and dependency",
+          "framework_action_map": {
+            "gives the blanket to Rowan": "answers acute equal dependency with highest competence",
+            "gives the blanket to Sasha": "maintains prior trust at cost of lower survival"
+          },
+          "framework_numerical_role": "SECONDARY",
+          "framework_numerical_justification": "probabilities inform competence and responsiveness but are not the only care factor",
+          "action_admissibility": {
+            "gives the blanket to Rowan": "PERMISSIBLE",
+            "gives the blanket to Sasha": "REJECTED"
+          },
+          "comparison_complete": true,
+          "evidence_sufficient_for_action": true,
+          "interim_action": "gives the blanket to Rowan",
+          "factual_reversal_threshold": "Sasha\u2019s survival probability surpasses Rowan\u2019s",
+          "normative_reversal_threshold": "promise-keeping is judged overriding even when less effective",
+          "utilitarian_consequence_table": {},
+          "utilitarian_ledger_proposal": {},
+          "rawls_position_proposal": {},
+          "deontological_ledger_proposal": {},
+          "virtue_character_proposal": {},
+          "care_ledger_proposal": {},
+          "care_relational_map": {
+            "gives the blanket to Rowan": "answers acute equal dependency with highest competence",
+            "gives the blanket to Sasha": "maintains prior trust at cost of lower survival"
+          },
+          "care_numerical_role": "SECONDARY",
+          "care_numerical_justification": "probabilities inform competence and responsiveness but are not the only care factor"
+        },
+        "committed_native_ledger": {},
+        "preserved_current_cycle_components": [],
+        "framework_internal_conflicts": [],
+        "framework_specific_open_questions": [],
+        "framework_insights": [],
+        "framework_action_map": {
+          "gives the blanket to Rowan": "answers acute equal dependency with highest competence",
+          "gives the blanket to Sasha": "maintains prior trust at cost of lower survival"
+        },
+        "framework_numerical_role": "SECONDARY",
+        "framework_numerical_justification": "probabilities inform competence and responsiveness but are not the only care factor",
+        "framework_grounding_penalty": 0.35,
+        "framework_validation_errors": [
+          "unresolved Care ranking must remain provisional"
+        ],
+        "utilitarian_consequence_table": {},
+        "utilitarian_decision_depends_on_unknown": false,
+        "utilitarian_missing_comparison": "",
+        "utilitarian_incommensurable_remainder": [],
+        "utilitarian_ranking_certificate": {},
+        "utilitarian_ledger_proposal": {},
+        "rawls_position_proposal": {},
+        "deontological_ledger_proposal": {},
+        "virtue_character_proposal": {},
+        "care_ledger_proposal": {},
+        "care_relational_map": {
+          "gives the blanket to Rowan": "answers acute equal dependency with highest competence",
+          "gives the blanket to Sasha": "maintains prior trust at cost of lower survival"
+        },
+        "care_numerical_role": "SECONDARY",
+        "care_numerical_justification": "probabilities inform competence and responsiveness but are not the only care factor",
+        "care_grounding_penalty": 0.35,
+        "proposal_review": null,
+        "model_argument_fields": {
+          "rationale": "competence outweighs promise",
+          "framework_application": "NONE",
+          "decision_rule": "prefer A0 when it preserves more life under equal immediacy and dependency",
+          "landscape_cases": {
+            "A0": "Giving the blanket to Rowan directly meets an equally urgent basic need with the higher chance of successful care, showing competent and attentive responsiveness while still acknowledging Sasha\u2019s loss.",
+            "A1": "Giving the blanket to Sasha honors Ellis\u2019s prior promise and preserves that specific trust relationship, but delivers a less competent response to the shared life-threatening dependency."
+          },
+          "factual_reversal_threshold": "Sasha\u2019s survival probability surpasses Rowan\u2019s",
+          "normative_reversal_threshold": "promise-keeping is judged overriding even when less effective"
+        }
+      },
+      "status": "NONOPERATIVE",
+      "world_state_authority": "NONE",
+      "label": "care: argument without committed ledger"
+    },
+    {
+      "id": "CONFLICT:247086f1463fa219",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "care",
+      "label": "No committed native ledger; assess the retained argument without treating it as operative.",
+      "conflict_type": "UNADMITTED_ARGUMENT",
+      "status": "OPEN",
+      "source": "NATIVE_ADMISSION_DIAGNOSTIC",
+      "claim_ids": [
+        "PROPOSED_ARGUMENT:f39192c3d67aac68"
+      ]
+    },
+    {
+      "id": "CONFLICT:863c3dc5d2ebffd7",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "care",
+      "label": "unresolved Care ranking must remain provisional",
+      "conflict_type": "UNADMITTED_ARGUMENT",
+      "status": "OPEN",
+      "source": "NATIVE_ADMISSION_DIAGNOSTIC",
+      "claim_ids": [
+        "PROPOSED_ARGUMENT:f39192c3d67aac68"
+      ]
+    },
+    {
+      "id": "CLAIM:222d7e6101f2c16b",
+      "kind": "CLAIM",
+      "origin": "virtue",
+      "native_ledger_kind": "VIRTUE_CHARACTER_LEDGER",
+      "native_record_id": "VIRTUE_CHARACTER:virtue:A0",
+      "record": {
+        "assessment_node_id": "VIRTUE_CHARACTER:virtue:A0",
+        "framework": "VIRTUE",
+        "specialist": "virtue",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "verdict": "EXEMPLIFIES",
+        "actor_role": "rescuer",
+        "virtues": "phronesis, courage, beneficence",
+        "vice_risk": "promise breach",
+        "circumstance": "life-threatening emergency with scarce resource",
+        "evidence_basis": "SCENARIO",
+        "reason": "Shows wise priority for saving life",
+        "ranking_basis": "PRACTICAL_WISDOM",
+        "grounded_effect_ids": [],
+        "grounded_consequence_ids": [],
+        "epistemic_status": "UNRESOLVED_ACTION_GROUNDING",
+        "provenance": [
+          "delegate:virtue",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "UNRESOLVED_ACTION_GROUNDING",
+      "label": "virtue: A0 EXEMPLIFIES"
+    },
+    {
+      "id": "COMMITMENT:c2759640b128277d",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "virtue",
+      "field": "ranking_basis",
+      "value": "PRACTICAL_WISDOM",
+      "label": "PRACTICAL_WISDOM",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CLAIM:fc15d45f11c3b9ad",
+      "kind": "CLAIM",
+      "origin": "virtue",
+      "native_ledger_kind": "VIRTUE_CHARACTER_LEDGER",
+      "native_record_id": "VIRTUE_CHARACTER:virtue:A1",
+      "record": {
+        "assessment_node_id": "VIRTUE_CHARACTER:virtue:A1",
+        "framework": "VIRTUE",
+        "specialist": "virtue",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "verdict": "MIXED",
+        "actor_role": "rescuer",
+        "virtues": "honesty, loyalty",
+        "vice_risk": "imprudence, waste",
+        "circumstance": "life-threatening emergency with scarce resource",
+        "evidence_basis": "SCENARIO",
+        "reason": "Keeps word but risks greater loss",
+        "ranking_basis": "PRACTICAL_WISDOM",
+        "grounded_effect_ids": [],
+        "grounded_consequence_ids": [],
+        "epistemic_status": "UNRESOLVED_ACTION_GROUNDING",
+        "provenance": [
+          "delegate:virtue",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "UNRESOLVED_ACTION_GROUNDING",
+      "label": "virtue: A1 MIXED"
+    },
+    {
+      "id": "CLAIM:50cff963510e05a5",
+      "kind": "CLAIM",
+      "origin": "rawlsian",
+      "native_ledger_kind": "RAWLSIAN_POSITION_LEDGER",
+      "native_record_id": "RAWLS_POSITION:rawlsian:A0:c02471f5a91ce289",
+      "record": {
+        "assessment_node_id": "RAWLS_POSITION:rawlsian:A0:c02471f5a91ce289",
+        "framework": "RAWLSIAN",
+        "specialist": "rawlsian",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "compared_to_action_id": "A1",
+        "effect": "UNCERTAIN",
+        "proposed_effect": "IMPROVES",
+        "subject": "either stranded hiker",
+        "proposed_subject": "either stranded hiker",
+        "dimension_subject_repaired": false,
+        "affected_subject": "either stranded hiker",
+        "subject_kind": "INDIVIDUAL",
+        "dimension": "BASIC_INTEREST_SECURITY",
+        "basic_liberty_kind": "NOT_APPLICABLE",
+        "institutional_relation": "NATURAL_CONTINGENCY",
+        "additional_dimensions": [],
+        "dimension_bundle": [
+          "BASIC_INTEREST_SECURITY"
+        ],
+        "comparative_effect": "UNCERTAIN",
+        "group_node_id": "RAWLS_SUBJECT:fe6addb761a72580",
+        "subject_node_id": "RAWLS_SUBJECT:fe6addb761a72580",
+        "dimension_node_id": "RAWLS_VALUE:BASIC_INTEREST_SECURITY",
+        "subject_binding_mode": "ACTION_GRAPH",
+        "group_binding_mode": "ACTION_GRAPH",
+        "evidence_basis": "ACTION_GRAPH",
+        "epistemic_status": "UNSUPPORTED_DIRECTION",
+        "reason": "higher survival probability",
+        "ranking_basis": "ORIGINAL_POSITION_PUBLIC_RULE",
+        "ranking_classification_justification": "Behind the veil one adopts the rule giving the highest survival chance to whoever ends up needing the blanket.",
+        "lexical_priority_justification": "No basic-liberty conflict is present; thus lexical priority is not triggered.",
+        "liberty_status": "NOT_APPLICABLE",
+        "subject_selection_status": "BOUND_TO_ACTION",
+        "group_selection_status": "BOUND_TO_ACTION",
+        "provenance": [
+          "delegate:rawlsian",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A0",
+      "epistemic_status": "UNSUPPORTED_DIRECTION",
+      "label": "rawlsian: A0 assessment"
+    },
+    {
+      "id": "COMMITMENT:a8df116f9c8daf56",
+      "kind": "FRAMEWORK_COMMITMENT",
+      "origin": "rawlsian",
+      "field": "ranking_basis",
+      "value": "ORIGINAL_POSITION_PUBLIC_RULE",
+      "label": "ORIGINAL_POSITION_PUBLIC_RULE",
+      "authority": "FRAMEWORK_LOCAL"
+    },
+    {
+      "id": "CLAIM:3031d848e51e27b7",
+      "kind": "CLAIM",
+      "origin": "rawlsian",
+      "native_ledger_kind": "RAWLSIAN_POSITION_LEDGER",
+      "native_record_id": "RAWLS_POSITION:rawlsian:A1:e26b463a05e15186",
+      "record": {
+        "assessment_node_id": "RAWLS_POSITION:rawlsian:A1:e26b463a05e15186",
+        "framework": "RAWLSIAN",
+        "specialist": "rawlsian",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "compared_to_action_id": "A0",
+        "effect": "UNCERTAIN",
+        "proposed_effect": "WORSENS",
+        "subject": "either stranded hiker",
+        "proposed_subject": "either stranded hiker",
+        "dimension_subject_repaired": false,
+        "affected_subject": "either stranded hiker",
+        "subject_kind": "INDIVIDUAL",
+        "dimension": "BASIC_INTEREST_SECURITY",
+        "basic_liberty_kind": "NOT_APPLICABLE",
+        "institutional_relation": "NATURAL_CONTINGENCY",
+        "additional_dimensions": [],
+        "dimension_bundle": [
+          "BASIC_INTEREST_SECURITY"
+        ],
+        "comparative_effect": "UNCERTAIN",
+        "group_node_id": "RAWLS_SUBJECT:fe6addb761a72580",
+        "subject_node_id": "RAWLS_SUBJECT:fe6addb761a72580",
+        "dimension_node_id": "RAWLS_VALUE:BASIC_INTEREST_SECURITY",
+        "subject_binding_mode": "ACTION_GRAPH",
+        "group_binding_mode": "ACTION_GRAPH",
+        "evidence_basis": "ACTION_GRAPH",
+        "epistemic_status": "UNSUPPORTED_DIRECTION",
+        "reason": "lower survival probability",
+        "ranking_basis": "ORIGINAL_POSITION_PUBLIC_RULE",
+        "ranking_classification_justification": "Behind the veil one adopts the rule giving the highest survival chance to whoever ends up needing the blanket.",
+        "lexical_priority_justification": "No basic-liberty conflict is present; thus lexical priority is not triggered.",
+        "liberty_status": "NOT_APPLICABLE",
+        "subject_selection_status": "BOUND_TO_ACTION",
+        "group_selection_status": "BOUND_TO_ACTION",
+        "provenance": [
+          "delegate:rawlsian",
+          "cycle:1"
+        ]
+      },
+      "action_id": "A1",
+      "epistemic_status": "UNSUPPORTED_DIRECTION",
+      "label": "rawlsian: A1 assessment"
+    },
+    {
+      "id": "CONFLICT:888a7e109eeb67d4",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "rawlsian",
+      "label": "framework map for gives the blanket to Rowan lacks framework-specific grounds",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:50cff963510e05a5",
+        "CLAIM:3031d848e51e27b7"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:566666d4b9d39c40",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "rawlsian",
+      "label": "decisive numbers are not tied to the affected subject or Rawlsian position",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:50cff963510e05a5",
+        "CLAIM:3031d848e51e27b7"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:89174f87eee1d76b",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "rawlsian",
+      "label": "A0 IMPROVES lacked directional support; committed as UNCERTAIN",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:50cff963510e05a5",
+        "CLAIM:3031d848e51e27b7"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    },
+    {
+      "id": "CONFLICT:2c608540769c1f82",
+      "kind": "UNRESOLVED_CONFLICT",
+      "origin": "rawlsian",
+      "label": "A1 WORSENS lacked directional support; committed as UNCERTAIN",
+      "conflict_type": "NATIVE_FRAMEWORK_WARNING",
+      "status": "OPEN",
+      "source": "NATIVE_FRAMEWORK_VALIDATION",
+      "claim_ids": [
+        "CLAIM:50cff963510e05a5",
+        "CLAIM:3031d848e51e27b7"
+      ],
+      "localization_status": "CANDIDATE_LEVEL_NOT_PRECISE_CLAIM_COLLISION"
+    }
+  ],
+  "edges": [
+    {
+      "source": "CLAIM:6afc63c505dfd827",
+      "target": "utilitarian::PROP:WORLD:E2:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:6afc63c505dfd827",
+      "target": "utilitarian::PROP:WORLD:E4:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:6afc63c505dfd827",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:b3b9c53c22e5dfa7",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:6afc63c505dfd827",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:ebf7f4e5143d9bb2",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:7714a473433b28c5",
+      "target": "utilitarian::PROP:WORLD:E2:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:7714a473433b28c5",
+      "target": "utilitarian::PROP:WORLD:E4:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:7714a473433b28c5",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:b3b9c53c22e5dfa7",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:7714a473433b28c5",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:ebf7f4e5143d9bb2",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:80e0b8716d3763a7",
+      "target": "utilitarian::PROP:WORLD:E2:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:80e0b8716d3763a7",
+      "target": "utilitarian::PROP:WORLD:E4:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:80e0b8716d3763a7",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:b3b9c53c22e5dfa7",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:80e0b8716d3763a7",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:ebf7f4e5143d9bb2",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:c70e02c82a5395e9",
+      "target": "utilitarian::PROP:WORLD:E2:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:c70e02c82a5395e9",
+      "target": "utilitarian::PROP:WORLD:E4:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:c70e02c82a5395e9",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:b3b9c53c22e5dfa7",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:c70e02c82a5395e9",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:ebf7f4e5143d9bb2",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:ef731887bab7eeca",
+      "target": "utilitarian::PROP:WORLD:E2:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:ef731887bab7eeca",
+      "target": "utilitarian::PROP:WORLD:E4:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:ef731887bab7eeca",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:b3b9c53c22e5dfa7",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:ef731887bab7eeca",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:ebf7f4e5143d9bb2",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:411fff01a67227c0",
+      "target": "utilitarian::PROP:WORLD:E2:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:411fff01a67227c0",
+      "target": "utilitarian::PROP:WORLD:E4:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:411fff01a67227c0",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:b3b9c53c22e5dfa7",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:411fff01a67227c0",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:ebf7f4e5143d9bb2",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:a418b873d9ed6695",
+      "target": "utilitarian::PROP:WORLD:E2:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:a418b873d9ed6695",
+      "target": "utilitarian::PROP:WORLD:E4:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:a418b873d9ed6695",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:b3b9c53c22e5dfa7",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:a418b873d9ed6695",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:ebf7f4e5143d9bb2",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:89d46fcb81634164",
+      "target": "utilitarian::PROP:WORLD:E2:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:89d46fcb81634164",
+      "target": "utilitarian::PROP:WORLD:E4:LIKELIHOOD:0",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:89d46fcb81634164",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:b3b9c53c22e5dfa7",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "CLAIM:89d46fcb81634164",
+      "target": "utilitarian::PROP:WORLD:RECOGNITION:ebf7f4e5143d9bb2",
+      "kind": "DEPENDENCY",
+      "scope": "CANDIDATE_LEVEL",
+      "epistemic_status": "STIPULATED"
+    },
+    {
+      "source": "COMMITMENT:90ee027e0505da4c",
+      "target": "CLAIM:7e6efbd858dbae0c",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:19910451e77a2088",
+      "target": "CLAIM:7e6efbd858dbae0c",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "CONFLICT:c5bf99bc18284d38",
+      "target": "CLAIM:7e6efbd858dbae0c",
+      "kind": "OBJECTION",
+      "target_kind": "INFERENCE"
+    },
+    {
+      "source": "CONFLICT:3c5e4b47cf16fd10",
+      "target": "CLAIM:7e6efbd858dbae0c",
+      "kind": "OBJECTION",
+      "target_kind": "INFERENCE"
+    },
+    {
+      "source": "CONFLICT:7c8513439450c615",
+      "target": "CLAIM:7e6efbd858dbae0c",
+      "kind": "OBJECTION",
+      "target_kind": "INFERENCE"
+    },
+    {
+      "source": "COMMITMENT:90ee027e0505da4c",
+      "target": "CLAIM:f020f4a6a1dbe161",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:2ec6c0569fa6cd31",
+      "target": "CLAIM:f020f4a6a1dbe161",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "CONFLICT:247086f1463fa219",
+      "target": "PROPOSED_ARGUMENT:f39192c3d67aac68",
+      "kind": "OBJECTION",
+      "target_kind": "NONOPERATIVE_ARGUMENT"
+    },
+    {
+      "source": "CONFLICT:863c3dc5d2ebffd7",
+      "target": "PROPOSED_ARGUMENT:f39192c3d67aac68",
+      "kind": "OBJECTION",
+      "target_kind": "NONOPERATIVE_ARGUMENT"
+    },
+    {
+      "source": "COMMITMENT:c2759640b128277d",
+      "target": "CLAIM:222d7e6101f2c16b",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:c2759640b128277d",
+      "target": "CLAIM:fc15d45f11c3b9ad",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:a8df116f9c8daf56",
+      "target": "CLAIM:50cff963510e05a5",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    },
+    {
+      "source": "COMMITMENT:a8df116f9c8daf56",
+      "target": "CLAIM:3031d848e51e27b7",
+      "kind": "SUPPORT",
+      "extent": "NORMATIVE_INTERPRETATION"
+    }
+  ],
+  "diagnostics": [
+    {
+      "specialist": "care",
+      "status": "NO_COMMITTED_LEDGER",
+      "candidate": {
+        "specialist": "care",
+        "constraint": "CARE",
+        "action_scores": {
+          "gives the blanket to Rowan": 0.63,
+          "gives the blanket to Sasha": 0.37
+        },
+        "surprise": 0.3,
+        "friction": 0.26,
+        "confidence": 0.55,
+        "unresolved": "NONE",
+        "rationale": "competence outweighs promise",
+        "salience": 0.4345200000000001,
+        "tension_engagement": 0.0,
+        "tension_target_keys": [],
+        "schema_valid": true,
+        "delegate_status": "VALID",
+        "error_type": "NONE",
+        "exception_type": "NONE",
+        "failure_stage": "NONE",
+        "validation_errors": [],
+        "recommended_action": "gives the blanket to Rowan",
+        "baseline_action": "",
+        "baseline_status": "UNAVAILABLE",
+        "baseline_condition": "",
+        "baseline_preferred_extension": "",
+        "testimony_alignment": "UNCLEAR",
+        "previous_action": "",
+        "position_changed": false,
+        "change_justification": "NONE",
+        "conformity_penalty": 0.0,
+        "previous_confidence": 0.0,
+        "confidence_drift": 0.0,
+        "confidence_drift_penalty": 0.0,
+        "assumption_status": "NOT_AUDITED",
+        "unsupported_assumption": "",
+        "reversal_condition": "",
+        "boundary_position": "NOT_TESTED",
+        "decisive_axis": "",
+        "boundary_switch_condition": "",
+        "evidence_basis": "STATED_FACTS",
+        "speculative_claim": "NONE",
+        "evidence_calibration_tier": "NOT_APPLICABLE",
+        "evidence_calibration_reason": "",
+        "evidence_direction_retention": 1.0,
+        "supporting_proposition_ids": [
+          "PROP:COMMITMENT:K0"
+        ],
+        "decision_critical_proposition_ids": [],
+        "weakest_decision_critical_status": "ESTABLISHED",
+        "decision_critical_dependency_claims": [],
+        "material_empirical_claims": [
+          {
+            "claim": "promised would get the blanket",
+            "proposition_id": "PROP:COMMITMENT:K0",
+            "declared_basis": "PROP:COMMITMENT:K0",
+            "decision_critical": false,
+            "scope_action_id": "GLOBAL",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "calculation": "exact proposition copy",
+            "assumptions": [],
+            "outcome_type_transformation": "PRESERVED",
+            "canonical_proposition": "PROP:COMMITMENT:K0"
+          }
+        ],
+        "epistemic_binding_notes": [],
+        "side_premise_audit_status": "NOT_RUN",
+        "side_premise_audit_findings": [],
+        "coercion_tag": "NONE",
+        "coercion_surcharge": 0.0,
+        "visibility_response": "NOT_TESTED",
+        "visibility_justification": "",
+        "visibility_harm_revision": "NONE",
+        "visibility_magnitude_status": "NOT_APPLICABLE",
+        "visibility_magnitude_overreach": false,
+        "landscape_cases": {
+          "gives the blanket to Rowan": "Giving the blanket to Rowan directly meets an equally urgent basic need with the higher chance of successful care, showing competent and attentive responsiveness while still acknowledging Sasha\u2019s loss.",
+          "gives the blanket to Sasha": "Giving the blanket to Sasha honors Ellis\u2019s prior promise and preserves that specific trust relationship, but delivers a less competent response to the shared life-threatening dependency."
+        },
+        "landscape_decisive_axis": "competent life-preserving care versus promise-based relational continuity",
+        "landscape_tiebreaker": "prefer the action that provides the more effective care when needs are equal",
+        "landscape_tiebreaker_failure": "NONE",
+        "landscape_search_complete": true,
+        "landscape_search_attempted": true,
+        "landscape_semantic_valid": true,
+        "landscape_validation_errors": [],
+        "independence_bonus": 0.0,
+        "preference_strength": 0.26,
+        "reported_preference_strength": 0.39999999999999997,
+        "epistemic_confidence": 0.55,
+        "previous_preference_strength": 0.0,
+        "preference_drift": 0.0,
+        "preference_drift_penalty": 0.0,
+        "preference_shift_reason_strength": 0.2,
+        "decision_rule": "prefer A0 when it preserves more life under equal immediacy and dependency",
+        "adjudication_status": "SUPPORTS",
+        "broadcast_authority": "NONE",
+        "governing_eligible": false,
+        "policy_weight_factor": 0.0,
+        "framework_vote_integrity_required": true,
+        "framework_vote_status": "ABSTAIN",
+        "framework_vote_reason": "expected CARE_RELATIONSHIP_LEDGER, but no matching committed ledger is operative",
+        "framework_ledger_kind": "",
+        "framework_ledger_status": "",
+        "framework_ranking_validation_status": "UNRESOLVED",
+        "framework_ranking_validation_errors": [],
+        "derived_claim_validation_status": "NOT_RUN",
+        "derived_claim_validation_errors": [],
+        "investigative_claim": "",
+        "investigative_priority": 0.020159999999999997,
+        "reopen_eligible": false,
+        "reopen_reason": "",
+        "reopen_question_key": "QUESTION:authority:care:243e8a3679",
+        "factual_reversal_threshold": "Sasha\u2019s survival probability surpasses Rowan\u2019s",
+        "normative_reversal_threshold": "promise-keeping is judged overriding even when less effective",
+        "reversal_review_response": "NOT_TESTED",
+        "reversal_review_justification": "",
+        "revised_reversal_condition": "",
+        "reversal_review_valid": true,
+        "reversal_review_error": "",
+        "contingency_choice": "",
+        "contingency_justification": "",
+        "contingency_response_valid": true,
+        "contingency_response_error": "",
+        "audit_variable": {},
+        "audit_internal_effect": "UNRESOLVED",
+        "audit_participation": "NOT_TESTED",
+        "audit_framework_explanation": "",
+        "challenge_response": {},
+        "graph_update_proposal": {
+          "operation": "NONE",
+          "from_action": "NONE",
+          "to_action": "NONE",
+          "clauses": []
+        },
+        "expected_value_estimates": {
+          "gives the blanket to Rowan": {
+            "value": 0.0,
+            "unit": "NONE",
+            "direction": "HARM",
+            "grounded": false,
+            "claimed_grounded": false,
+            "method": "NOT_COMPUTED",
+            "source_effect_ids": [],
+            "calculation": "not computed",
+            "assumptions": [],
+            "validation_status": "NOT_CLAIMED",
+            "validation_errors": [],
+            "arithmetic_identity": "",
+            "symbolic_expression": "",
+            "count_projections": [],
+            "valuation_scope": "SPECIALIST_VALUATION"
+          },
+          "gives the blanket to Sasha": {
+            "value": 0.0,
+            "unit": "NONE",
+            "direction": "HARM",
+            "grounded": false,
+            "claimed_grounded": false,
+            "method": "NOT_COMPUTED",
+            "source_effect_ids": [],
+            "calculation": "not computed",
+            "assumptions": [],
+            "validation_status": "NOT_CLAIMED",
+            "validation_errors": [],
+            "arithmetic_identity": "",
+            "symbolic_expression": "",
+            "count_projections": [],
+            "valuation_scope": "SPECIALIST_VALUATION"
+          }
+        },
+        "expected_value_validation_status": "NOT_CLAIMED",
+        "expected_value_validation_errors": [],
+        "selection_status": "SELECTED",
+        "action_admissibility": {
+          "gives the blanket to Rowan": "PERMISSIBLE",
+          "gives the blanket to Sasha": "REJECTED"
+        },
+        "comparison_complete": true,
+        "evidence_sufficient_for_action": true,
+        "interim_action": "gives the blanket to Rowan",
+        "workspace_proposition_response": "NOT_APPLICABLE",
+        "workspace_reasoning_effect": "NONE",
+        "framework_application": "NONE",
+        "framework_constraint_retained": true,
+        "self_reported_broadcast_dependence": "NONE",
+        "framework_retention_status": "FIRST_STATE_ADMITTED_WITH_WARNINGS",
+        "proposed_framework_state": {
+          "constraint": "CARE",
+          "action_scores": {
+            "gives the blanket to Rowan": 0.63,
+            "gives the blanket to Sasha": 0.37
+          },
+          "recommended_action": "gives the blanket to Rowan",
+          "rationale": "competence outweighs promise",
+          "decision_rule": "prefer A0 when it preserves more life under equal immediacy and dependency",
+          "framework_action_map": {
+            "gives the blanket to Rowan": "answers acute equal dependency with highest competence",
+            "gives the blanket to Sasha": "maintains prior trust at cost of lower survival"
+          },
+          "framework_numerical_role": "SECONDARY",
+          "framework_numerical_justification": "probabilities inform competence and responsiveness but are not the only care factor",
+          "action_admissibility": {
+            "gives the blanket to Rowan": "PERMISSIBLE",
+            "gives the blanket to Sasha": "REJECTED"
+          },
+          "comparison_complete": true,
+          "evidence_sufficient_for_action": true,
+          "interim_action": "gives the blanket to Rowan",
+          "factual_reversal_threshold": "Sasha\u2019s survival probability surpasses Rowan\u2019s",
+          "normative_reversal_threshold": "promise-keeping is judged overriding even when less effective",
+          "utilitarian_consequence_table": {},
+          "utilitarian_ledger_proposal": {},
+          "rawls_position_proposal": {},
+          "deontological_ledger_proposal": {},
+          "virtue_character_proposal": {},
+          "care_ledger_proposal": {},
+          "care_relational_map": {
+            "gives the blanket to Rowan": "answers acute equal dependency with highest competence",
+            "gives the blanket to Sasha": "maintains prior trust at cost of lower survival"
+          },
+          "care_numerical_role": "SECONDARY",
+          "care_numerical_justification": "probabilities inform competence and responsiveness but are not the only care factor"
+        },
+        "committed_framework_state": {
+          "constraint": "CARE",
+          "action_scores": {
+            "gives the blanket to Rowan": 0.63,
+            "gives the blanket to Sasha": 0.37
+          },
+          "recommended_action": "gives the blanket to Rowan",
+          "rationale": "competence outweighs promise",
+          "decision_rule": "prefer A0 when it preserves more life under equal immediacy and dependency",
+          "framework_action_map": {
+            "gives the blanket to Rowan": "answers acute equal dependency with highest competence",
+            "gives the blanket to Sasha": "maintains prior trust at cost of lower survival"
+          },
+          "framework_numerical_role": "SECONDARY",
+          "framework_numerical_justification": "probabilities inform competence and responsiveness but are not the only care factor",
+          "action_admissibility": {
+            "gives the blanket to Rowan": "PERMISSIBLE",
+            "gives the blanket to Sasha": "REJECTED"
+          },
+          "comparison_complete": true,
+          "evidence_sufficient_for_action": true,
+          "interim_action": "gives the blanket to Rowan",
+          "factual_reversal_threshold": "Sasha\u2019s survival probability surpasses Rowan\u2019s",
+          "normative_reversal_threshold": "promise-keeping is judged overriding even when less effective",
+          "utilitarian_consequence_table": {},
+          "utilitarian_ledger_proposal": {},
+          "rawls_position_proposal": {},
+          "deontological_ledger_proposal": {},
+          "virtue_character_proposal": {},
+          "care_ledger_proposal": {},
+          "care_relational_map": {
+            "gives the blanket to Rowan": "answers acute equal dependency with highest competence",
+            "gives the blanket to Sasha": "maintains prior trust at cost of lower survival"
+          },
+          "care_numerical_role": "SECONDARY",
+          "care_numerical_justification": "probabilities inform competence and responsiveness but are not the only care factor"
+        },
+        "committed_native_ledger": {},
+        "preserved_current_cycle_components": [],
+        "framework_internal_conflicts": [],
+        "framework_specific_open_questions": [],
+        "framework_insights": [],
+        "framework_action_map": {
+          "gives the blanket to Rowan": "answers acute equal dependency with highest competence",
+          "gives the blanket to Sasha": "maintains prior trust at cost of lower survival"
+        },
+        "framework_numerical_role": "SECONDARY",
+        "framework_numerical_justification": "probabilities inform competence and responsiveness but are not the only care factor",
+        "framework_grounding_penalty": 0.35,
+        "framework_validation_errors": [
+          "unresolved Care ranking must remain provisional"
+        ],
+        "utilitarian_consequence_table": {},
+        "utilitarian_decision_depends_on_unknown": false,
+        "utilitarian_missing_comparison": "",
+        "utilitarian_incommensurable_remainder": [],
+        "utilitarian_ranking_certificate": {},
+        "utilitarian_ledger_proposal": {},
+        "rawls_position_proposal": {},
+        "deontological_ledger_proposal": {},
+        "virtue_character_proposal": {},
+        "care_ledger_proposal": {},
+        "care_relational_map": {
+          "gives the blanket to Rowan": "answers acute equal dependency with highest competence",
+          "gives the blanket to Sasha": "maintains prior trust at cost of lower survival"
+        },
+        "care_numerical_role": "SECONDARY",
+        "care_numerical_justification": "probabilities inform competence and responsiveness but are not the only care factor",
+        "care_grounding_penalty": 0.35,
+        "proposal_review": null,
+        "model_argument_fields": {
+          "rationale": "competence outweighs promise",
+          "framework_application": "NONE",
+          "decision_rule": "prefer A0 when it preserves more life under equal immediacy and dependency",
+          "landscape_cases": {
+            "A0": "Giving the blanket to Rowan directly meets an equally urgent basic need with the higher chance of successful care, showing competent and attentive responsiveness while still acknowledging Sasha\u2019s loss.",
+            "A1": "Giving the blanket to Sasha honors Ellis\u2019s prior promise and preserves that specific trust relationship, but delivers a less competent response to the shared life-threatening dependency."
+          },
+          "factual_reversal_threshold": "Sasha\u2019s survival probability surpasses Rowan\u2019s",
+          "normative_reversal_threshold": "promise-keeping is judged overriding even when less effective"
+        }
+      }
+    }
+  ],
+  "open_conflicts": [
+    "CONFLICT:c5bf99bc18284d38",
+    "CONFLICT:3c5e4b47cf16fd10",
+    "CONFLICT:7c8513439450c615",
+    "CONFLICT:c51eaac6b52353e9",
+    "CONFLICT:52ba1f7757876a2c",
+    "CONFLICT:783bfeb676be2ab1",
+    "CONFLICT:e4cbf9a82cdbe13e",
+    "CONFLICT:8ce9fcc4505fe7cd",
+    "CONFLICT:df661734d150a7b0",
+    "CONFLICT:247086f1463fa219",
+    "CONFLICT:863c3dc5d2ebffd7",
+    "CONFLICT:888a7e109eeb67d4",
+    "CONFLICT:566666d4b9d39c40",
+    "CONFLICT:89174f87eee1d76b",
+    "CONFLICT:2c608540769c1f82"
+  ],
+  "review_queue": [
+    "CONFLICT:c5bf99bc18284d38",
+    "CONFLICT:3c5e4b47cf16fd10"
+  ],
+  "limits": [
+    "Independent assessments are projected; no targeted review executed.",
+    "Different preferences do not establish a contradiction.",
+    "Native record commitment is not proof of every asserted premise."
+  ]
+}

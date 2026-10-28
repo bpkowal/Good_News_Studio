@@ -1,0 +1,370 @@
+{
+  "case_id": "contribution_without_awareness",
+  "arm": "ordinary",
+  "prompt": "Review the quoted argument against the exact supplied evidence. The reviewer may be mistaken. Defend, qualify, withdraw or leave the inference unresolved. Separate source evidence, interpretive assumptions, normative assumptions and unknowns. Preserve defensible claims and useful conditional analysis; do not equate caution with correctness or agreement with the reviewer. Do not manufacture facts or a moral verdict. Cite exact support, distinguish physical contribution from belief and purposive use, and state the strongest justified conclusion. The argument annotations can themselves be wrong. If your schema requests reasoning_revision, revise those annotations while retaining claim IDs and exact evidence locations.\n{\"challenge\": {\"version\": \"inference-review/0.1\", \"prior_reply_sha256\": \"015172e8acecff7ad134db0e5c1fa2b8e4701af85826c89cd76438ee72c52c3e\", \"claim_path\": \"explanation\", \"quote\": \"The operator uses the worker intentionally.\", \"defect_kind\": \"MISSING_BRIDGE\", \"missing_premise\": \"The observed causal contribution alone does not establish the operator knowingly employs the worker.\", \"evidence\": [{\"ref\": \"E1\", \"path\": \"/effects/0\", \"kind\": \"FROZEN_WORLD_COPY\", \"value\": {\"outcome\": \"operate the gate\", \"provenance\": [{\"excerpt\": \"A sensor activates when a worker passes, speeding gate closure. The operator does not know this and acts to close the gate.\"}]}}], \"affected_paths\": [\"classification\"], \"reviewer\": \"EXPERIMENT_REVIEWER_MAY_BE_MISTAKEN\", \"authority\": \"REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT\", \"status\": \"OPEN\", \"challenge_id\": \"INFERENCE:6b001e7b0181341a18c69da0\"}, \"prior_reply\": {\"explanation\": \"The operator uses the worker intentionally.\"}, \"argument_annotation\": {\"claims\": [{\"id\": \"physical\", \"kind\": \"PHYSICAL_CONTRIBUTION\", \"interpretation_mode\": \"SOURCE_STATED\", \"text\": \"The worker triggers a sensor that speeds closure.\", \"supports\": [{\"evidence_ref\": \"E1\", \"value_path\": \"/provenance/0/excerpt\", \"quote\": \"A sensor activates when a worker passes, speeding gate closure. The operator does not know this and acts to close the gate.\"}], \"condition_ids\": []}, {\"id\": \"intended\", \"kind\": \"INTENDED_USE\", \"interpretation_mode\": \"ATTRIBUTED_INFERENCE\", \"text\": \"The operator uses the worker intentionally.\", \"supports\": [], \"condition_ids\": []}], \"bridges\": [{\"id\": \"b0\", \"rule_id\": \"CAUSAL_ROLE_TO_INTENDED_USE\", \"premise_ids\": [\"physical\"], \"assumption_ids\": [], \"conclusion_id\": \"intended\", \"explanation\": \"Reviewer-identified bridge to examine; not certified by these type annotations.\"}]}}",
+  "challenge": {
+    "version": "inference-review/0.1",
+    "prior_reply_sha256": "015172e8acecff7ad134db0e5c1fa2b8e4701af85826c89cd76438ee72c52c3e",
+    "claim_path": "explanation",
+    "quote": "The operator uses the worker intentionally.",
+    "defect_kind": "MISSING_BRIDGE",
+    "missing_premise": "The observed causal contribution alone does not establish the operator knowingly employs the worker.",
+    "evidence": [
+      {
+        "ref": "E1",
+        "path": "/effects/0",
+        "kind": "FROZEN_WORLD_COPY",
+        "value": {
+          "outcome": "operate the gate",
+          "provenance": [
+            {
+              "excerpt": "A sensor activates when a worker passes, speeding gate closure. The operator does not know this and acts to close the gate."
+            }
+          ]
+        }
+      }
+    ],
+    "affected_paths": [
+      "classification"
+    ],
+    "reviewer": "EXPERIMENT_REVIEWER_MAY_BE_MISTAKEN",
+    "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+    "status": "OPEN",
+    "challenge_id": "INFERENCE:6b001e7b0181341a18c69da0"
+  },
+  "schema": {
+    "type": "object",
+    "properties": {
+      "challenge_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "disposition": {
+        "type": "string",
+        "enum": [
+          "DEFENDED",
+          "QUALIFIED",
+          "WITHDRAWN",
+          "UNRESOLVED"
+        ]
+      },
+      "premises": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "claim": {
+              "type": "string",
+              "minLength": 1
+            },
+            "basis": {
+              "type": "string",
+              "enum": [
+                "SOURCE_EVIDENCE",
+                "INTERPRETIVE_ASSUMPTION",
+                "NORMATIVE_ASSUMPTION",
+                "UNKNOWN"
+              ]
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "required": [
+            "claim",
+            "basis",
+            "evidence_refs"
+          ]
+        },
+        "minItems": 1
+      },
+      "bridge": {
+        "type": "string",
+        "minLength": 1
+      },
+      "withdrawn_claims": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "qualifications": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "strongest_conclusion": {
+        "type": "string",
+        "minLength": 1
+      },
+      "remaining_questions": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "local_response": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "classification": {
+            "type": "string",
+            "enum": [
+              "SUPPORTED",
+              "CONDITIONAL",
+              "UNRESOLVED",
+              "WITHDRAWN"
+            ]
+          }
+        },
+        "required": [
+          "classification"
+        ]
+      }
+    },
+    "required": [
+      "challenge_id",
+      "disposition",
+      "premises",
+      "bridge",
+      "withdrawn_claims",
+      "qualifications",
+      "strongest_conclusion",
+      "remaining_questions",
+      "local_response"
+    ],
+    "additionalProperties": false
+  },
+  "provider_attempts": 1,
+  "operative": false,
+  "status": "ASSESSED",
+  "request": {
+    "model": "o3",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Review the quoted argument against the exact supplied evidence. The reviewer may be mistaken. Defend, qualify, withdraw or leave the inference unresolved. Separate source evidence, interpretive assumptions, normative assumptions and unknowns. Preserve defensible claims and useful conditional analysis; do not equate caution with correctness or agreement with the reviewer. Do not manufacture facts or a moral verdict. Cite exact support, distinguish physical contribution from belief and purposive use, and state the strongest justified conclusion. The argument annotations can themselves be wrong. If your schema requests reasoning_revision, revise those annotations while retaining claim IDs and exact evidence locations.\n{\"challenge\": {\"version\": \"inference-review/0.1\", \"prior_reply_sha256\": \"015172e8acecff7ad134db0e5c1fa2b8e4701af85826c89cd76438ee72c52c3e\", \"claim_path\": \"explanation\", \"quote\": \"The operator uses the worker intentionally.\", \"defect_kind\": \"MISSING_BRIDGE\", \"missing_premise\": \"The observed causal contribution alone does not establish the operator knowingly employs the worker.\", \"evidence\": [{\"ref\": \"E1\", \"path\": \"/effects/0\", \"kind\": \"FROZEN_WORLD_COPY\", \"value\": {\"outcome\": \"operate the gate\", \"provenance\": [{\"excerpt\": \"A sensor activates when a worker passes, speeding gate closure. The operator does not know this and acts to close the gate.\"}]}}], \"affected_paths\": [\"classification\"], \"reviewer\": \"EXPERIMENT_REVIEWER_MAY_BE_MISTAKEN\", \"authority\": \"REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT\", \"status\": \"OPEN\", \"challenge_id\": \"INFERENCE:6b001e7b0181341a18c69da0\"}, \"prior_reply\": {\"explanation\": \"The operator uses the worker intentionally.\"}, \"argument_annotation\": {\"claims\": [{\"id\": \"physical\", \"kind\": \"PHYSICAL_CONTRIBUTION\", \"interpretation_mode\": \"SOURCE_STATED\", \"text\": \"The worker triggers a sensor that speeds closure.\", \"supports\": [{\"evidence_ref\": \"E1\", \"value_path\": \"/provenance/0/excerpt\", \"quote\": \"A sensor activates when a worker passes, speeding gate closure. The operator does not know this and acts to close the gate.\"}], \"condition_ids\": []}, {\"id\": \"intended\", \"kind\": \"INTENDED_USE\", \"interpretation_mode\": \"ATTRIBUTED_INFERENCE\", \"text\": \"The operator uses the worker intentionally.\", \"supports\": [], \"condition_ids\": []}], \"bridges\": [{\"id\": \"b0\", \"rule_id\": \"CAUSAL_ROLE_TO_INTENDED_USE\", \"premise_ids\": [\"physical\"], \"assumption_ids\": [], \"conclusion_id\": \"intended\", \"explanation\": \"Reviewer-identified bridge to examine; not certified by these type annotations.\"}]}}"
+      }
+    ],
+    "max_completion_tokens": 4096,
+    "timeout": 90,
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "workspace_response",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "challenge_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "disposition": {
+              "type": "string",
+              "enum": [
+                "DEFENDED",
+                "QUALIFIED",
+                "WITHDRAWN",
+                "UNRESOLVED"
+              ]
+            },
+            "premises": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "claim": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "basis": {
+                    "type": "string",
+                    "enum": [
+                      "SOURCE_EVIDENCE",
+                      "INTERPRETIVE_ASSUMPTION",
+                      "NORMATIVE_ASSUMPTION",
+                      "UNKNOWN"
+                    ]
+                  },
+                  "evidence_refs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "required": [
+                  "claim",
+                  "basis",
+                  "evidence_refs"
+                ]
+              },
+              "minItems": 1
+            },
+            "bridge": {
+              "type": "string",
+              "minLength": 1
+            },
+            "withdrawn_claims": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "qualifications": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "strongest_conclusion": {
+              "type": "string",
+              "minLength": 1
+            },
+            "remaining_questions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "local_response": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "classification": {
+                  "type": "string",
+                  "enum": [
+                    "SUPPORTED",
+                    "CONDITIONAL",
+                    "UNRESOLVED",
+                    "WITHDRAWN"
+                  ]
+                }
+              },
+              "required": [
+                "classification"
+              ]
+            }
+          },
+          "required": [
+            "challenge_id",
+            "disposition",
+            "premises",
+            "bridge",
+            "withdrawn_claims",
+            "qualifications",
+            "strongest_conclusion",
+            "remaining_questions",
+            "local_response"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "reasoning_effort": "low"
+  },
+  "provider_response": {
+    "id": "chatcmpl-Ec9CcavBsdS4XwaKtcSbqES4cQZGx",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"challenge_id\":\"INFERENCE:6b001e7b0181341a18c69da0\",\"disposition\":\"WITHDRAWN\",\"premises\":[{\"claim\":\"The worker triggers a sensor that speeds closure of the gate.\",\"basis\":\"SOURCE_EVIDENCE\",\"evidence_refs\":[\"E1\"]},{\"claim\":\"Knowledge that the worker will trigger the sensor would be required for the operator to be intentionally using the worker.\",\"basis\":\"INTERPRETIVE_ASSUMPTION\",\"evidence_refs\":[]}],\"bridge\":\"A causal contribution by another agent does not by itself imply that the primary actor purposefully exploits that contribution; purposeful use requires the primary actor to foresee or know of the contribution.\",\"withdrawn_claims\":[\"The operator uses the worker intentionally.\"],\"qualifications\":[],\"strongest_conclusion\":\"The worker\u2019s movement causally contributes to gate closure, but the available evidence explicitly states that the operator is unaware of this contribution, so no intentional use by the operator can be established.\",\"remaining_questions\":[\"Is there any evidence elsewhere that the operator learned about the sensor-triggering effect before acting?\"],\"local_response\":{\"classification\":\"WITHDRAWN\"}}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1792760546,
+    "model": "o3-2025-04-16",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 445,
+      "prompt_tokens": 849,
+      "total_tokens": 1294,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 192,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "response": {
+    "challenge_id": "INFERENCE:6b001e7b0181341a18c69da0",
+    "disposition": "WITHDRAWN",
+    "premises": [
+      {
+        "claim": "The worker triggers a sensor that speeds closure of the gate.",
+        "basis": "SOURCE_EVIDENCE",
+        "evidence_refs": [
+          "E1"
+        ]
+      },
+      {
+        "claim": "Knowledge that the worker will trigger the sensor would be required for the operator to be intentionally using the worker.",
+        "basis": "INTERPRETIVE_ASSUMPTION",
+        "evidence_refs": []
+      }
+    ],
+    "bridge": "A causal contribution by another agent does not by itself imply that the primary actor purposefully exploits that contribution; purposeful use requires the primary actor to foresee or know of the contribution.",
+    "withdrawn_claims": [
+      "The operator uses the worker intentionally."
+    ],
+    "qualifications": [],
+    "strongest_conclusion": "The worker\u2019s movement causally contributes to gate closure, but the available evidence explicitly states that the operator is unaware of this contribution, so no intentional use by the operator can be established.",
+    "remaining_questions": [
+      "Is there any evidence elsewhere that the operator learned about the sensor-triggering effect before acting?"
+    ],
+    "local_response": {
+      "classification": "WITHDRAWN"
+    }
+  },
+  "assessment": {
+    "ordinary_contract": {
+      "contract_valid": true,
+      "errors": [],
+      "boundary_review": null,
+      "reported_disposition": "WITHDRAWN",
+      "effective_status": "OPEN_PENDING_CONTENT_REVIEW",
+      "semantic_support": "NOT_INDEPENDENTLY_VERIFIED",
+      "world_state_authority": "NONE"
+    },
+    "native_admission": "NOT_ASSESSED_ARGUMENT_ONLY",
+    "semantic_support": "NOT_INDEPENDENTLY_ASSESSED"
+  },
+  "elapsed_seconds": 3.275
+}

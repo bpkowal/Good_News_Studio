@@ -1,0 +1,1202 @@
+{
+  "version": "neutral-framework-pilot/0.2",
+  "framework": "contractualist",
+  "raw_response": {
+    "persons": [
+      {
+        "id": "P_Ellis",
+        "label": "Ellis (rescuer)",
+        "source_quotes": [
+          "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+        ]
+      },
+      {
+        "id": "P_Rowan",
+        "label": "Rowan (hiker)",
+        "source_quotes": [
+          "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+          "The hiker who does not get the blanket will die."
+        ]
+      },
+      {
+        "id": "P_Sasha",
+        "label": "Sasha (hiker)",
+        "source_quotes": [
+          "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+          "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket."
+        ]
+      }
+    ],
+    "burdens": [
+      {
+        "id": "B_RowanDeath",
+        "person_id": "P_Rowan",
+        "description": "Risk of death from cold exposure"
+      },
+      {
+        "id": "B_SashaDeath",
+        "person_id": "P_Sasha",
+        "description": "Risk of death from cold exposure"
+      },
+      {
+        "id": "B_SashaBrokenPromise",
+        "person_id": "P_Sasha",
+        "description": "Betrayal of Ellis’s prior assurance"
+      },
+      {
+        "id": "B_EllisBreach",
+        "person_id": "P_Ellis",
+        "description": "Moral cost of breaking a promise"
+      }
+    ],
+    "burden_positions": [
+      {
+        "burden_id": "B_RowanDeath",
+        "action_id": "A",
+        "status": "PRESENT",
+        "position": "20% chance Rowan dies",
+        "ground_handles": [
+          "S1"
+        ]
+      },
+      {
+        "burden_id": "B_RowanDeath",
+        "action_id": "B",
+        "status": "PRESENT",
+        "position": "100% chance Rowan dies",
+        "ground_handles": [
+          "S1",
+          "S4"
+        ]
+      },
+      {
+        "burden_id": "B_SashaDeath",
+        "action_id": "A",
+        "status": "PRESENT",
+        "position": "100% chance Sasha dies",
+        "ground_handles": [
+          "S2",
+          "S4"
+        ]
+      },
+      {
+        "burden_id": "B_SashaDeath",
+        "action_id": "B",
+        "status": "PRESENT",
+        "position": "40% chance Sasha dies",
+        "ground_handles": [
+          "S2"
+        ]
+      },
+      {
+        "burden_id": "B_SashaBrokenPromise",
+        "action_id": "A",
+        "status": "PRESENT",
+        "position": "Ellis reneges on explicit promise to Sasha",
+        "ground_handles": [
+          "S3"
+        ]
+      },
+      {
+        "burden_id": "B_SashaBrokenPromise",
+        "action_id": "B",
+        "status": "ABSENT",
+        "position": "Promise kept",
+        "ground_handles": [
+          "S3"
+        ]
+      },
+      {
+        "burden_id": "B_EllisBreach",
+        "action_id": "A",
+        "status": "PRESENT",
+        "position": "Ellis violates promise‐keeping norm",
+        "ground_handles": [
+          "S3"
+        ]
+      },
+      {
+        "burden_id": "B_EllisBreach",
+        "action_id": "B",
+        "status": "ABSENT",
+        "position": "Ellis keeps promise",
+        "ground_handles": [
+          "S3"
+        ]
+      }
+    ],
+    "principles": [
+      {
+        "id": "PR_MaxProb",
+        "statement_handle": "St_MaxProb",
+        "action_ids": [
+          "A"
+        ]
+      },
+      {
+        "id": "PR_KeepPromise",
+        "statement_handle": "St_KeepPromise",
+        "action_ids": [
+          "B"
+        ]
+      }
+    ],
+    "statements": [
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+          }
+        ],
+        "handle": "S1"
+      },
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+          }
+        ],
+        "handle": "S2"
+      },
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket."
+          }
+        ],
+        "handle": "S3"
+      },
+      {
+        "kind": "FACTUAL_PREMISE",
+        "text": "The hiker who does not get the blanket will die.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "The hiker who does not get the blanket will die."
+          }
+        ],
+        "handle": "S4"
+      },
+      {
+        "kind": "PRINCIPLE",
+        "text": "It is permissible to allocate life‐saving aid to the person with the higher probability of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "St_MaxProb"
+      },
+      {
+        "kind": "PRINCIPLE",
+        "text": "One must keep a specific promise even if later information reveals a somewhat better life‐saving allocation.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "St_KeepPromise"
+      },
+      {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "A principle is reasonably rejectable if some affected person bears a substantially greater expected loss of life under it than under an alternative that others could not reasonably reject.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "N1"
+      },
+      {
+        "kind": "EVALUATIVE_COMPARISON",
+        "text": "Rowan’s 80% additional survival prospect under action A is a weightier individual reason than Sasha’s 60% additional prospect under action B, other things equal.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "handle": "C1"
+      }
+    ],
+    "supports": [
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S1",
+        "explanation": "Scene gives probability"
+      },
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S2",
+        "explanation": "Scene gives probability"
+      },
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S3",
+        "explanation": "Scene gives promise"
+      },
+      {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "S4",
+        "explanation": "Scene says death otherwise"
+      },
+      {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "N1",
+        "explanation": "Contractualist test for reasonable rejection"
+      },
+      {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "C1",
+        "explanation": "Magnitude interpretation of survival differences"
+      },
+      {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "S1",
+          "S2",
+          "S4",
+          "N1",
+          "C1"
+        ],
+        "output": "J_ProbNotRejectable",
+        "explanation": "Given larger expected life loss Rowan would face under promise‐keeping, keeping promise is more reasonably rejectable"
+      },
+      {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "S3",
+          "N1"
+        ],
+        "output": "J_PromiseRelevant",
+        "explanation": "Broken promise adds a moral burden to Sasha but does not outweigh larger survival loss to Rowan"
+      }
+    ],
+    "reasons": [
+      {
+        "id": "R_Rowan_vs_B",
+        "person_id": "P_Rowan",
+        "principle_id": null,
+        "action_id": "B",
+        "stance": "AGAINST",
+        "value": "Life preservation",
+        "conclusion_handle": "R_Rowan_vs_B_C",
+        "ground_handles": [
+          "S1",
+          "S4"
+        ],
+        "warrant_handles": [
+          "N1"
+        ],
+        "generic_basis": "Certain death versus 80% survival chance"
+      },
+      {
+        "id": "R_Sasha_vs_A",
+        "person_id": "P_Sasha",
+        "principle_id": null,
+        "action_id": "A",
+        "stance": "AGAINST",
+        "value": "Life preservation and promise reliance",
+        "conclusion_handle": "R_Sasha_vs_A_C",
+        "ground_handles": [
+          "S2",
+          "S3",
+          "S4"
+        ],
+        "warrant_handles": [
+          "N1"
+        ],
+        "generic_basis": "Certain death and broken promise versus 60% chance to live"
+      },
+      {
+        "id": "R_Ellis_vs_A",
+        "person_id": "P_Ellis",
+        "principle_id": null,
+        "action_id": "A",
+        "stance": "AGAINST",
+        "value": "Integrity in promise keeping",
+        "conclusion_handle": "R_Ellis_vs_A_C",
+        "ground_handles": [
+          "S3"
+        ],
+        "warrant_handles": [
+          "St_KeepPromise"
+        ],
+        "generic_basis": "Wants to avoid breach"
+      }
+    ],
+    "comparisons": [
+      {
+        "id": "Comp_AB",
+        "from_action_id": "A",
+        "to_action_id": "B",
+        "status": "FAVORS_FROM",
+        "relieved_burden_ids": [
+          "B_RowanDeath"
+        ],
+        "introduced_burden_ids": [
+          "B_SashaBrokenPromise",
+          "B_EllisBreach"
+        ],
+        "retained_burden_ids": [
+          "B_SashaDeath"
+        ],
+        "reason_ids": [
+          "R_Rowan_vs_B",
+          "R_Sasha_vs_A"
+        ],
+        "judgment_handle": "J_ProbNotRejectable",
+        "explanation": "Rowan’s stronger survival loss if B is chosen is a weightier ground of reasonable rejection than Sasha’s combined survival and promise complaint if A is chosen."
+      }
+    ],
+    "challenges": [
+      {
+        "id": "Ch1",
+        "kind": "UNDERMINING",
+        "target_kind": "STATEMENT",
+        "target_id": "C1",
+        "challenge_handle": "Ch1_C",
+        "response_handle": "J_PromiseRelevant",
+        "status": "ANSWERED"
+      }
+    ],
+    "action_assessments": [
+      {
+        "action_id": "A",
+        "conclusion_handle": "J_ProbNotRejectable",
+        "assessment": "DEFENSIBLE"
+      },
+      {
+        "action_id": "B",
+        "conclusion_handle": "R_Rowan_vs_B_C",
+        "assessment": "REJECTED"
+      }
+    ],
+    "recommendation_action_id": "A",
+    "recommendation_status": "PROVISIONAL_PREFERENCE",
+    "recommendation_comparison_ids": [
+      "Comp_AB"
+    ],
+    "remaining_complaint_ids": [
+      "R_Sasha_vs_A"
+    ],
+    "conclusion": "Allocating the blanket to Rowan is provisionally preferable because the principle that permits it is harder for anyone to reasonably reject: it avoids an 80-point survival loss to Rowan at the cost of a 60-point loss and promise breach to Sasha. The promise adds moral weight but is not enough to overturn the larger life-and-death stake.",
+    "strongest_objection": "Sasha can still reasonably complain that she faces certain death plus a betrayal of trust under action A.",
+    "answer_to_objection": "While the broken promise intensifies Sasha’s complaint, contractualist assessment allows weight to the magnitude of expected life loss. Rowan’s larger loss if B is chosen makes promise-keeping reasonably rejectable, provided Ellis conveys sincere regret and an explanation to Sasha.",
+    "reversal_condition": "If Sasha’s survival chance with the blanket were equal to or greater than Rowan’s (e.g., also 80% or higher), promise-keeping could no longer be outweighed, and giving the blanket to Sasha would become defensible.",
+    "residual_disagreement": [
+      "Whether a 20-percentage-point survival gap is sufficient to override a specific promise remains contestable among reasonable parties."
+    ]
+  },
+  "source_text_sha256": "a0dba794ea1ec36c622f1dcf75f9aac5ca44cffd63e4154f5e491dee463daec7",
+  "source_status": "FROZEN_TEXT_NOT_ADMITTED_WORLD",
+  "operative": false,
+  "world_state_authority": "NONE",
+  "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+  "paper_attribution": {
+    "authors": [
+      "Luis Marcos-Vidal",
+      "Giulio Antonio Abbo",
+      "Tony Belpaeme"
+    ],
+    "title": "A Contractualist Argumentation Framework for Moral Decision-Making",
+    "version": "arXiv:2608.01937v1",
+    "url": "https://arxiv.org/html/2608.01937v1",
+    "used_sections": [
+      "5.1",
+      "5.2",
+      "5.3"
+    ],
+    "formal_semantics_implemented": false
+  },
+  "instruction_version": "argument-framework-instructions/0.3",
+  "issues": [
+    {
+      "kind": "CONSTRUCTION",
+      "path": "supports/5",
+      "proposal": {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "C1",
+        "explanation": "Magnitude interpretation of survival differences"
+      },
+      "error": "Assumptions must be explicit interpretive/normative roots"
+    },
+    {
+      "kind": "CONSTRUCTION",
+      "path": "supports/6",
+      "proposal": {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "S1",
+          "S2",
+          "S4",
+          "N1",
+          "C1"
+        ],
+        "output": "J_ProbNotRejectable",
+        "explanation": "Given larger expected life loss Rowan would face under promise‐keeping, keeping promise is more reasonably rejectable"
+      },
+      "error": "Dangling support reference"
+    },
+    {
+      "kind": "CONSTRUCTION",
+      "path": "supports/7",
+      "proposal": {
+        "operation": "NORM_APPLICATION",
+        "inputs": [
+          "S3",
+          "N1"
+        ],
+        "output": "J_PromiseRelevant",
+        "explanation": "Broken promise adds a moral burden to Sasha but does not outweigh larger survival loss to Rowan"
+      },
+      "error": "Dangling support reference"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "R_Rowan_vs_B"
+    },
+    {
+      "kind": "CONTRACTUALIST_REASON_BINDING_INCOMPLETE",
+      "record_id": "R_Rowan_vs_B"
+    },
+    {
+      "kind": "DETACHED_REASON_SUPPORT",
+      "record_id": "R_Rowan_vs_B"
+    },
+    {
+      "kind": "DETACHED_REASON_SUPPORT",
+      "record_id": "R_Rowan_vs_B"
+    },
+    {
+      "kind": "DETACHED_REASON_SUPPORT",
+      "record_id": "R_Rowan_vs_B"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "R_Sasha_vs_A"
+    },
+    {
+      "kind": "CONTRACTUALIST_REASON_BINDING_INCOMPLETE",
+      "record_id": "R_Sasha_vs_A"
+    },
+    {
+      "kind": "DETACHED_REASON_SUPPORT",
+      "record_id": "R_Sasha_vs_A"
+    },
+    {
+      "kind": "DETACHED_REASON_SUPPORT",
+      "record_id": "R_Sasha_vs_A"
+    },
+    {
+      "kind": "DETACHED_REASON_SUPPORT",
+      "record_id": "R_Sasha_vs_A"
+    },
+    {
+      "kind": "DETACHED_REASON_SUPPORT",
+      "record_id": "R_Sasha_vs_A"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "R_Ellis_vs_A"
+    },
+    {
+      "kind": "CONTRACTUALIST_REASON_BINDING_INCOMPLETE",
+      "record_id": "R_Ellis_vs_A"
+    },
+    {
+      "kind": "DETACHED_REASON_SUPPORT",
+      "record_id": "R_Ellis_vs_A"
+    },
+    {
+      "kind": "DETACHED_REASON_SUPPORT",
+      "record_id": "R_Ellis_vs_A"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "Comp_AB"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "Ch1"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "Ch1"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "A"
+    },
+    {
+      "kind": "MISSING_STATEMENT_REFERENCE",
+      "record_id": "B"
+    }
+  ],
+  "argument": {
+    "version": "argument-support/0.1",
+    "world_sha256": "a0dba794ea1ec36c622f1dcf75f9aac5ca44cffd63e4154f5e491dee463daec7",
+    "evidence": [
+      {
+        "ref": "SCENE",
+        "kind": "EXACT_SCENARIO",
+        "value": "A mountain rescue shelter has one thermal blanket. Rescuer Ellis can give the blanket to Rowan or Sasha, but not both. Both hikers are stranded in the cold, and no other rescue or warming equipment will arrive in time. If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival. If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival. The hiker who does not get the blanket will die. Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket. Whom should Ellis give the blanket to?"
+      }
+    ],
+    "issue_id": "blanket_prior_assurance:contractualist",
+    "statements": {
+      "STATEMENT:708d08e38d59467f5e0cfb58": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+            },
+            "resolved_value_sha256": "e7e012d7330751723473c9eeaf41c35f4a160ce866c38a424ce1f9014eabdc0b",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:0e3ce5c99a23e24821084d04": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+            },
+            "resolved_value_sha256": "e7e012d7330751723473c9eeaf41c35f4a160ce866c38a424ce1f9014eabdc0b",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:29d3012304a9c80244bb2ae5": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket."
+            },
+            "resolved_value_sha256": "e7e012d7330751723473c9eeaf41c35f4a160ce866c38a424ce1f9014eabdc0b",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:eeb0aa44f77535038df84187": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "The hiker who does not get the blanket will die.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "The hiker who does not get the blanket will die.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "The hiker who does not get the blanket will die."
+            },
+            "resolved_value_sha256": "e7e012d7330751723473c9eeaf41c35f4a160ce866c38a424ce1f9014eabdc0b",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ]
+      },
+      "STATEMENT:6f1e0ca4b7f16cdd04f42d6b": {
+        "kind": "PRINCIPLE",
+        "text": "It is permissible to allocate life‐saving aid to the person with the higher probability of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:ebf989c7c0a92eb02979046d": {
+        "kind": "PRINCIPLE",
+        "text": "One must keep a specific promise even if later information reveals a somewhat better life‐saving allocation.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:eb2aa96dace0fdae5b295380": {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "A principle is reasonably rejectable if some affected person bears a substantially greater expected loss of life under it than under an alternative that others could not reasonably reject.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      },
+      "STATEMENT:73547e545041432e4e135fb4": {
+        "kind": "EVALUATIVE_COMPARISON",
+        "text": "Rowan’s 80% additional survival prospect under action A is a weightier individual reason than Sasha’s 60% additional prospect under action B, other things equal.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": []
+      }
+    },
+    "handles": {
+      "S1": "STATEMENT:708d08e38d59467f5e0cfb58",
+      "S2": "STATEMENT:0e3ce5c99a23e24821084d04",
+      "S3": "STATEMENT:29d3012304a9c80244bb2ae5",
+      "S4": "STATEMENT:eeb0aa44f77535038df84187",
+      "St_MaxProb": "STATEMENT:6f1e0ca4b7f16cdd04f42d6b",
+      "St_KeepPromise": "STATEMENT:ebf989c7c0a92eb02979046d",
+      "N1": "STATEMENT:eb2aa96dace0fdae5b295380",
+      "C1": "STATEMENT:73547e545041432e4e135fb4"
+    },
+    "routes": {
+      "SUPPORT:4f7eb6420cbcda9580aa6caf": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:708d08e38d59467f5e0cfb58",
+        "explanation": "Scene gives probability"
+      },
+      "SUPPORT:11c769814de0eb1787acd88e": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:0e3ce5c99a23e24821084d04",
+        "explanation": "Scene gives probability"
+      },
+      "SUPPORT:10575231ae191c196347382e": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:29d3012304a9c80244bb2ae5",
+        "explanation": "Scene gives promise"
+      },
+      "SUPPORT:435bb9d901432962fa40bb87": {
+        "operation": "SOURCE",
+        "inputs": [],
+        "output": "STATEMENT:eeb0aa44f77535038df84187",
+        "explanation": "Scene says death otherwise"
+      },
+      "SUPPORT:6df1fc2762593059d7c4fcd6": {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "STATEMENT:eb2aa96dace0fdae5b295380",
+        "explanation": "Contractualist test for reasonable rejection"
+      },
+      "SUPPORT:07e896a2473a9a03d8662292": {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "STATEMENT:6f1e0ca4b7f16cdd04f42d6b",
+        "explanation": "Explicit candidate interpretive/normative root, never a world fact."
+      },
+      "SUPPORT:0aca615bf82ab7f4660b56b9": {
+        "operation": "ASSUMPTION",
+        "inputs": [],
+        "output": "STATEMENT:ebf989c7c0a92eb02979046d",
+        "explanation": "Explicit candidate interpretive/normative root, never a world fact."
+      }
+    },
+    "events": [
+      {
+        "sequence": 1,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:708d08e38d59467f5e0cfb58"
+        },
+        "parent_sha256": "5441e875af0e1e3c56cff56511229eebdf1bb59be76cfbcc2f065f9dda2ec7ab",
+        "sha256": "062d179fc9549d889efac9e3087abfdf55f23aeffa9a9932cc76568e1d4061db"
+      },
+      {
+        "sequence": 2,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:0e3ce5c99a23e24821084d04"
+        },
+        "parent_sha256": "062d179fc9549d889efac9e3087abfdf55f23aeffa9a9932cc76568e1d4061db",
+        "sha256": "067dacf111f6ed7443e6e7e615be92d0b7540532c30e38c82d401efa0efa9e0a"
+      },
+      {
+        "sequence": 3,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:29d3012304a9c80244bb2ae5"
+        },
+        "parent_sha256": "067dacf111f6ed7443e6e7e615be92d0b7540532c30e38c82d401efa0efa9e0a",
+        "sha256": "6676ce4b14de7c138e137801fec1d0db9ee4c2b119b91288ecd3da079ba381c1"
+      },
+      {
+        "sequence": 4,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:eeb0aa44f77535038df84187"
+        },
+        "parent_sha256": "6676ce4b14de7c138e137801fec1d0db9ee4c2b119b91288ecd3da079ba381c1",
+        "sha256": "1962567a48ccec38d751e3e9d5d93ea466b7ecfa22ea8cc216e8b50a229471fc"
+      },
+      {
+        "sequence": 5,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:6f1e0ca4b7f16cdd04f42d6b"
+        },
+        "parent_sha256": "1962567a48ccec38d751e3e9d5d93ea466b7ecfa22ea8cc216e8b50a229471fc",
+        "sha256": "fc6b8e4383666bb5a6fa130efba24dd07b5bac4749eeb3d1a4954d552d59b639"
+      },
+      {
+        "sequence": 6,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:ebf989c7c0a92eb02979046d"
+        },
+        "parent_sha256": "fc6b8e4383666bb5a6fa130efba24dd07b5bac4749eeb3d1a4954d552d59b639",
+        "sha256": "8f6648ca07c664c90c97a68890f2693369cf5306572d47b482428ed4b605e893"
+      },
+      {
+        "sequence": 7,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:eb2aa96dace0fdae5b295380"
+        },
+        "parent_sha256": "8f6648ca07c664c90c97a68890f2693369cf5306572d47b482428ed4b605e893",
+        "sha256": "73f6a0f6ffd46be0758ccea1e74bde622a965145096260e0a3f4bca8823af207"
+      },
+      {
+        "sequence": 8,
+        "kind": "ASSERT",
+        "payload": {
+          "statement_id": "STATEMENT:73547e545041432e4e135fb4"
+        },
+        "parent_sha256": "73f6a0f6ffd46be0758ccea1e74bde622a965145096260e0a3f4bca8823af207",
+        "sha256": "e1dc39e67596f079ac097755d78570c9d60e81223ad857e87c46ca624ea06b12"
+      },
+      {
+        "sequence": 9,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:4f7eb6420cbcda9580aa6caf"
+        },
+        "parent_sha256": "e1dc39e67596f079ac097755d78570c9d60e81223ad857e87c46ca624ea06b12",
+        "sha256": "5996d63977171600a5eaaba9ab75db977f85a24cdc0a230e9953eacc2f86d23f"
+      },
+      {
+        "sequence": 10,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:11c769814de0eb1787acd88e"
+        },
+        "parent_sha256": "5996d63977171600a5eaaba9ab75db977f85a24cdc0a230e9953eacc2f86d23f",
+        "sha256": "ff3559f5ef0ac700299797a8fba9e281e0fe32943a139f577f20a001ccfc8aa2"
+      },
+      {
+        "sequence": 11,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:10575231ae191c196347382e"
+        },
+        "parent_sha256": "ff3559f5ef0ac700299797a8fba9e281e0fe32943a139f577f20a001ccfc8aa2",
+        "sha256": "43c72e6b8af852c368a71d211a4c1f3d34d190ae2c676383f2adf08813e7692c"
+      },
+      {
+        "sequence": 12,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:435bb9d901432962fa40bb87"
+        },
+        "parent_sha256": "43c72e6b8af852c368a71d211a4c1f3d34d190ae2c676383f2adf08813e7692c",
+        "sha256": "07dfda3dc9111b9f2c76f6bcd92d2cb418fb48be66a99997834fc741934e32b9"
+      },
+      {
+        "sequence": 13,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:6df1fc2762593059d7c4fcd6"
+        },
+        "parent_sha256": "07dfda3dc9111b9f2c76f6bcd92d2cb418fb48be66a99997834fc741934e32b9",
+        "sha256": "00ab6bcb67601542a7dfcee00237976b54df3fa646cf5e459a84f5ba1a167115"
+      },
+      {
+        "sequence": 14,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:07e896a2473a9a03d8662292"
+        },
+        "parent_sha256": "00ab6bcb67601542a7dfcee00237976b54df3fa646cf5e459a84f5ba1a167115",
+        "sha256": "f6e4b0b757d9e401394a2696a8ddbe1d9c6d2387a2f67d3a86d2917bca962374"
+      },
+      {
+        "sequence": 15,
+        "kind": "PROPOSE_SUPPORT",
+        "payload": {
+          "support_id": "SUPPORT:0aca615bf82ab7f4660b56b9"
+        },
+        "parent_sha256": "f6e4b0b757d9e401394a2696a8ddbe1d9c6d2387a2f67d3a86d2917bca962374",
+        "sha256": "24cafeb491a7a51e851cffd293e56cb6cebb30064e68d19a1a2496f73a30a2b7"
+      }
+    ],
+    "operative": false,
+    "world_state_authority": "NONE",
+    "construction_problems": [
+      {
+        "path": "supports/5",
+        "proposal": {
+          "operation": "ASSUMPTION",
+          "inputs": [],
+          "output": "C1",
+          "explanation": "Magnitude interpretation of survival differences"
+        },
+        "error": "Assumptions must be explicit interpretive/normative roots"
+      },
+      {
+        "path": "supports/6",
+        "proposal": {
+          "operation": "NORM_APPLICATION",
+          "inputs": [
+            "S1",
+            "S2",
+            "S4",
+            "N1",
+            "C1"
+          ],
+          "output": "J_ProbNotRejectable",
+          "explanation": "Given larger expected life loss Rowan would face under promise‐keeping, keeping promise is more reasonably rejectable"
+        },
+        "error": "Dangling support reference"
+      },
+      {
+        "path": "supports/7",
+        "proposal": {
+          "operation": "NORM_APPLICATION",
+          "inputs": [
+            "S3",
+            "N1"
+          ],
+          "output": "J_PromiseRelevant",
+          "explanation": "Broken promise adds a moral burden to Sasha but does not outweigh larger survival loss to Rowan"
+        },
+        "error": "Dangling support reference"
+      }
+    ]
+  },
+  "view": {
+    "statements": {
+      "STATEMENT:708d08e38d59467f5e0cfb58": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival."
+            },
+            "resolved_value_sha256": "e7e012d7330751723473c9eeaf41c35f4a160ce866c38a424ce1f9014eabdc0b",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:708d08e38d59467f5e0cfb58",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:0e3ce5c99a23e24821084d04": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival."
+            },
+            "resolved_value_sha256": "e7e012d7330751723473c9eeaf41c35f4a160ce866c38a424ce1f9014eabdc0b",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:0e3ce5c99a23e24821084d04",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:29d3012304a9c80244bb2ae5": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket."
+            },
+            "resolved_value_sha256": "e7e012d7330751723473c9eeaf41c35f4a160ce866c38a424ce1f9014eabdc0b",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:29d3012304a9c80244bb2ae5",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:eeb0aa44f77535038df84187": {
+        "kind": "FACTUAL_PREMISE",
+        "text": "The hiker who does not get the blanket will die.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [
+          {
+            "evidence_id": "SCENE",
+            "value_path": "",
+            "quote": "The hiker who does not get the blanket will die.",
+            "raw": {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "The hiker who does not get the blanket will die."
+            },
+            "resolved_value_sha256": "e7e012d7330751723473c9eeaf41c35f4a160ce866c38a424ce1f9014eabdc0b",
+            "semantic_support": "NOT_ASSESSED"
+          }
+        ],
+        "id": "STATEMENT:eeb0aa44f77535038df84187",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      },
+      "STATEMENT:6f1e0ca4b7f16cdd04f42d6b": {
+        "kind": "PRINCIPLE",
+        "text": "It is permissible to allocate life‐saving aid to the person with the higher probability of survival.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:6f1e0ca4b7f16cdd04f42d6b",
+        "lifecycle": "ACTIVE",
+        "support_status": "CONDITIONAL",
+        "effective_hypotheses": [
+          "STATEMENT:6f1e0ca4b7f16cdd04f42d6b"
+        ]
+      },
+      "STATEMENT:ebf989c7c0a92eb02979046d": {
+        "kind": "PRINCIPLE",
+        "text": "One must keep a specific promise even if later information reveals a somewhat better life‐saving allocation.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:ebf989c7c0a92eb02979046d",
+        "lifecycle": "ACTIVE",
+        "support_status": "CONDITIONAL",
+        "effective_hypotheses": [
+          "STATEMENT:ebf989c7c0a92eb02979046d"
+        ]
+      },
+      "STATEMENT:eb2aa96dace0fdae5b295380": {
+        "kind": "NORMATIVE_PREMISE",
+        "text": "A principle is reasonably rejectable if some affected person bears a substantially greater expected loss of life under it than under an alternative that others could not reasonably reject.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:eb2aa96dace0fdae5b295380",
+        "lifecycle": "ACTIVE",
+        "support_status": "CONDITIONAL",
+        "effective_hypotheses": [
+          "STATEMENT:eb2aa96dace0fdae5b295380"
+        ]
+      },
+      "STATEMENT:73547e545041432e4e135fb4": {
+        "kind": "EVALUATIVE_COMPARISON",
+        "text": "Rowan’s 80% additional survival prospect under action A is a weightier individual reason than Sasha’s 60% additional prospect under action B, other things equal.",
+        "polarity": "AFFIRMED",
+        "modality": "ASSERTED",
+        "hypothesis_ids": [],
+        "citations": [],
+        "id": "STATEMENT:73547e545041432e4e135fb4",
+        "lifecycle": "ACTIVE",
+        "support_status": "UNASSESSED",
+        "effective_hypotheses": []
+      }
+    },
+    "support_routes": {
+      "SUPPORT:4f7eb6420cbcda9580aa6caf": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:11c769814de0eb1787acd88e": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:10575231ae191c196347382e": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:435bb9d901432962fa40bb87": {
+        "status": "UNASSESSED",
+        "issues": [],
+        "effective_hypotheses": []
+      },
+      "SUPPORT:07e896a2473a9a03d8662292": {
+        "status": "CONDITIONAL",
+        "issues": [],
+        "effective_hypotheses": [
+          "STATEMENT:6f1e0ca4b7f16cdd04f42d6b"
+        ]
+      },
+      "SUPPORT:0aca615bf82ab7f4660b56b9": {
+        "status": "CONDITIONAL",
+        "issues": [],
+        "effective_hypotheses": [
+          "STATEMENT:ebf989c7c0a92eb02979046d"
+        ]
+      },
+      "SUPPORT:6df1fc2762593059d7c4fcd6": {
+        "status": "CONDITIONAL",
+        "issues": [],
+        "effective_hypotheses": [
+          "STATEMENT:eb2aa96dace0fdae5b295380"
+        ]
+      }
+    },
+    "active_statement_ids": [
+      "STATEMENT:708d08e38d59467f5e0cfb58",
+      "STATEMENT:0e3ce5c99a23e24821084d04",
+      "STATEMENT:29d3012304a9c80244bb2ae5",
+      "STATEMENT:eeb0aa44f77535038df84187",
+      "STATEMENT:6f1e0ca4b7f16cdd04f42d6b",
+      "STATEMENT:ebf989c7c0a92eb02979046d",
+      "STATEMENT:eb2aa96dace0fdae5b295380",
+      "STATEMENT:73547e545041432e4e135fb4"
+    ],
+    "operative": false,
+    "semantic_support": "ATTRIBUTED_ASSESSMENTS_NOT_AUTOMATIC_TRUTH"
+  },
+  "comparison_review": {
+    "version": "complaint-comparison/0.1",
+    "findings": [
+      {
+        "code": "BURDEN_TRANSITION_MISMATCH",
+        "record_id": "Comp_AB",
+        "burden_id": "B_RowanDeath",
+        "claim": "relieved_burden_ids",
+        "observed": [
+          "PRESENT",
+          "PRESENT"
+        ],
+        "expected": [
+          "PRESENT",
+          "ABSENT"
+        ]
+      },
+      {
+        "code": "BURDEN_TRANSITION_MISMATCH",
+        "record_id": "Comp_AB",
+        "burden_id": "B_SashaBrokenPromise",
+        "claim": "introduced_burden_ids",
+        "observed": [
+          "PRESENT",
+          "ABSENT"
+        ],
+        "expected": [
+          "ABSENT",
+          "PRESENT"
+        ]
+      },
+      {
+        "code": "BURDEN_TRANSITION_MISMATCH",
+        "record_id": "Comp_AB",
+        "burden_id": "B_EllisBreach",
+        "claim": "introduced_burden_ids",
+        "observed": [
+          "PRESENT",
+          "ABSENT"
+        ],
+        "expected": [
+          "ABSENT",
+          "PRESENT"
+        ]
+      },
+      {
+        "code": "RETAINED_BURDEN_OMITTED",
+        "record_id": "Comp_AB",
+        "burden_id": "B_RowanDeath"
+      }
+    ],
+    "status": "REVIEW_REQUIRED",
+    "matrix_authority": "MODEL_PROPOSED_NOT_SOURCE_VERIFIED",
+    "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+    "moral_ranking_computed": false,
+    "operative": false,
+    "recommendation_status": "PROVISIONAL_PREFERENCE",
+    "remaining_complaint_ids": [
+      "R_Sasha_vs_A"
+    ]
+  },
+  "status": "STAGED_PARTIAL_ARGUMENT"
+}

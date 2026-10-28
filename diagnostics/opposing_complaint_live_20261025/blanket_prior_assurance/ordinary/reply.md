@@ -1,0 +1,41 @@
+# Response to opposing complaint
+
+Sasha claims that Ellis’s specific promise places her in a qualitatively distinct position: once assured the blanket, she holds a defeasible right that cannot be outweighed by merely a 20-percentage-point survival gap. Therefore the principle that permits Ellis to break the promise (PR_MaxProb) is reasonably rejectable.
+
+## Conceded points
+
+- A broken promise adds a morally significant burden both to Sasha (betrayal) and to Ellis (breach of integrity).
+- Promises can generate special obligations that are more than just another cost to be balanced against impersonal benefits.
+- If Rowan’s and Sasha’s survival prospects were equal, the pre-existing promise would tip the balance decisively toward Sasha.
+
+## Priority premise
+
+P1 Under contractualism, a principle is reasonably rejectable when at least one affected party can point to a substantially greater ex ante loss that others could not reasonably object to avoiding (N1).
+
+## Answer
+
+The special status created by a promise does not give the promisee an absolute veto; it must still be assessed against the life-and-death stakes of the other affected individual. From Rowan’s standpoint, Principle PR_KeepPromise exposes her to a 100 % risk of death she could otherwise avoid with an 80 % prospect of survival. She can reasonably say: “I face certain death for the sake of preserving an assurance I never benefited from.” By contrast, under PR_MaxProb Sasha faces (i) a 40 % lower survival prospect and (ii) betrayal. The betrayal is grave, but not as grave as forfeiting one’s only chance at life; reasonable persons would foresee that life-or-death rescues may override pre-discovery promises when new victims appear with higher need. Hence PR_KeepPromise is more reasonably rejectable than PR_MaxProb, and the blanket should still go to Rowan, though Ellis owes Sasha regret, explanation, and compensatory apology.
+
+## Countercomplaint to the alternative
+
+If Ellis honors the promise (Action B) Rowan can reasonably protest that PR_KeepPromise singles her out for certain death despite an available blanket that would give her a significantly higher chance to live, merely because Ellis spoke too soon. That imposition is not one she must reasonably accept when a less objectionable principle (PR_MaxProb) exists.
+
+## Comparative justification
+
+Both principles impose betrayal on someone: PR_MaxProb betrays Sasha; PR_KeepPromise in effect betrays Rowan’s legitimate expectation that life-saving aid will not be denied for avoidable reasons. The magnitude of betrayal-plus-life-loss is greater for Rowan under PR_KeepPromise (certain death) than for Sasha under PR_MaxProb (40 % higher death risk). Therefore PR_MaxProb remains the less reasonably rejectable principle.
+
+## Revised conclusion
+
+A / PROVISIONAL_PREFERENCE
+
+Giving the blanket to Rowan under PR_MaxProb is still the less reasonably rejectable course, despite Sasha’s legitimate complaint of betrayal.
+
+## Remaining objection
+
+Sasha may still contest whether a 40 % differential plus betrayal is in fact ‘substantially’ smaller than Rowan’s burden; this hinges on judgments about qualitative versus quantitative comparisons that contractualism does not uniquely settle.
+
+## Reversal condition
+
+If breaking the promise would not improve anyone’s survival prospect relative to honoring it—or if the improvement were trivial (e.g., 5 % rather than 20 %), then Sasha’s assurance-based complaint would not be counterbalanced, and Ellis should keep the promise (Action B).
+
+Model self-report: ANSWERED (not independently accepted).

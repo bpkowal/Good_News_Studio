@@ -1,0 +1,982 @@
+{
+  "origin": "AUTHOR_WRITTEN_STRUCTURAL_TEST_NOT_MODEL_RESULT",
+  "compiled": {
+    "version": "neutral-framework-pilot/0.3",
+    "framework": "contractualist",
+    "raw_response": {
+      "persons": [
+        {
+          "id": "jo",
+          "label": "Jo",
+          "source_quotes": [
+            "Jo's home"
+          ]
+        }
+      ],
+      "burdens": [
+        {
+          "id": "heat",
+          "person_id": "jo",
+          "description": "Unrelieved heat exposure."
+        }
+      ],
+      "burden_positions": [
+        {
+          "burden_id": "heat",
+          "action_id": "A",
+          "status": "PRESENT",
+          "position": "Cooling under C; no cooling under A or B.",
+          "ground_handles": [
+            "f"
+          ]
+        },
+        {
+          "burden_id": "heat",
+          "action_id": "B",
+          "status": "PRESENT",
+          "position": "Cooling under C; no cooling under A or B.",
+          "ground_handles": [
+            "f"
+          ]
+        },
+        {
+          "burden_id": "heat",
+          "action_id": "C",
+          "status": "ABSENT",
+          "position": "Cooling under C; no cooling under A or B.",
+          "ground_handles": [
+            "f"
+          ]
+        }
+      ],
+      "principles": [
+        {
+          "id": "principle",
+          "statement_handle": "p",
+          "action_ids": [
+            "A",
+            "B",
+            "C"
+          ]
+        }
+      ],
+      "statements": [
+        {
+          "handle": "p",
+          "kind": "PRINCIPLE",
+          "text": "Consider the claims of each person.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [],
+          "citations": []
+        },
+        {
+          "handle": "n",
+          "kind": "NORMATIVE_PREMISE",
+          "text": "A person can object to unprovided protection.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [],
+          "citations": []
+        },
+        {
+          "handle": "f",
+          "kind": "FACTUAL_PREMISE",
+          "text": "The source concerns a cooling plan.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [],
+          "citations": [
+            {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "Plan B"
+            }
+          ]
+        },
+        {
+          "handle": "r",
+          "kind": "PERSONAL_REASON",
+          "text": "Jo has a reason to question the allocation.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "p",
+            "n"
+          ],
+          "citations": []
+        },
+        {
+          "handle": "cmp",
+          "kind": "EVALUATIVE_COMPARISON",
+          "text": "This does not settle the comparison.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "p"
+          ],
+          "citations": []
+        },
+        {
+          "handle": "conclusion_A",
+          "kind": "NORMATIVE_JUDGMENT",
+          "text": "Assessment is unresolved for A",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "p"
+          ],
+          "citations": []
+        },
+        {
+          "handle": "conclusion_B",
+          "kind": "NORMATIVE_JUDGMENT",
+          "text": "Assessment is unresolved for B",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "p"
+          ],
+          "citations": []
+        },
+        {
+          "handle": "conclusion_C",
+          "kind": "NORMATIVE_JUDGMENT",
+          "text": "Assessment is unresolved for C",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "p"
+          ],
+          "citations": []
+        }
+      ],
+      "supports": [
+        {
+          "operation": "NORM_APPLICATION",
+          "inputs": [
+            "p",
+            "n",
+            "f"
+          ],
+          "output": "r",
+          "explanation": "Conditional objection."
+        },
+        {
+          "operation": "NORM_PRIORITY",
+          "inputs": [
+            "r",
+            "n"
+          ],
+          "output": "cmp",
+          "explanation": "Comparison remains unresolved."
+        },
+        {
+          "operation": "NORM_APPLICATION",
+          "inputs": [
+            "cmp",
+            "n"
+          ],
+          "output": "conclusion_A",
+          "explanation": "Retain an unresolved judgment."
+        },
+        {
+          "operation": "NORM_APPLICATION",
+          "inputs": [
+            "cmp",
+            "n"
+          ],
+          "output": "conclusion_B",
+          "explanation": "Retain an unresolved judgment."
+        },
+        {
+          "operation": "NORM_APPLICATION",
+          "inputs": [
+            "cmp",
+            "n"
+          ],
+          "output": "conclusion_C",
+          "explanation": "Retain an unresolved judgment."
+        }
+      ],
+      "reasons": [
+        {
+          "id": "reason",
+          "person_id": "jo",
+          "principle_id": "principle",
+          "action_id": "B",
+          "stance": "AGAINST",
+          "value": "protection",
+          "conclusion_handle": "r",
+          "ground_handles": [
+            "f"
+          ],
+          "warrant_handles": [
+            "n"
+          ],
+          "generic_basis": "Any excluded person."
+        }
+      ],
+      "comparisons": [
+        {
+          "id": "comparison",
+          "reason_ids": [
+            "reason"
+          ],
+          "judgment_handle": "cmp",
+          "from_action_id": "B",
+          "to_action_id": "C",
+          "status": "UNRESOLVED",
+          "relieved_burden_ids": [
+            "heat"
+          ],
+          "introduced_burden_ids": [],
+          "retained_burden_ids": [],
+          "explanation": "Not sufficient to settle."
+        }
+      ],
+      "challenges": [
+        {
+          "id": "challenge",
+          "kind": "UNDERCUTTING",
+          "target_kind": "SUPPORT",
+          "target_id": "r",
+          "challenge_handle": "cmp",
+          "response_handle": null,
+          "status": "OPEN"
+        }
+      ],
+      "action_assessments": [
+        {
+          "action_id": "A",
+          "conclusion_handle": "conclusion_A",
+          "assessment": "UNRESOLVED"
+        },
+        {
+          "action_id": "B",
+          "conclusion_handle": "conclusion_B",
+          "assessment": "UNRESOLVED"
+        },
+        {
+          "action_id": "C",
+          "conclusion_handle": "conclusion_C",
+          "assessment": "UNRESOLVED"
+        }
+      ],
+      "recommendation_action_id": null,
+      "recommendation_status": "UNRESOLVED",
+      "recommendation_comparison_ids": [],
+      "remaining_complaint_ids": [
+        "reason"
+      ],
+      "conclusion": "The comparison is open: a defended priority warrant is missing.",
+      "strongest_objection": "Incomplete comparison.",
+      "answer_to_objection": "Retain it.",
+      "reversal_condition": "Further reasons could support a ranking.",
+      "residual_disagreement": [
+        "Comparison remains open."
+      ],
+      "critical_questions": [
+        {
+          "id": "q_priority",
+          "kind": "NORMATIVE",
+          "role": "DECISION_DEPENDENCY",
+          "question": "Does the greater exposure justify prioritizing one household over others?",
+          "person_ids": [
+            "jo"
+          ],
+          "action_ids": [
+            "B",
+            "C"
+          ],
+          "principle_ids": [
+            "principle"
+          ],
+          "target_handles": [
+            "cmp"
+          ],
+          "why_it_matters": "The proposed allocation needs a comparison of personal claims.",
+          "needed_to_resolve": "A defended priority warrant; counting alone does not supply one.",
+          "conditional_implications": [
+            {
+              "assumption": "A stronger individual claim has priority here",
+              "implication": "C gains a reason against B, subject to other affected people."
+            },
+            {
+              "assumption": "A justified competing priority applies",
+              "implication": "B may remain defensible, conditional on that priority."
+            }
+          ]
+        }
+      ]
+    },
+    "source_text_sha256": "3a7a1aa655c3a36135dec3188e12af3496923039c8f8707092370ecb704ec9d6",
+    "source_status": "FROZEN_TEXT_NOT_ADMITTED_WORLD",
+    "operative": false,
+    "world_state_authority": "NONE",
+    "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+    "paper_attribution": {
+      "authors": [
+        "Luis Marcos-Vidal",
+        "Giulio Antonio Abbo",
+        "Tony Belpaeme"
+      ],
+      "title": "A Contractualist Argumentation Framework for Moral Decision-Making",
+      "version": "arXiv:2608.01937v1",
+      "url": "https://arxiv.org/html/2608.01937v1",
+      "used_sections": [
+        "5.1",
+        "5.2",
+        "5.3"
+      ],
+      "formal_semantics_implemented": false
+    },
+    "instruction_version": "argument-framework-instructions/0.4",
+    "issues": [],
+    "argument": {
+      "version": "argument-support/0.1",
+      "world_sha256": "3a7a1aa655c3a36135dec3188e12af3496923039c8f8707092370ecb704ec9d6",
+      "evidence": [
+        {
+          "ref": "SCENE",
+          "kind": "EXACT_SCENARIO",
+          "value": "During a heat wave, a council has funds for one of three technically feasible cooling plans. Plan A cools twenty households but requires demolishing Mira's occupied home, leaving her without housing; she refuses. Plan B cools twelve of those same households and displaces nobody. Plan C cools Jo's home, which has the greatest heat exposure of any home in this case, but requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period. Sal refuses. Jo's home is not cooled by A or B. Mira, Jo, and Sal are not members of the twenty households. No additional cooling, relocation, or compensation plan is available in this exercise. The text stipulates these effects, not total welfare scores or a ranking of whose overall position is worst. Which plan should the council adopt?"
+        }
+      ],
+      "issue_id": "cooling_three_options:contractualist",
+      "statements": {
+        "STATEMENT:e0047770b94fec6216cdd0f0": {
+          "kind": "PRINCIPLE",
+          "text": "Consider the claims of each person.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [],
+          "citations": []
+        },
+        "STATEMENT:1cd4f2a6108b0e6ff62249c5": {
+          "kind": "NORMATIVE_PREMISE",
+          "text": "A person can object to unprovided protection.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [],
+          "citations": []
+        },
+        "STATEMENT:d5aa68fa48d738f27ac3b285": {
+          "kind": "FACTUAL_PREMISE",
+          "text": "The source concerns a cooling plan.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [],
+          "citations": [
+            {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "Plan B",
+              "raw": {
+                "evidence_id": "SCENE",
+                "value_path": "",
+                "quote": "Plan B"
+              },
+              "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+              "semantic_support": "NOT_ASSESSED"
+            }
+          ]
+        },
+        "STATEMENT:c60afe0fb17b841ecc2a6a65": {
+          "kind": "PERSONAL_REASON",
+          "text": "Jo has a reason to question the allocation.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "STATEMENT:e0047770b94fec6216cdd0f0",
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5"
+          ],
+          "citations": []
+        },
+        "STATEMENT:f0a3c46b482c46acdbffdf58": {
+          "kind": "EVALUATIVE_COMPARISON",
+          "text": "This does not settle the comparison.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ],
+          "citations": []
+        },
+        "STATEMENT:2a8f99085d66b92828248b42": {
+          "kind": "NORMATIVE_JUDGMENT",
+          "text": "Assessment is unresolved for A",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ],
+          "citations": []
+        },
+        "STATEMENT:57e605d8c122ec4b3a71e9be": {
+          "kind": "NORMATIVE_JUDGMENT",
+          "text": "Assessment is unresolved for B",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ],
+          "citations": []
+        },
+        "STATEMENT:64bf34c1d4ec47837c1beb3b": {
+          "kind": "NORMATIVE_JUDGMENT",
+          "text": "Assessment is unresolved for C",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ],
+          "citations": []
+        }
+      },
+      "handles": {
+        "p": "STATEMENT:e0047770b94fec6216cdd0f0",
+        "n": "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+        "f": "STATEMENT:d5aa68fa48d738f27ac3b285",
+        "r": "STATEMENT:c60afe0fb17b841ecc2a6a65",
+        "cmp": "STATEMENT:f0a3c46b482c46acdbffdf58",
+        "conclusion_A": "STATEMENT:2a8f99085d66b92828248b42",
+        "conclusion_B": "STATEMENT:57e605d8c122ec4b3a71e9be",
+        "conclusion_C": "STATEMENT:64bf34c1d4ec47837c1beb3b"
+      },
+      "routes": {
+        "SUPPORT:2275737c6d9e835f254adbef": {
+          "operation": "NORM_APPLICATION",
+          "inputs": [
+            "STATEMENT:e0047770b94fec6216cdd0f0",
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+            "STATEMENT:d5aa68fa48d738f27ac3b285"
+          ],
+          "output": "STATEMENT:c60afe0fb17b841ecc2a6a65",
+          "explanation": "Conditional objection."
+        },
+        "SUPPORT:434f2d9b110da4d262c025d8": {
+          "operation": "NORM_PRIORITY",
+          "inputs": [
+            "STATEMENT:c60afe0fb17b841ecc2a6a65",
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5"
+          ],
+          "output": "STATEMENT:f0a3c46b482c46acdbffdf58",
+          "explanation": "Comparison remains unresolved."
+        },
+        "SUPPORT:55bee293184743a8fe221fac": {
+          "operation": "NORM_APPLICATION",
+          "inputs": [
+            "STATEMENT:f0a3c46b482c46acdbffdf58",
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5"
+          ],
+          "output": "STATEMENT:2a8f99085d66b92828248b42",
+          "explanation": "Retain an unresolved judgment."
+        },
+        "SUPPORT:60b4bf5da96850ff250e51e8": {
+          "operation": "NORM_APPLICATION",
+          "inputs": [
+            "STATEMENT:f0a3c46b482c46acdbffdf58",
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5"
+          ],
+          "output": "STATEMENT:57e605d8c122ec4b3a71e9be",
+          "explanation": "Retain an unresolved judgment."
+        },
+        "SUPPORT:949ca403d53897148ca1fb2b": {
+          "operation": "NORM_APPLICATION",
+          "inputs": [
+            "STATEMENT:f0a3c46b482c46acdbffdf58",
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5"
+          ],
+          "output": "STATEMENT:64bf34c1d4ec47837c1beb3b",
+          "explanation": "Retain an unresolved judgment."
+        },
+        "SUPPORT:c7d9e84e97d32cc93c38a5bc": {
+          "operation": "ASSUMPTION",
+          "inputs": [],
+          "output": "STATEMENT:e0047770b94fec6216cdd0f0",
+          "explanation": "Explicit candidate interpretive/normative root, never a world fact."
+        },
+        "SUPPORT:b0b6907f90bb275b804f2d34": {
+          "operation": "ASSUMPTION",
+          "inputs": [],
+          "output": "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+          "explanation": "Explicit candidate interpretive/normative root, never a world fact."
+        },
+        "SUPPORT:7819a8fa1c9a6b4acaff0691": {
+          "operation": "SOURCE",
+          "inputs": [],
+          "output": "STATEMENT:d5aa68fa48d738f27ac3b285",
+          "explanation": "Compiler-generated source binding; semantic review required."
+        }
+      },
+      "events": [
+        {
+          "sequence": 1,
+          "kind": "ASSERT",
+          "payload": {
+            "statement_id": "STATEMENT:e0047770b94fec6216cdd0f0"
+          },
+          "parent_sha256": "5a683f1e51792e9ffeb21a86f52c4aafa556333b6f63d53ac15e2e0bf7206983",
+          "sha256": "b60cd73b286aa1bca3766ee461a23d1216c70d7a7e3dfb9829823b2d9895a25e"
+        },
+        {
+          "sequence": 2,
+          "kind": "ASSERT",
+          "payload": {
+            "statement_id": "STATEMENT:1cd4f2a6108b0e6ff62249c5"
+          },
+          "parent_sha256": "b60cd73b286aa1bca3766ee461a23d1216c70d7a7e3dfb9829823b2d9895a25e",
+          "sha256": "e4bec5ef5f044d887a8a13a433cbf610af6a065ad536e6dd56513fe8cd441f8e"
+        },
+        {
+          "sequence": 3,
+          "kind": "ASSERT",
+          "payload": {
+            "statement_id": "STATEMENT:d5aa68fa48d738f27ac3b285"
+          },
+          "parent_sha256": "e4bec5ef5f044d887a8a13a433cbf610af6a065ad536e6dd56513fe8cd441f8e",
+          "sha256": "22f3775a75e90299e43986f12e36dcc00daa5cf53bedaac91d97e9728c4ed215"
+        },
+        {
+          "sequence": 4,
+          "kind": "ASSERT",
+          "payload": {
+            "statement_id": "STATEMENT:c60afe0fb17b841ecc2a6a65"
+          },
+          "parent_sha256": "22f3775a75e90299e43986f12e36dcc00daa5cf53bedaac91d97e9728c4ed215",
+          "sha256": "94f0102bd4c75d41527b30ef949973db0147e5fb8e8807d422f9949dbf1eeb87"
+        },
+        {
+          "sequence": 5,
+          "kind": "ASSERT",
+          "payload": {
+            "statement_id": "STATEMENT:f0a3c46b482c46acdbffdf58"
+          },
+          "parent_sha256": "94f0102bd4c75d41527b30ef949973db0147e5fb8e8807d422f9949dbf1eeb87",
+          "sha256": "43367385cb640e9ec7c56f209f689b194dba0f926667ecba14c32421439d5b97"
+        },
+        {
+          "sequence": 6,
+          "kind": "ASSERT",
+          "payload": {
+            "statement_id": "STATEMENT:2a8f99085d66b92828248b42"
+          },
+          "parent_sha256": "43367385cb640e9ec7c56f209f689b194dba0f926667ecba14c32421439d5b97",
+          "sha256": "bbab8599ee399db151ac1117fc927cff65751ebd3a5d3e06b1fbfc688dc7acb4"
+        },
+        {
+          "sequence": 7,
+          "kind": "ASSERT",
+          "payload": {
+            "statement_id": "STATEMENT:57e605d8c122ec4b3a71e9be"
+          },
+          "parent_sha256": "bbab8599ee399db151ac1117fc927cff65751ebd3a5d3e06b1fbfc688dc7acb4",
+          "sha256": "7378725534ee633168007b174ffeffff757cb849d6a946c46a0a094912a2ab47"
+        },
+        {
+          "sequence": 8,
+          "kind": "ASSERT",
+          "payload": {
+            "statement_id": "STATEMENT:64bf34c1d4ec47837c1beb3b"
+          },
+          "parent_sha256": "7378725534ee633168007b174ffeffff757cb849d6a946c46a0a094912a2ab47",
+          "sha256": "76aa8e163d82d520763b498ffe191cfff7844e06dc13e1addb38867db681e9a5"
+        },
+        {
+          "sequence": 9,
+          "kind": "PROPOSE_SUPPORT",
+          "payload": {
+            "support_id": "SUPPORT:2275737c6d9e835f254adbef"
+          },
+          "parent_sha256": "76aa8e163d82d520763b498ffe191cfff7844e06dc13e1addb38867db681e9a5",
+          "sha256": "d2b9ef7fa66d85611fce5d5184bc4a576f15d126467cb88a0bf1ac06de21ad5e"
+        },
+        {
+          "sequence": 10,
+          "kind": "PROPOSE_SUPPORT",
+          "payload": {
+            "support_id": "SUPPORT:434f2d9b110da4d262c025d8"
+          },
+          "parent_sha256": "d2b9ef7fa66d85611fce5d5184bc4a576f15d126467cb88a0bf1ac06de21ad5e",
+          "sha256": "a2b38a8701db3f80e0d6067baa80c991664e8039d923f0e71042baa6a35e0a86"
+        },
+        {
+          "sequence": 11,
+          "kind": "PROPOSE_SUPPORT",
+          "payload": {
+            "support_id": "SUPPORT:55bee293184743a8fe221fac"
+          },
+          "parent_sha256": "a2b38a8701db3f80e0d6067baa80c991664e8039d923f0e71042baa6a35e0a86",
+          "sha256": "90104b36e3ac764bc8007d0a41228e83a8afde3686fcd51d32cfb1db19a15fba"
+        },
+        {
+          "sequence": 12,
+          "kind": "PROPOSE_SUPPORT",
+          "payload": {
+            "support_id": "SUPPORT:60b4bf5da96850ff250e51e8"
+          },
+          "parent_sha256": "90104b36e3ac764bc8007d0a41228e83a8afde3686fcd51d32cfb1db19a15fba",
+          "sha256": "9a566e731f0434ae3acf579614523048af46b428c6454411cb311def8ca682b5"
+        },
+        {
+          "sequence": 13,
+          "kind": "PROPOSE_SUPPORT",
+          "payload": {
+            "support_id": "SUPPORT:949ca403d53897148ca1fb2b"
+          },
+          "parent_sha256": "9a566e731f0434ae3acf579614523048af46b428c6454411cb311def8ca682b5",
+          "sha256": "4fc2fa1a219a40d0cbdebefa47c047c2222d8193c3a1335d26e8698c0303ee08"
+        },
+        {
+          "sequence": 14,
+          "kind": "PROPOSE_SUPPORT",
+          "payload": {
+            "support_id": "SUPPORT:c7d9e84e97d32cc93c38a5bc"
+          },
+          "parent_sha256": "4fc2fa1a219a40d0cbdebefa47c047c2222d8193c3a1335d26e8698c0303ee08",
+          "sha256": "78cac0a026152bde725485c0e735ff4a308bf655194d6ccd27cc64cb549c6e71"
+        },
+        {
+          "sequence": 15,
+          "kind": "PROPOSE_SUPPORT",
+          "payload": {
+            "support_id": "SUPPORT:b0b6907f90bb275b804f2d34"
+          },
+          "parent_sha256": "78cac0a026152bde725485c0e735ff4a308bf655194d6ccd27cc64cb549c6e71",
+          "sha256": "6166cce5643a25512783211cd1b23ce6e56fc4fbe34f146e15c1046843dee72e"
+        },
+        {
+          "sequence": 16,
+          "kind": "PROPOSE_SUPPORT",
+          "payload": {
+            "support_id": "SUPPORT:7819a8fa1c9a6b4acaff0691"
+          },
+          "parent_sha256": "6166cce5643a25512783211cd1b23ce6e56fc4fbe34f146e15c1046843dee72e",
+          "sha256": "a8b8e8c42fcc7e527d340b96f4de2c22fc380d5e7e728bca8c8e27f9a98d821a"
+        }
+      ],
+      "operative": false,
+      "world_state_authority": "NONE",
+      "construction_problems": []
+    },
+    "view": {
+      "statements": {
+        "STATEMENT:e0047770b94fec6216cdd0f0": {
+          "kind": "PRINCIPLE",
+          "text": "Consider the claims of each person.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [],
+          "citations": [],
+          "id": "STATEMENT:e0047770b94fec6216cdd0f0",
+          "lifecycle": "ACTIVE",
+          "support_status": "CONDITIONAL",
+          "effective_hypotheses": [
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ]
+        },
+        "STATEMENT:1cd4f2a6108b0e6ff62249c5": {
+          "kind": "NORMATIVE_PREMISE",
+          "text": "A person can object to unprovided protection.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [],
+          "citations": [],
+          "id": "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+          "lifecycle": "ACTIVE",
+          "support_status": "CONDITIONAL",
+          "effective_hypotheses": [
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5"
+          ]
+        },
+        "STATEMENT:d5aa68fa48d738f27ac3b285": {
+          "kind": "FACTUAL_PREMISE",
+          "text": "The source concerns a cooling plan.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [],
+          "citations": [
+            {
+              "evidence_id": "SCENE",
+              "value_path": "",
+              "quote": "Plan B",
+              "raw": {
+                "evidence_id": "SCENE",
+                "value_path": "",
+                "quote": "Plan B"
+              },
+              "resolved_value_sha256": "ba8a394a9b2650dc17b5daf311d5d3096883013c843519ca72b7517925e0abce",
+              "semantic_support": "NOT_ASSESSED"
+            }
+          ],
+          "id": "STATEMENT:d5aa68fa48d738f27ac3b285",
+          "lifecycle": "ACTIVE",
+          "support_status": "UNASSESSED",
+          "effective_hypotheses": []
+        },
+        "STATEMENT:c60afe0fb17b841ecc2a6a65": {
+          "kind": "PERSONAL_REASON",
+          "text": "Jo has a reason to question the allocation.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "STATEMENT:e0047770b94fec6216cdd0f0",
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5"
+          ],
+          "citations": [],
+          "id": "STATEMENT:c60afe0fb17b841ecc2a6a65",
+          "lifecycle": "ACTIVE",
+          "support_status": "REQUIRES_REASSESSMENT",
+          "effective_hypotheses": [
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ]
+        },
+        "STATEMENT:f0a3c46b482c46acdbffdf58": {
+          "kind": "EVALUATIVE_COMPARISON",
+          "text": "This does not settle the comparison.",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ],
+          "citations": [],
+          "id": "STATEMENT:f0a3c46b482c46acdbffdf58",
+          "lifecycle": "ACTIVE",
+          "support_status": "REQUIRES_REASSESSMENT",
+          "effective_hypotheses": [
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ]
+        },
+        "STATEMENT:2a8f99085d66b92828248b42": {
+          "kind": "NORMATIVE_JUDGMENT",
+          "text": "Assessment is unresolved for A",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ],
+          "citations": [],
+          "id": "STATEMENT:2a8f99085d66b92828248b42",
+          "lifecycle": "ACTIVE",
+          "support_status": "REQUIRES_REASSESSMENT",
+          "effective_hypotheses": [
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ]
+        },
+        "STATEMENT:57e605d8c122ec4b3a71e9be": {
+          "kind": "NORMATIVE_JUDGMENT",
+          "text": "Assessment is unresolved for B",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ],
+          "citations": [],
+          "id": "STATEMENT:57e605d8c122ec4b3a71e9be",
+          "lifecycle": "ACTIVE",
+          "support_status": "REQUIRES_REASSESSMENT",
+          "effective_hypotheses": [
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ]
+        },
+        "STATEMENT:64bf34c1d4ec47837c1beb3b": {
+          "kind": "NORMATIVE_JUDGMENT",
+          "text": "Assessment is unresolved for C",
+          "polarity": "AFFIRMED",
+          "modality": "ASSERTED",
+          "hypothesis_ids": [
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ],
+          "citations": [],
+          "id": "STATEMENT:64bf34c1d4ec47837c1beb3b",
+          "lifecycle": "ACTIVE",
+          "support_status": "REQUIRES_REASSESSMENT",
+          "effective_hypotheses": [
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ]
+        }
+      },
+      "support_routes": {
+        "SUPPORT:c7d9e84e97d32cc93c38a5bc": {
+          "status": "CONDITIONAL",
+          "issues": [],
+          "effective_hypotheses": [
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ]
+        },
+        "SUPPORT:b0b6907f90bb275b804f2d34": {
+          "status": "CONDITIONAL",
+          "issues": [],
+          "effective_hypotheses": [
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5"
+          ]
+        },
+        "SUPPORT:7819a8fa1c9a6b4acaff0691": {
+          "status": "UNASSESSED",
+          "issues": [],
+          "effective_hypotheses": []
+        },
+        "SUPPORT:2275737c6d9e835f254adbef": {
+          "status": "REQUIRES_REASSESSMENT",
+          "issues": [
+            "PREMISE_REQUIRES_REASSESSMENT"
+          ],
+          "effective_hypotheses": [
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ]
+        },
+        "SUPPORT:434f2d9b110da4d262c025d8": {
+          "status": "REQUIRES_REASSESSMENT",
+          "issues": [
+            "PREMISE_REQUIRES_REASSESSMENT"
+          ],
+          "effective_hypotheses": [
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ]
+        },
+        "SUPPORT:55bee293184743a8fe221fac": {
+          "status": "REQUIRES_REASSESSMENT",
+          "issues": [
+            "PREMISE_REQUIRES_REASSESSMENT"
+          ],
+          "effective_hypotheses": [
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ]
+        },
+        "SUPPORT:60b4bf5da96850ff250e51e8": {
+          "status": "REQUIRES_REASSESSMENT",
+          "issues": [
+            "PREMISE_REQUIRES_REASSESSMENT"
+          ],
+          "effective_hypotheses": [
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ]
+        },
+        "SUPPORT:949ca403d53897148ca1fb2b": {
+          "status": "REQUIRES_REASSESSMENT",
+          "issues": [
+            "PREMISE_REQUIRES_REASSESSMENT"
+          ],
+          "effective_hypotheses": [
+            "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+            "STATEMENT:e0047770b94fec6216cdd0f0"
+          ]
+        }
+      },
+      "active_statement_ids": [
+        "STATEMENT:e0047770b94fec6216cdd0f0",
+        "STATEMENT:1cd4f2a6108b0e6ff62249c5",
+        "STATEMENT:d5aa68fa48d738f27ac3b285",
+        "STATEMENT:c60afe0fb17b841ecc2a6a65",
+        "STATEMENT:f0a3c46b482c46acdbffdf58",
+        "STATEMENT:2a8f99085d66b92828248b42",
+        "STATEMENT:57e605d8c122ec4b3a71e9be",
+        "STATEMENT:64bf34c1d4ec47837c1beb3b"
+      ],
+      "operative": false,
+      "semantic_support": "ATTRIBUTED_ASSESSMENTS_NOT_AUTOMATIC_TRUTH"
+    },
+    "comparison_review": {
+      "version": "complaint-comparison/0.2",
+      "findings": [],
+      "status": "NO_STRUCTURAL_MISMATCH_FOUND",
+      "matrix_authority": "MODEL_PROPOSED_NOT_SOURCE_VERIFIED",
+      "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+      "moral_ranking_computed": false,
+      "operative": false,
+      "derived_position_changes": [
+        {
+          "comparison_id": "comparison",
+          "from_action_id": "B",
+          "to_action_id": "C",
+          "positions": [
+            {
+              "burden_id": "heat",
+              "person_id": "jo",
+              "description": "Unrelieved heat exposure.",
+              "from": {
+                "status": "PRESENT",
+                "raw_position_indices": [
+                  1
+                ],
+                "descriptions": [
+                  "Cooling under C; no cooling under A or B."
+                ]
+              },
+              "to": {
+                "status": "ABSENT",
+                "raw_position_indices": [
+                  2
+                ],
+                "descriptions": [
+                  "Cooling under C; no cooling under A or B."
+                ]
+              },
+              "change": "RELIEVED"
+            }
+          ],
+          "authority": "DERIVED_FROM_MODEL_MATRIX_NOT_SOURCE_VERIFIED",
+          "proposed_comparison_status": "UNRESOLVED",
+          "moral_ranking_computed": false
+        }
+      ],
+      "recommendation_status": "UNRESOLVED",
+      "remaining_complaint_ids": [
+        "reason"
+      ]
+    },
+    "critical_question_review": {
+      "version": "critical-argument-questions/0.1",
+      "questions": [
+        {
+          "id": "q_priority",
+          "kind": "NORMATIVE",
+          "role": "DECISION_DEPENDENCY",
+          "question": "Does the greater exposure justify prioritizing one household over others?",
+          "person_ids": [
+            "jo"
+          ],
+          "action_ids": [
+            "B",
+            "C"
+          ],
+          "principle_ids": [
+            "principle"
+          ],
+          "target_handles": [
+            "cmp"
+          ],
+          "why_it_matters": "The proposed allocation needs a comparison of personal claims.",
+          "needed_to_resolve": "A defended priority warrant; counting alone does not supply one.",
+          "conditional_implications": [
+            {
+              "assumption": "A stronger individual claim has priority here",
+              "implication": "C gains a reason against B, subject to other affected people."
+            },
+            {
+              "assumption": "A justified competing priority applies",
+              "implication": "B may remain defensible, conditional on that priority."
+            }
+          ]
+        }
+      ],
+      "findings": [],
+      "recording_status": "RECORDED",
+      "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+      "operative": false,
+      "question_is_automatic_blocker": false,
+      "unanswerable_in_principle": "NOT_ESTABLISHED"
+    },
+    "status": "STAGED_ARGUMENT"
+  }
+}

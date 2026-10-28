@@ -1,0 +1,702 @@
+{
+  "case_id": "partial_graph_negative_inference",
+  "arm": "typed",
+  "prompt": "Review the quoted argument against the exact supplied evidence. The reviewer may be mistaken. Defend, qualify, withdraw or leave the inference unresolved. Separate source evidence, interpretive assumptions, normative assumptions and unknowns. Preserve defensible claims and useful conditional analysis; do not equate caution with correctness or agreement with the reviewer. Do not manufacture facts or a moral verdict. Cite exact support, distinguish physical contribution from belief and purposive use, and state the strongest justified conclusion. The argument annotations can themselves be wrong. If your schema requests reasoning_revision, revise those annotations while retaining claim IDs and exact evidence locations.\n{\"challenge\": {\"version\": \"inference-review/0.1\", \"prior_reply_sha256\": \"24b67dafe9489d61ec11ef1a542fe9f1437f62998370ecc0378b2f79d2ee3d6e\", \"claim_path\": \"explanation\", \"quote\": \"The operator definitely does not intend to use anyone.\", \"defect_kind\": \"MISSING_BRIDGE\", \"missing_premise\": \"Does absence from this partial graph really establish the claimed negative intention?\", \"evidence\": [{\"ref\": \"E1\", \"path\": \"/effects/0\", \"kind\": \"FROZEN_WORLD_COPY\", \"value\": {\"outcome\": \"operate the gate\", \"provenance\": [{\"excerpt\": \"This partial graph records gate opening and possible fumes. It does not represent whether fumes aid rescue.\"}]}}], \"affected_paths\": [\"classification\"], \"reviewer\": \"EXPERIMENT_REVIEWER_MAY_BE_MISTAKEN\", \"authority\": \"REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT\", \"status\": \"OPEN\", \"challenge_id\": \"INFERENCE:91f13c7a40396cc4d64fa45e\"}, \"prior_reply\": {\"explanation\": \"The operator definitely does not intend to use anyone.\"}, \"argument_annotation\": {\"claims\": [{\"id\": \"physical\", \"kind\": \"PHYSICAL_CONTRIBUTION\", \"interpretation_mode\": \"SOURCE_STATED\", \"text\": \"No contribution to rescue appears in this partial graph.\", \"supports\": [{\"evidence_ref\": \"E1\", \"value_path\": \"/provenance/0/excerpt\", \"quote\": \"This partial graph records gate opening and possible fumes. It does not represent whether fumes aid rescue.\"}], \"condition_ids\": []}, {\"id\": \"intended\", \"kind\": \"INTENDED_USE\", \"interpretation_mode\": \"ATTRIBUTED_INFERENCE\", \"text\": \"The operator definitely does not intend to use anyone.\", \"supports\": [], \"condition_ids\": []}], \"bridges\": [{\"id\": \"b0\", \"rule_id\": \"CAUSAL_ROLE_TO_INTENDED_USE\", \"premise_ids\": [\"physical\"], \"assumption_ids\": [], \"conclusion_id\": \"intended\", \"explanation\": \"Reviewer-identified bridge to examine; not certified by these type annotations.\"}]}}",
+  "challenge": {
+    "version": "inference-review/0.1",
+    "prior_reply_sha256": "24b67dafe9489d61ec11ef1a542fe9f1437f62998370ecc0378b2f79d2ee3d6e",
+    "claim_path": "explanation",
+    "quote": "The operator definitely does not intend to use anyone.",
+    "defect_kind": "MISSING_BRIDGE",
+    "missing_premise": "Does absence from this partial graph really establish the claimed negative intention?",
+    "evidence": [
+      {
+        "ref": "E1",
+        "path": "/effects/0",
+        "kind": "FROZEN_WORLD_COPY",
+        "value": {
+          "outcome": "operate the gate",
+          "provenance": [
+            {
+              "excerpt": "This partial graph records gate opening and possible fumes. It does not represent whether fumes aid rescue."
+            }
+          ]
+        }
+      }
+    ],
+    "affected_paths": [
+      "classification"
+    ],
+    "reviewer": "EXPERIMENT_REVIEWER_MAY_BE_MISTAKEN",
+    "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+    "status": "OPEN",
+    "challenge_id": "INFERENCE:91f13c7a40396cc4d64fa45e"
+  },
+  "schema": {
+    "type": "object",
+    "properties": {
+      "challenge_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "disposition": {
+        "type": "string",
+        "enum": [
+          "DEFENDED",
+          "QUALIFIED",
+          "WITHDRAWN",
+          "UNRESOLVED"
+        ]
+      },
+      "premises": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "claim": {
+              "type": "string",
+              "minLength": 1
+            },
+            "basis": {
+              "type": "string",
+              "enum": [
+                "SOURCE_EVIDENCE",
+                "INTERPRETIVE_ASSUMPTION",
+                "NORMATIVE_ASSUMPTION",
+                "UNKNOWN"
+              ]
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "required": [
+            "claim",
+            "basis",
+            "evidence_refs"
+          ]
+        },
+        "minItems": 1
+      },
+      "bridge": {
+        "type": "string",
+        "minLength": 1
+      },
+      "withdrawn_claims": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "qualifications": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "strongest_conclusion": {
+        "type": "string",
+        "minLength": 1
+      },
+      "remaining_questions": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "local_response": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "classification": {
+            "type": "string",
+            "enum": [
+              "SUPPORTED",
+              "CONDITIONAL",
+              "UNRESOLVED",
+              "WITHDRAWN"
+            ]
+          }
+        },
+        "required": [
+          "classification"
+        ]
+      },
+      "reasoning_revision": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "claims": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "PHYSICAL_CONTRIBUTION",
+                    "PURPOSE",
+                    "BELIEF",
+                    "PURPOSIVE_USE",
+                    "INTENDED_USE",
+                    "MAXIM",
+                    "SOURCE_RULE",
+                    "NORMATIVE_PREMISE",
+                    "NORMATIVE_JUDGMENT"
+                  ]
+                },
+                "interpretation_mode": {
+                  "type": "string",
+                  "enum": [
+                    "SOURCE_STATED",
+                    "ATTRIBUTED_INFERENCE",
+                    "CONDITIONAL",
+                    "UNKNOWN"
+                  ]
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "supports": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "evidence_ref": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "value_path": {
+                        "type": "string"
+                      },
+                      "quote": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "evidence_ref",
+                      "value_path",
+                      "quote"
+                    ]
+                  }
+                },
+                "condition_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "interpretation_mode",
+                "text",
+                "supports",
+                "condition_ids"
+              ]
+            }
+          },
+          "bridges": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "rule_id": {
+                  "type": "string",
+                  "enum": [
+                    "SOURCE_TO_INTERPRETATION",
+                    "CAUSAL_ROLE_TO_INTENDED_USE",
+                    "INTENDED_USE_TO_PROHIBITION",
+                    "SOURCE_RULE_TO_NORMATIVE_PRIORITY"
+                  ]
+                },
+                "premise_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "assumption_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "conclusion_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "explanation": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "id",
+                "rule_id",
+                "premise_ids",
+                "assumption_ids",
+                "conclusion_id",
+                "explanation"
+              ]
+            }
+          }
+        },
+        "required": [
+          "claims",
+          "bridges"
+        ]
+      }
+    },
+    "required": [
+      "challenge_id",
+      "disposition",
+      "premises",
+      "bridge",
+      "withdrawn_claims",
+      "qualifications",
+      "strongest_conclusion",
+      "remaining_questions",
+      "local_response",
+      "reasoning_revision"
+    ],
+    "additionalProperties": false
+  },
+  "provider_attempts": 1,
+  "operative": false,
+  "status": "ASSESSED",
+  "request": {
+    "model": "o3",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Review the quoted argument against the exact supplied evidence. The reviewer may be mistaken. Defend, qualify, withdraw or leave the inference unresolved. Separate source evidence, interpretive assumptions, normative assumptions and unknowns. Preserve defensible claims and useful conditional analysis; do not equate caution with correctness or agreement with the reviewer. Do not manufacture facts or a moral verdict. Cite exact support, distinguish physical contribution from belief and purposive use, and state the strongest justified conclusion. The argument annotations can themselves be wrong. If your schema requests reasoning_revision, revise those annotations while retaining claim IDs and exact evidence locations.\n{\"challenge\": {\"version\": \"inference-review/0.1\", \"prior_reply_sha256\": \"24b67dafe9489d61ec11ef1a542fe9f1437f62998370ecc0378b2f79d2ee3d6e\", \"claim_path\": \"explanation\", \"quote\": \"The operator definitely does not intend to use anyone.\", \"defect_kind\": \"MISSING_BRIDGE\", \"missing_premise\": \"Does absence from this partial graph really establish the claimed negative intention?\", \"evidence\": [{\"ref\": \"E1\", \"path\": \"/effects/0\", \"kind\": \"FROZEN_WORLD_COPY\", \"value\": {\"outcome\": \"operate the gate\", \"provenance\": [{\"excerpt\": \"This partial graph records gate opening and possible fumes. It does not represent whether fumes aid rescue.\"}]}}], \"affected_paths\": [\"classification\"], \"reviewer\": \"EXPERIMENT_REVIEWER_MAY_BE_MISTAKEN\", \"authority\": \"REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT\", \"status\": \"OPEN\", \"challenge_id\": \"INFERENCE:91f13c7a40396cc4d64fa45e\"}, \"prior_reply\": {\"explanation\": \"The operator definitely does not intend to use anyone.\"}, \"argument_annotation\": {\"claims\": [{\"id\": \"physical\", \"kind\": \"PHYSICAL_CONTRIBUTION\", \"interpretation_mode\": \"SOURCE_STATED\", \"text\": \"No contribution to rescue appears in this partial graph.\", \"supports\": [{\"evidence_ref\": \"E1\", \"value_path\": \"/provenance/0/excerpt\", \"quote\": \"This partial graph records gate opening and possible fumes. It does not represent whether fumes aid rescue.\"}], \"condition_ids\": []}, {\"id\": \"intended\", \"kind\": \"INTENDED_USE\", \"interpretation_mode\": \"ATTRIBUTED_INFERENCE\", \"text\": \"The operator definitely does not intend to use anyone.\", \"supports\": [], \"condition_ids\": []}], \"bridges\": [{\"id\": \"b0\", \"rule_id\": \"CAUSAL_ROLE_TO_INTENDED_USE\", \"premise_ids\": [\"physical\"], \"assumption_ids\": [], \"conclusion_id\": \"intended\", \"explanation\": \"Reviewer-identified bridge to examine; not certified by these type annotations.\"}]}}"
+      }
+    ],
+    "max_completion_tokens": 4096,
+    "timeout": 90,
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "workspace_response",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "challenge_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "disposition": {
+              "type": "string",
+              "enum": [
+                "DEFENDED",
+                "QUALIFIED",
+                "WITHDRAWN",
+                "UNRESOLVED"
+              ]
+            },
+            "premises": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "claim": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "basis": {
+                    "type": "string",
+                    "enum": [
+                      "SOURCE_EVIDENCE",
+                      "INTERPRETIVE_ASSUMPTION",
+                      "NORMATIVE_ASSUMPTION",
+                      "UNKNOWN"
+                    ]
+                  },
+                  "evidence_refs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "required": [
+                  "claim",
+                  "basis",
+                  "evidence_refs"
+                ]
+              },
+              "minItems": 1
+            },
+            "bridge": {
+              "type": "string",
+              "minLength": 1
+            },
+            "withdrawn_claims": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "qualifications": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "strongest_conclusion": {
+              "type": "string",
+              "minLength": 1
+            },
+            "remaining_questions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "local_response": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "classification": {
+                  "type": "string",
+                  "enum": [
+                    "SUPPORTED",
+                    "CONDITIONAL",
+                    "UNRESOLVED",
+                    "WITHDRAWN"
+                  ]
+                }
+              },
+              "required": [
+                "classification"
+              ]
+            },
+            "reasoning_revision": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "claims": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "PHYSICAL_CONTRIBUTION",
+                          "PURPOSE",
+                          "BELIEF",
+                          "PURPOSIVE_USE",
+                          "INTENDED_USE",
+                          "MAXIM",
+                          "SOURCE_RULE",
+                          "NORMATIVE_PREMISE",
+                          "NORMATIVE_JUDGMENT"
+                        ]
+                      },
+                      "interpretation_mode": {
+                        "type": "string",
+                        "enum": [
+                          "SOURCE_STATED",
+                          "ATTRIBUTED_INFERENCE",
+                          "CONDITIONAL",
+                          "UNKNOWN"
+                        ]
+                      },
+                      "text": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "supports": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "evidence_ref": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "value_path": {
+                              "type": "string"
+                            },
+                            "quote": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "required": [
+                            "evidence_ref",
+                            "value_path",
+                            "quote"
+                          ]
+                        }
+                      },
+                      "condition_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "kind",
+                      "interpretation_mode",
+                      "text",
+                      "supports",
+                      "condition_ids"
+                    ]
+                  }
+                },
+                "bridges": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "rule_id": {
+                        "type": "string",
+                        "enum": [
+                          "SOURCE_TO_INTERPRETATION",
+                          "CAUSAL_ROLE_TO_INTENDED_USE",
+                          "INTENDED_USE_TO_PROHIBITION",
+                          "SOURCE_RULE_TO_NORMATIVE_PRIORITY"
+                        ]
+                      },
+                      "premise_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "assumption_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "conclusion_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "explanation": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "rule_id",
+                      "premise_ids",
+                      "assumption_ids",
+                      "conclusion_id",
+                      "explanation"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "claims",
+                "bridges"
+              ]
+            }
+          },
+          "required": [
+            "challenge_id",
+            "disposition",
+            "premises",
+            "bridge",
+            "withdrawn_claims",
+            "qualifications",
+            "strongest_conclusion",
+            "remaining_questions",
+            "local_response",
+            "reasoning_revision"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "reasoning_effort": "low"
+  },
+  "provider_response": {
+    "id": "chatcmpl-Ec9CWt3Dl0pNV1Ue7Xed7G4rFYETj",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"challenge_id\":\"INFERENCE:91f13c7a40396cc4d64fa45e\",\"disposition\":\"QUALIFIED\",\"premises\":[{\"claim\":\"No contribution to rescue appears in this partial graph.\",\"basis\":\"SOURCE_EVIDENCE\",\"evidence_refs\":[\"E1\"]},{\"claim\":\"Whether the operator intends to use anyone is not represented in the partial graph.\",\"basis\":\"INTERPRETIVE_ASSUMPTION\",\"evidence_refs\":[]}],\"bridge\":\"Absence of a fact in a partial operational graph does not by itself warrant the definite negation of that fact. Additional information would be required to conclude that the operator lacks such an intention.\",\"withdrawn_claims\":[\"The operator definitely does not intend to use anyone.\"],\"qualifications\":[\"From the given evidence we can only say the operator\u2019s intention is unrecorded or indeterminate, not definitively absent.\"],\"strongest_conclusion\":\"The evidence is insufficient to determine the operator\u2019s intention; the claim of definite non-intention is unsupported.\",\"remaining_questions\":[\"Is there any direct testimony or documentation of the operator\u2019s intentions?\",\"Are there other parts of the system graph or operational logs that address possible human use?\"],\"local_response\":{\"classification\":\"UNRESOLVED\"},\"reasoning_revision\":{\"claims\":[{\"id\":\"physical\",\"kind\":\"PHYSICAL_CONTRIBUTION\",\"interpretation_mode\":\"SOURCE_STATED\",\"text\":\"No contribution to rescue appears in this partial graph.\",\"supports\":[{\"evidence_ref\":\"E1\",\"value_path\":\"/provenance/0/excerpt\",\"quote\":\"This partial graph records gate opening and possible fumes. It does not represent whether fumes aid rescue.\"}],\"condition_ids\":[]},{\"id\":\"intended\",\"kind\":\"INTENDED_USE\",\"interpretation_mode\":\"CONDITIONAL\",\"text\":\"The operator\u2019s intention regarding use of others is indeterminate given the current evidence.\",\"supports\":[],\"condition_ids\":[]}],\"bridges\":[{\"id\":\"b0\",\"rule_id\":\"CAUSAL_ROLE_TO_INTENDED_USE\",\"premise_ids\":[\"physical\"],\"assumption_ids\":[],\"conclusion_id\":\"intended\",\"explanation\":\"Removed as decisive support; absence of representation does not entail absence of intention.\"}]}}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1792760540,
+    "model": "o3-2025-04-16",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 788,
+      "prompt_tokens": 1129,
+      "total_tokens": 1917,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 320,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "response": {
+    "challenge_id": "INFERENCE:91f13c7a40396cc4d64fa45e",
+    "disposition": "QUALIFIED",
+    "premises": [
+      {
+        "claim": "No contribution to rescue appears in this partial graph.",
+        "basis": "SOURCE_EVIDENCE",
+        "evidence_refs": [
+          "E1"
+        ]
+      },
+      {
+        "claim": "Whether the operator intends to use anyone is not represented in the partial graph.",
+        "basis": "INTERPRETIVE_ASSUMPTION",
+        "evidence_refs": []
+      }
+    ],
+    "bridge": "Absence of a fact in a partial operational graph does not by itself warrant the definite negation of that fact. Additional information would be required to conclude that the operator lacks such an intention.",
+    "withdrawn_claims": [
+      "The operator definitely does not intend to use anyone."
+    ],
+    "qualifications": [
+      "From the given evidence we can only say the operator\u2019s intention is unrecorded or indeterminate, not definitively absent."
+    ],
+    "strongest_conclusion": "The evidence is insufficient to determine the operator\u2019s intention; the claim of definite non-intention is unsupported.",
+    "remaining_questions": [
+      "Is there any direct testimony or documentation of the operator\u2019s intentions?",
+      "Are there other parts of the system graph or operational logs that address possible human use?"
+    ],
+    "local_response": {
+      "classification": "UNRESOLVED"
+    },
+    "reasoning_revision": {
+      "claims": [
+        {
+          "id": "physical",
+          "kind": "PHYSICAL_CONTRIBUTION",
+          "interpretation_mode": "SOURCE_STATED",
+          "text": "No contribution to rescue appears in this partial graph.",
+          "supports": [
+            {
+              "evidence_ref": "E1",
+              "value_path": "/provenance/0/excerpt",
+              "quote": "This partial graph records gate opening and possible fumes. It does not represent whether fumes aid rescue."
+            }
+          ],
+          "condition_ids": []
+        },
+        {
+          "id": "intended",
+          "kind": "INTENDED_USE",
+          "interpretation_mode": "CONDITIONAL",
+          "text": "The operator\u2019s intention regarding use of others is indeterminate given the current evidence.",
+          "supports": [],
+          "condition_ids": []
+        }
+      ],
+      "bridges": [
+        {
+          "id": "b0",
+          "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+          "premise_ids": [
+            "physical"
+          ],
+          "assumption_ids": [],
+          "conclusion_id": "intended",
+          "explanation": "Removed as decisive support; absence of representation does not entail absence of intention."
+        }
+      ]
+    }
+  },
+  "assessment": {
+    "ordinary_contract": {
+      "contract_valid": true,
+      "errors": [],
+      "boundary_review": null,
+      "reported_disposition": "QUALIFIED",
+      "effective_status": "OPEN_PENDING_CONTENT_REVIEW",
+      "semantic_support": "NOT_INDEPENDENTLY_VERIFIED",
+      "world_state_authority": "NONE"
+    },
+    "native_admission": "NOT_ASSESSED_ARGUMENT_ONLY",
+    "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+    "typed_error": "ValueError: Conditional conclusion must identify its condition"
+  },
+  "elapsed_seconds": 6.048
+}

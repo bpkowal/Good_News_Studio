@@ -128,7 +128,7 @@ class ViewerExportTests(unittest.TestCase):
                         for path in json.loads(DEFAULT_CATALOG.read_text())['reports'].values()}
         with tempfile.TemporaryDirectory() as temp:
             rows=export(output=Path(temp))
-            self.assertEqual(len(rows),3)
+            self.assertEqual(len(rows),len(catalog_before))
             index=json.loads((Path(temp)/'runs.json').read_text())
             self.assertEqual(index['schema_version'],'parliament-view-index/1')
             for row in rows:
@@ -164,6 +164,23 @@ class ViewerExportTests(unittest.TestCase):
             export(reports=DEFAULT_REPORTS, output=root/'out', catalog=root/'catalog.json')
             historical = json.loads((root/'out/trolley.json').read_text())
             self.assertEqual(historical['status'], 'INTERPRETIVE_BEAM')
+
+    def test_catalog_exports_new_demo_without_overwriting_existing_runs(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            report=self.load('medicine')
+            (root/'novel.json').write_text(json.dumps(report))
+            before=(root/'novel.json').read_bytes()
+            pins=json.loads(DEFAULT_CATALOG.read_text())['reports']
+            pins['new_rescue_case']=str(root/'novel.json')
+            (root/'catalog.json').write_text(json.dumps({'version':'parliament-saved-runs/1','reports':pins}))
+            rows=export(output=root/'out',catalog=root/'catalog.json')
+            self.assertTrue({'medicine','promise','trolley','new_rescue_case'} <= {r['id'] for r in rows})
+            payload=json.loads((root/'out/new_rescue_case.json').read_text())
+            self.assertEqual(payload['source'],report['scenario'])
+            self.assertEqual(payload['title'],'New rescue case')
+            self.assertEqual(payload['diagrams'][0]['world'],report['world'])
+            self.assertEqual((root/'novel.json').read_bytes(),before)
 
     def test_assets_are_packaged_locally(self):
         class Assets(HTMLParser):

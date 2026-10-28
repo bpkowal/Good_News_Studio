@@ -70,6 +70,26 @@ class DecisionsTopographyTests(unittest.TestCase):
         self.assertEqual(points['obligation']['probability'], 0.0)
         self.assertTrue(points['obligation']['present'])
 
+    def test_argument_adapter_keeps_questions_and_qualifications_in_packet(self):
+        view = {'framework': 'contractualist', 'position': 'CLARIFICATION',
+                'preference': None, 'ledger_status': 'NOT_APPLICABLE_ARGUMENT_ADAPTER',
+                'critical_questions': [{'question': 'Was there reliance?'}],
+                'assumption_records': [{'text': 'Priority remains contested.'}],
+                'argument_technical_status': 'STAGED_PARTIAL_ARGUMENT',
+                'recorded_argument': {'conclusion': 'No unconditional ranking.'},
+                'dependencies': ['Reliance is unknown.'],
+                'critical_question_findings': [],
+                'trace_path': '/Users/private/trace.json'}
+        packet = parliament_packet('A rescue.', {}, {}, [view])
+        saved = packet['frameworks'][0]
+        for key in ('critical_questions', 'assumption_records', 'recorded_argument',
+                    'argument_technical_status', 'dependencies'):
+            self.assertEqual(saved[key], view[key])
+        self.assertIsNone(saved['preference'])
+        self.assertEqual(saved['ledger_status'], 'NOT_APPLICABLE_ARGUMENT_ADAPTER')
+        self.assertNotIn('/Users/', json.dumps(packet))
+        self.assertNotIn('rawlsian', json.dumps(packet))
+
     def test_plotted_coordinates_are_probabilities_not_ordinals(self):
         per = {
             'A0': parse_answers(self.actions()[0], self.answers('A0', 0.81, 0.11, 0.77)),
@@ -103,7 +123,10 @@ class DecisionsTopographyTests(unittest.TestCase):
                   'status': 'FRAMEWORK_PARTIAL',
                   'world': {'actions': [{'action_id': 'A0', 'intervention': 'give Ben'},
                                         {'action_id': 'A1', 'intervention': 'give Cara'}]},
-                  'frameworks': [],
+                  'frameworks': [{'framework': 'contractualist',
+                                  'preference': 'give Ben',
+                                  'ledger_status': 'NOT_APPLICABLE_ARGUMENT_ADAPTER',
+                                  'critical_questions': [{'question': 'Was there reliance?'}]}],
                   'cycles': [{'candidates': [{'specialist': 'care'}]}]}
         payloads = []
 
@@ -134,6 +157,10 @@ class DecisionsTopographyTests(unittest.TestCase):
         self.assertEqual(len(payloads), 2)
         self.assertTrue(all(row['model'] == 'gpt-6-luna' for row in payloads))
         self.assertIn(QUESTIONS['obligation'][:40], json.dumps(payloads))
+        self.assertIn('Was there reliance?', payloads[0]['input'])
+        self.assertFalse(any(row['framework'] == 'contractualist'
+                             for row in updated['topography']['framework_arrows']))
+        self.assertEqual(set(updated['topography']['axes']), {'care', 'welfare', 'obligation'})
 
     def test_ablation_drops_disjoint_tenths_covering_the_packet(self):
         text = ''.join(chr(65 + (i % 26)) for i in range(103))

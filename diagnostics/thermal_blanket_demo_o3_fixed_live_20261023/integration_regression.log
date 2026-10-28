@@ -1,0 +1,77 @@
+/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+======================================================================
+ERROR: test_construction_withheld_does_not_call_frameworks (test_parliament_demo.DemoTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/test_parliament_demo.py", line 258, in test_construction_withheld_does_not_call_frameworks
+    self.assertEqual(main(['--scenario',str(source),'--output',str(out)]),0)
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/run_parliament_demo.py", line 551, in main
+    return record_execution(_main, argv, entrypoint='run_parliament_demo.py', output_flag='--output', defaults={'model': 'o3', 'chooser_model': 'gpt-4o-mini', 'runtime_profile': 'compact_frameworks'})
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/parliament_run_provenance.py", line 211, in record_execution
+    'launcher':{'python':sys.version.split()[0],'executable':sys.executable,'platform':platform.platform(),'machine':platform.machine(),
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/platform.py", line 1211, in platform
+    system, node, release, version, machine, processor = uname()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/platform.py", line 798, in __iter__
+    (self.processor,)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/functools.py", line 969, in __get__
+    val = self.func(instance)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/platform.py", line 793, in processor
+    return _unknown_as_blank(_Processor.get())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/platform.py", line 745, in get
+    return func() or ''
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/platform.py", line 764, in from_subprocess
+    return subprocess.check_output(
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/subprocess.py", line 424, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/mock.py", line 1093, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/mock.py", line 1097, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/mock.py", line 1158, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/test_parliament_demo.py", line 253, in process
+    folder=Path(command[command.index('--output-dir')+1]); folder.mkdir(parents=True)
+ValueError: '--output-dir' is not in list
+
+======================================================================
+ERROR: test_live_orchestration_handoff_preserves_world (test_parliament_demo.DemoTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/test_parliament_demo.py", line 243, in test_live_orchestration_handoff_preserves_world
+    self.assertEqual(main(['--scenario',str(source),'--output',str(out)]),0)
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/run_parliament_demo.py", line 551, in main
+    return record_execution(_main, argv, entrypoint='run_parliament_demo.py', output_flag='--output', defaults={'model': 'o3', 'chooser_model': 'gpt-4o-mini', 'runtime_profile': 'compact_frameworks'})
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/parliament_run_provenance.py", line 211, in record_execution
+    'launcher':{'python':sys.version.split()[0],'executable':sys.executable,'platform':platform.platform(),'machine':platform.machine(),
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/platform.py", line 1211, in platform
+    system, node, release, version, machine, processor = uname()
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/platform.py", line 798, in __iter__
+    (self.processor,)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/functools.py", line 969, in __get__
+    val = self.func(instance)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/platform.py", line 793, in processor
+    return _unknown_as_blank(_Processor.get())
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/platform.py", line 745, in get
+    return func() or ''
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/platform.py", line 764, in from_subprocess
+    return subprocess.check_output(
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/subprocess.py", line 424, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/mock.py", line 1093, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/mock.py", line 1097, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/mock.py", line 1158, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/test_parliament_demo.py", line 233, in process
+    folder=Path(command[command.index('--output-dir')+1]); folder.mkdir(parents=True)
+ValueError: '--output-dir' is not in list
+
+----------------------------------------------------------------------
+Ran 81 tests in 33.379s
+
+FAILED (errors=2, skipped=4)
+SOFTWARE_FAILED: /var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpqhhj377y/out/DEMO_REPORT.md
+INTERPRETIVE_BEAM: /var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpynlabwwj/out/DEMO_REPORT.md
+SOFTWARE_FAILED: /var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpnx6bba_4/out/DEMO_REPORT.md

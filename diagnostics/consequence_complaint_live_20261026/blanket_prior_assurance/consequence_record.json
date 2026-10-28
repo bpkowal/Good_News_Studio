@@ -1,0 +1,490 @@
+{
+  "version": "complaint-consequence-reply/0.1",
+  "source_text_sha256": "a0dba794ea1ec36c622f1dcf75f9aac5ca44cffd63e4154f5e491dee463daec7",
+  "authority": "MODEL_POSITION_PROJECTION_NOT_SOURCE_VERIFIED",
+  "source_priority": "Exact source overrides projected interpretations; a bound quote does not prove entailment.",
+  "actions": [
+    {
+      "id": "A",
+      "label": "Give the blanket to Rowan"
+    },
+    {
+      "id": "B",
+      "label": "Give the blanket to Sasha"
+    }
+  ],
+  "proposed_person_labels": [
+    {
+      "id": "P_Ellis",
+      "label": "Ellis (rescuer)",
+      "source_quotes": [
+        "Rescuer Ellis can give the blanket to Rowan or Sasha, but not both."
+      ]
+    },
+    {
+      "id": "P_Rowan",
+      "label": "Rowan (hiker)",
+      "source_quotes": [
+        "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+        "The hiker who does not get the blanket will die."
+      ]
+    },
+    {
+      "id": "P_Sasha",
+      "label": "Sasha (hiker)",
+      "source_quotes": [
+        "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+        "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket."
+      ]
+    }
+  ],
+  "position_rows": [
+    {
+      "id": "row0",
+      "person_id": "P_Rowan",
+      "burden_id": "B_RowanDeath",
+      "proposed_burden_label": "Risk of death from cold exposure",
+      "burden_path": "/burdens/0",
+      "action_id": "A",
+      "claimed_status": "PRESENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/0",
+          "claimed_status": "PRESENT",
+          "claimed_position": "20% chance Rowan dies",
+          "grounds": [
+            {
+              "handle": "S1",
+              "prior_path": "/statements/0",
+              "claimed_kind": "FACTUAL_PREMISE",
+              "claimed_text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+              "source_anchor_ids": [
+                "e0"
+              ],
+              "binding_issues": []
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row1",
+      "person_id": "P_Rowan",
+      "burden_id": "B_RowanDeath",
+      "proposed_burden_label": "Risk of death from cold exposure",
+      "burden_path": "/burdens/0",
+      "action_id": "B",
+      "claimed_status": "PRESENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/1",
+          "claimed_status": "PRESENT",
+          "claimed_position": "100% chance Rowan dies",
+          "grounds": [
+            {
+              "handle": "S1",
+              "prior_path": "/statements/0",
+              "claimed_kind": "FACTUAL_PREMISE",
+              "claimed_text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+              "source_anchor_ids": [
+                "e0"
+              ],
+              "binding_issues": []
+            },
+            {
+              "handle": "S4",
+              "prior_path": "/statements/3",
+              "claimed_kind": "FACTUAL_PREMISE",
+              "claimed_text": "The hiker who does not get the blanket will die.",
+              "source_anchor_ids": [
+                "e1"
+              ],
+              "binding_issues": []
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row2",
+      "person_id": "P_Sasha",
+      "burden_id": "B_SashaDeath",
+      "proposed_burden_label": "Risk of death from cold exposure",
+      "burden_path": "/burdens/1",
+      "action_id": "A",
+      "claimed_status": "PRESENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/2",
+          "claimed_status": "PRESENT",
+          "claimed_position": "100% chance Sasha dies",
+          "grounds": [
+            {
+              "handle": "S2",
+              "prior_path": "/statements/1",
+              "claimed_kind": "FACTUAL_PREMISE",
+              "claimed_text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+              "source_anchor_ids": [
+                "e2"
+              ],
+              "binding_issues": []
+            },
+            {
+              "handle": "S4",
+              "prior_path": "/statements/3",
+              "claimed_kind": "FACTUAL_PREMISE",
+              "claimed_text": "The hiker who does not get the blanket will die.",
+              "source_anchor_ids": [
+                "e1"
+              ],
+              "binding_issues": []
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row3",
+      "person_id": "P_Sasha",
+      "burden_id": "B_SashaDeath",
+      "proposed_burden_label": "Risk of death from cold exposure",
+      "burden_path": "/burdens/1",
+      "action_id": "B",
+      "claimed_status": "PRESENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/3",
+          "claimed_status": "PRESENT",
+          "claimed_position": "40% chance Sasha dies",
+          "grounds": [
+            {
+              "handle": "S2",
+              "prior_path": "/statements/1",
+              "claimed_kind": "FACTUAL_PREMISE",
+              "claimed_text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+              "source_anchor_ids": [
+                "e2"
+              ],
+              "binding_issues": []
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row4",
+      "person_id": "P_Sasha",
+      "burden_id": "B_SashaBrokenPromise",
+      "proposed_burden_label": "Betrayal of Ellis’s prior assurance",
+      "burden_path": "/burdens/2",
+      "action_id": "A",
+      "claimed_status": "PRESENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/4",
+          "claimed_status": "PRESENT",
+          "claimed_position": "Ellis reneges on explicit promise to Sasha",
+          "grounds": [
+            {
+              "handle": "S3",
+              "prior_path": "/statements/2",
+              "claimed_kind": "FACTUAL_PREMISE",
+              "claimed_text": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.",
+              "source_anchor_ids": [
+                "e3"
+              ],
+              "binding_issues": []
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row5",
+      "person_id": "P_Sasha",
+      "burden_id": "B_SashaBrokenPromise",
+      "proposed_burden_label": "Betrayal of Ellis’s prior assurance",
+      "burden_path": "/burdens/2",
+      "action_id": "B",
+      "claimed_status": "ABSENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/5",
+          "claimed_status": "ABSENT",
+          "claimed_position": "Promise kept",
+          "grounds": [
+            {
+              "handle": "S3",
+              "prior_path": "/statements/2",
+              "claimed_kind": "FACTUAL_PREMISE",
+              "claimed_text": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.",
+              "source_anchor_ids": [
+                "e3"
+              ],
+              "binding_issues": []
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row6",
+      "person_id": "P_Ellis",
+      "burden_id": "B_EllisBreach",
+      "proposed_burden_label": "Moral cost of breaking a promise",
+      "burden_path": "/burdens/3",
+      "action_id": "A",
+      "claimed_status": "PRESENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/6",
+          "claimed_status": "PRESENT",
+          "claimed_position": "Ellis violates promise‐keeping norm",
+          "grounds": [
+            {
+              "handle": "S3",
+              "prior_path": "/statements/2",
+              "claimed_kind": "FACTUAL_PREMISE",
+              "claimed_text": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.",
+              "source_anchor_ids": [
+                "e3"
+              ],
+              "binding_issues": []
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    },
+    {
+      "id": "row7",
+      "person_id": "P_Ellis",
+      "burden_id": "B_EllisBreach",
+      "proposed_burden_label": "Moral cost of breaking a promise",
+      "burden_path": "/burdens/3",
+      "action_id": "B",
+      "claimed_status": "ABSENT",
+      "raw_positions": [
+        {
+          "prior_path": "/burden_positions/7",
+          "claimed_status": "ABSENT",
+          "claimed_position": "Ellis keeps promise",
+          "grounds": [
+            {
+              "handle": "S3",
+              "prior_path": "/statements/2",
+              "claimed_kind": "FACTUAL_PREMISE",
+              "claimed_text": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.",
+              "source_anchor_ids": [
+                "e3"
+              ],
+              "binding_issues": []
+            }
+          ]
+        }
+      ],
+      "binding_issues": []
+    }
+  ],
+  "cited_source_spans": [
+    {
+      "id": "e0",
+      "text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+      "occurrences": [
+        {
+          "start": 219,
+          "end": 292
+        }
+      ]
+    },
+    {
+      "id": "e1",
+      "text": "The hiker who does not get the blanket will die.",
+      "occurrences": [
+        {
+          "start": 366,
+          "end": 414
+        }
+      ]
+    },
+    {
+      "id": "e2",
+      "text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+      "occurrences": [
+        {
+          "start": 293,
+          "end": 365
+        }
+      ]
+    },
+    {
+      "id": "e3",
+      "text": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.",
+      "occurrences": [
+        {
+          "start": 415,
+          "end": 498
+        }
+      ]
+    }
+  ],
+  "factual_premise_claims": [
+    {
+      "handle": "S1",
+      "prior_path": "/statements/0",
+      "claimed_kind": "FACTUAL_PREMISE",
+      "claimed_text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+      "source_anchor_ids": [
+        "e0"
+      ],
+      "binding_issues": []
+    },
+    {
+      "handle": "S2",
+      "prior_path": "/statements/1",
+      "claimed_kind": "FACTUAL_PREMISE",
+      "claimed_text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+      "source_anchor_ids": [
+        "e2"
+      ],
+      "binding_issues": []
+    },
+    {
+      "handle": "S3",
+      "prior_path": "/statements/2",
+      "claimed_kind": "FACTUAL_PREMISE",
+      "claimed_text": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.",
+      "source_anchor_ids": [
+        "e3"
+      ],
+      "binding_issues": []
+    },
+    {
+      "handle": "S4",
+      "prior_path": "/statements/3",
+      "claimed_kind": "FACTUAL_PREMISE",
+      "claimed_text": "The hiker who does not get the blanket will die.",
+      "source_anchor_ids": [
+        "e1"
+      ],
+      "binding_issues": []
+    }
+  ],
+  "pair_changes": [
+    {
+      "comparison_id": "Comp_AB",
+      "from_action_id": "A",
+      "to_action_id": "B",
+      "positions": [
+        {
+          "burden_id": "B_RowanDeath",
+          "person_id": "P_Rowan",
+          "description": "Risk of death from cold exposure",
+          "from": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              0
+            ],
+            "descriptions": [
+              "20% chance Rowan dies"
+            ]
+          },
+          "to": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              1
+            ],
+            "descriptions": [
+              "100% chance Rowan dies"
+            ]
+          },
+          "change": "REMAINS_WITH_POSSIBLY_DIFFERENT_EXTENT"
+        },
+        {
+          "burden_id": "B_SashaDeath",
+          "person_id": "P_Sasha",
+          "description": "Risk of death from cold exposure",
+          "from": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              2
+            ],
+            "descriptions": [
+              "100% chance Sasha dies"
+            ]
+          },
+          "to": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              3
+            ],
+            "descriptions": [
+              "40% chance Sasha dies"
+            ]
+          },
+          "change": "REMAINS_WITH_POSSIBLY_DIFFERENT_EXTENT"
+        },
+        {
+          "burden_id": "B_SashaBrokenPromise",
+          "person_id": "P_Sasha",
+          "description": "Betrayal of Ellis’s prior assurance",
+          "from": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              4
+            ],
+            "descriptions": [
+              "Ellis reneges on explicit promise to Sasha"
+            ]
+          },
+          "to": {
+            "status": "ABSENT",
+            "raw_position_indices": [
+              5
+            ],
+            "descriptions": [
+              "Promise kept"
+            ]
+          },
+          "change": "RELIEVED"
+        },
+        {
+          "burden_id": "B_EllisBreach",
+          "person_id": "P_Ellis",
+          "description": "Moral cost of breaking a promise",
+          "from": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              6
+            ],
+            "descriptions": [
+              "Ellis violates promise‐keeping norm"
+            ]
+          },
+          "to": {
+            "status": "ABSENT",
+            "raw_position_indices": [
+              7
+            ],
+            "descriptions": [
+              "Ellis keeps promise"
+            ]
+          },
+          "change": "RELIEVED"
+        }
+      ],
+      "authority": "DERIVED_FROM_MODEL_MATRIX_NOT_SOURCE_VERIFIED",
+      "moral_ranking_computed": false
+    }
+  ],
+  "unassigned_positions": [],
+  "coverage": "Only supplied burdens; omitted burdens and missing facts remain unknown.",
+  "moral_ranking_computed": false,
+  "operative": false
+}

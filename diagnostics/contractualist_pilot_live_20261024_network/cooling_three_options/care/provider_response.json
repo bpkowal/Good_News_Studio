@@ -1,0 +1,45 @@
+{
+  "id": "chatcmpl-EcsS2XZfv8JutF2b91lJS5mkZbgVo",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "{\"persons\":[{\"id\":\"M\",\"label\":\"Mira\",\"source_quotes\":[\"demolishing Mira's occupied home, leaving her without housing; she refuses\"]},{\"id\":\"J\",\"label\":\"Jo\",\"source_quotes\":[\"Plan C cools Jo's home, which has the greatest heat exposure of any home in this case\"]},{\"id\":\"S\",\"label\":\"Sal\",\"source_quotes\":[\"requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period. Sal refuses\"]},{\"id\":\"H20\",\"label\":\"Twenty-household group\",\"source_quotes\":[\"Plan A cools twenty households\",\"Plan B cools twelve of those same households\"]}],\"principles\":[],\"statements\":[{\"kind\":\"FACTUAL_PREMISE\",\"text\":\"Plan A cools twenty households but would demolish Mira’s only home, leaving her without housing.\",\"polarity\":\"AFFIRMED\",\"modality\":\"ASSERTED\",\"hypothesis_ids\":[],\"citations\":[{\"evidence_id\":\"SCENE\",\"value_path\":\"\",\"quote\":\"Plan A cools twenty households but requires demolishing Mira's occupied home, leaving her without housing\"}],\"handle\":\"sA1\"},{\"kind\":\"FACTUAL_PREMISE\",\"text\":\"Plan B cools twelve of those households and displaces nobody.\",\"polarity\":\"AFFIRMED\",\"modality\":\"ASSERTED\",\"hypothesis_ids\":[],\"citations\":[{\"evidence_id\":\"SCENE\",\"value_path\":\"\",\"quote\":\"Plan B cools twelve of those same households and displaces nobody\"}],\"handle\":\"sB1\"},{\"kind\":\"FACTUAL_PREMISE\",\"text\":\"Plan C cools Jo’s highly exposed home but shuts Sal’s only shop for eight weeks without compensation, eliminating Sal’s income during that time.\",\"polarity\":\"AFFIRMED\",\"modality\":\"ASSERTED\",\"hypothesis_ids\":[],\"citations\":[{\"evidence_id\":\"SCENE\",\"value_path\":\"\",\"quote\":\"Plan C cools Jo's home, which has the greatest heat exposure of any home in this case, but requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period\"}],\"handle\":\"sC1\"},{\"kind\":\"INTERPRETIVE_PREMISE\",\"text\":\"In a care framework, loss of one’s only housing constitutes a deeper, longer-term vulnerability than temporary income loss or absence of cooling.\",\"polarity\":\"AFFIRMED\",\"modality\":\"POSSIBLE\",\"hypothesis_ids\":[],\"citations\":[],\"handle\":\"sI1\"},{\"kind\":\"NORMATIVE_PREMISE\",\"text\":\"Public action should avoid abandoning an individual to a severe, unconsented harm when an alternative can meet substantial needs with less serious, non-abandoning harms.\",\"polarity\":\"AFFIRMED\",\"modality\":\"ASSERTED\",\"hypothesis_ids\":[],\"citations\":[],\"handle\":\"sN1\"},{\"kind\":\"NORMATIVE_JUDGMENT\",\"text\":\"The council should adopt Plan B.\",\"polarity\":\"AFFIRMED\",\"modality\":\"ASSERTED\",\"hypothesis_ids\":[],\"citations\":[],\"handle\":\"sConclusion\"},{\"kind\":\"NORMATIVE_JUDGMENT\",\"text\":\"The council should adopt Plan C instead of Plan B.\",\"polarity\":\"DENIED\",\"modality\":\"ASSERTED\",\"hypothesis_ids\":[],\"citations\":[],\"handle\":\"sAltC\"}],\"supports\":[{\"operation\":\"SOURCE\",\"inputs\":[],\"output\":\"sA1\",\"explanation\":\"Direct quote establishes factual content of Plan A\"},{\"operation\":\"SOURCE\",\"inputs\":[],\"output\":\"sB1\",\"explanation\":\"Direct quote establishes factual content of Plan B\"},{\"operation\":\"SOURCE\",\"inputs\":[],\"output\":\"sC1\",\"explanation\":\"Direct quote establishes factual content of Plan C\"},{\"operation\":\"ASSUMPTION\",\"inputs\":[],\"output\":\"sI1\",\"explanation\":\"Care-theoretic reading of depth of vulnerability\"},{\"operation\":\"ASSUMPTION\",\"inputs\":[],\"output\":\"sN1\",\"explanation\":\"Evaluative norm in care ethics\"},{\"operation\":\"PRACTICAL_REASONING\",\"inputs\":[\"sA1\",\"sB1\",\"sC1\",\"sI1\",\"sN1\"],\"output\":\"sConclusion\",\"explanation\":\"Comparing severity of unattended vulnerabilities and number of people cared for, Plan B offers meaningful cooling to many while avoiding severe abandonment, satisfying the care norm\"},{\"operation\":\"PRACTICAL_REASONING\",\"inputs\":[\"sC1\",\"sB1\",\"sI1\"],\"output\":\"sAltC\",\"explanation\":\"Plan C trades Jo’s extreme heat vulnerability against Sal’s income loss, but still leaves twelve households uncared for and imposes harm; thus rejected\"}],\"reasons\":[{\"id\":\"rB\",\"person_id\":null,\"principle_id\":null,\"action_id\":\"B\",\"stance\":\"FOR\",\"value\":\"prevents severe abandonment while delivering substantial care\",\"conclusion_handle\":\"sConclusion\",\"ground_handles\":[\"sB1\",\"sI1\"],\"warrant_handles\":[\"sN1\"],\"generic_basis\":\":\"},{\"id\":\"rA\",\"person_id\":null,\"principle_id\":null,\"action_id\":\"A\",\"stance\":\"AGAINST\",\"value\":\"creates homelessness for Mira\",\"conclusion_handle\":\"sConclusion\",\"ground_handles\":[\"sA1\",\"sI1\"],\"warrant_handles\":[\"sN1\"],\"generic_basis\":\":\"},{\"id\":\"rC\",\"person_id\":null,\"principle_id\":null,\"action_id\":\"C\",\"stance\":\"AGAINST\",\"value\":\"harms Sal and aids only one home while neglecting twelve\",\"conclusion_handle\":\"sConclusion\",\"ground_handles\":[\"sC1\",\"sB1\"],\"warrant_handles\":[\"sN1\"],\"generic_basis\":\":\"}],\"comparisons\":[{\"id\":\"cmp1\",\"reason_ids\":[\"rB\",\"rC\"],\"judgment_handle\":\"sConclusion\",\"explanation\":\"rB delivers wider yet non-abandoning care, outweighing rC\"}],\"challenges\":[{\"id\":\"ob1\",\"kind\":\"REBUTTING\",\"target_kind\":\"STATEMENT\",\"target_id\":\"sConclusion\",\"challenge_handle\":\"sAltC\",\"response_handle\":\"sConclusion\",\"status\":\"ANSWERED\"}],\"action_assessments\":[{\"action_id\":\"A\",\"conclusion_handle\":\"sConclusion\",\"assessment\":\"REJECTED\"},{\"action_id\":\"B\",\"conclusion_handle\":\"sConclusion\",\"assessment\":\"DEFENSIBLE\"},{\"action_id\":\"C\",\"conclusion_handle\":\"sAltC\",\"assessment\":\"REJECTED\"}],\"recommendation_action_id\":\"B\",\"conclusion\":\"Plan B best meets significant cooling needs while avoiding the deepest vulnerability (homelessness) and shows adequate responsiveness to all parties without abandoning Mira or Sal.\",\"strongest_objection\":\"Jo faces the single greatest heat exposure; a care perspective might prioritize the most acutely endangered individual, favoring Plan C despite Sal’s temporary loss of income.\",\"answer_to_objection\":\"Care also requires sustaining existing dependences and avoiding severe, lasting harm. Sal’s livelihood supports continued caring relationships, and Jo’s serious but temporary discomfort is outweighed by the ongoing care owed to Sal and the twelve households; Plan B thus remains the more balanced, competent response.\",\"reversal_condition\":\"If evidence showed Jo’s exposure created imminent, life-threatening danger surpassing the harm of eight weeks without income for Sal and no feasible assistance existed for Jo under Plans A or B, the care duty could tilt toward Plan C.\",\"residual_disagreement\":[\"Whether temporary uncompensated income loss is less severe than extreme heat exposure remains contestable without more detail on Jo’s medical risk and Sal’s economic margin.\"]}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": [],
+        "audio": null,
+        "function_call": null,
+        "tool_calls": null
+      }
+    }
+  ],
+  "created": 1792934482,
+  "model": "o3-2025-04-16",
+  "object": "chat.completion",
+  "metadata": null,
+  "moderation": null,
+  "service_tier": "default",
+  "system_fingerprint": null,
+  "usage": {
+    "completion_tokens": 1964,
+    "prompt_tokens": 1847,
+    "total_tokens": 3811,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 384,
+      "rejected_prediction_tokens": 0,
+      "text_tokens": null
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cache_write_tokens": null,
+      "cached_tokens": 0,
+      "image_tokens": null,
+      "text_tokens": null
+    }
+  }
+}

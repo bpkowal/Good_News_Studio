@@ -212,10 +212,14 @@ def enrich_view(view, candidate, world):
 def argument_markdown(view):
     import json
     lines = ['# '+view['framework'].capitalize()+' — recorded argument', '',
-        'Participation: '+view['position']+'. Native ledger: '+view['ledger_status']+'.', '',
+        'Participation: '+view['position']+'. '+('Argument adapter; no native ledger.'
+            if view['ledger_status']=='NOT_APPLICABLE_ARGUMENT_ADAPTER' else 'Native ledger: '+view['ledger_status']+'.'), '',
         '## Readable explanation', '', view['reason'], '',
         'Presentation basis: '+view.get('reason_authority','RECORDED_ARGUMENT_FIELDS')+'.', '',
         '## Assumptions and interpretive commitments', '']
+    if view.get('critical_questions'):
+        from contractualist_questions import render_questions
+        lines[2:2] = [render_questions({'recording_status': 'RECORDED', 'questions': view['critical_questions']}), '']
     lines += ['- '+r['kind'].replace('_',' ').capitalize()+': '+r['text'] for r in view.get('assumption_records', [])]
     lines += ['', '## Source and uncertainty', '', view.get('source_basis',{}).get('text','')]
     lines += ['- '+t for t in view.get('display_uncertainties', view.get('live_objections', []))]

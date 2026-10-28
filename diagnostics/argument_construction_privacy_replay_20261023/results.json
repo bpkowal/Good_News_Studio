@@ -1,0 +1,815 @@
+[
+  {
+    "source_sha256": "a02f152d03f63868509177d0b4db23b4be5a65beed5925cc61f3e74b99e4928c",
+    "world_sha256": "dbc0b35f7bdedf1b79e17e3dc22136c2f17a831010caec2d5c47ec907719e9d6",
+    "candidates": [
+      {
+        "label": "Disclose-Only-What-is-Needed",
+        "raw_proposal": {
+          "label": "Disclose-Only-What-is-Needed",
+          "statements": [
+            {
+              "kind": "SOURCE_RULE",
+              "text": "\"A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent.\"",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [
+                {
+                  "evidence_id": "SCENE",
+                  "value_path": "",
+                  "quote": "A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent."
+                }
+              ],
+              "handle": "r_policy"
+            },
+            {
+              "kind": "SOURCE_RULE",
+              "text": "\"Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed.\"",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [
+                {
+                  "evidence_id": "SCENE",
+                  "value_path": "",
+                  "quote": "Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed."
+                }
+              ],
+              "handle": "r_emergency"
+            },
+            {
+              "kind": "MAXIM",
+              "text": "If disclosing the minimum information to a treating physician is the only timely way to avert serious and otherwise unavoidable harm to the same patient, then one ought to disclose exactly that minimum.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [],
+              "handle": "m_minimum_disclose"
+            },
+            {
+              "kind": "NORMATIVE_PREMISE",
+              "text": "Preventing an imminent, serious harm to the patient has moral priority over keeping information confidential, provided the disclosure is strictly limited to what is necessary.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [],
+              "handle": "p_priority"
+            },
+            {
+              "kind": "NORMATIVE_PREMISE",
+              "text": "One ought to obey institutional confidentiality policies unless a higher-priority moral duty overrides them.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [],
+              "handle": "p_policy_duty"
+            },
+            {
+              "kind": "NORMATIVE_JUDGMENT",
+              "text": "Therefore, Mara ought to share only the allergy entry with the on-call physician.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [],
+              "handle": "c_share"
+            }
+          ],
+          "supports": [
+            {
+              "operation": "ASSUMPTION",
+              "inputs": [
+                "m_minimum_disclose",
+                "p_priority"
+              ],
+              "output": "c_share",
+              "explanation": "Given the maxim and the priority premise, sharing the minimal information follows."
+            },
+            {
+              "operation": "SOURCE",
+              "inputs": [],
+              "output": "r_policy",
+              "explanation": "Scenario text provides the confidentiality rule."
+            },
+            {
+              "operation": "SOURCE",
+              "inputs": [],
+              "output": "r_emergency",
+              "explanation": "Scenario text provides the possible life-saving effect."
+            },
+            {
+              "operation": "PRACTICAL_REASONING",
+              "inputs": [
+                "r_emergency",
+                "m_minimum_disclose"
+              ],
+              "output": "p_priority",
+              "explanation": "The emergency context brings the maxim into play, establishing the duty priority."
+            },
+            {
+              "operation": "NORM_PRIORITY",
+              "inputs": [
+                "p_priority",
+                "p_policy_duty"
+              ],
+              "output": "c_share",
+              "explanation": "Priority of preventing harm overrides ordinary policy obedience."
+            }
+          ],
+          "conclusion_handle": "c_share",
+          "strongest_objection": "The explicit confidentiality policy contains no emergency exception; obeying it is a standing duty that should not be unilaterally overridden.",
+          "answer_to_objection": "The priority premise holds that saving the patient from serious, otherwise unavoidable harm is a stronger moral duty than rigid policy adherence, provided disclosure is strictly minimal.",
+          "reversal_condition": "If the same medical safety could be achieved without any disclosure (e.g., via known standard protocols or delayed until consent), then the policy duty would again take precedence and Mara should withhold the information."
+        },
+        "operative": false,
+        "compiled_before": {
+          "version": "argument-support/0.1",
+          "world_sha256": "dbc0b35f7bdedf1b79e17e3dc22136c2f17a831010caec2d5c47ec907719e9d6",
+          "evidence": [
+            {
+              "ref": "SCENE",
+              "kind": "EXACT_SCENARIO",
+              "value": "A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent. The patient is unconscious. An on-call physician needs the allergy information to choose treatment safely. Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed. The stated policy contains no emergency exception. Mara proposes sharing only the relevant entry to obtain treatment, rather than publishing the record. Should she share it?"
+            }
+          ],
+          "issue_id": "privacy_emergency:0",
+          "statements": {
+            "STATEMENT:a4a2e7dd03a2b9e9a16d7fca": {
+              "kind": "SOURCE_RULE",
+              "text": "\"A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent.\"",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [
+                {
+                  "evidence_id": "SCENE",
+                  "value_path": "",
+                  "quote": "A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent.",
+                  "raw": {
+                    "evidence_id": "SCENE",
+                    "value_path": "",
+                    "quote": "A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent."
+                  },
+                  "resolved_value_sha256": "868c6bf06df644a1336bdabd06197330fb6f59cd7718318d733c9a492d56d297",
+                  "semantic_support": "NOT_ASSESSED"
+                }
+              ]
+            },
+            "STATEMENT:b0e524e821c0bdd3c58f9217": {
+              "kind": "SOURCE_RULE",
+              "text": "\"Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed.\"",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [
+                {
+                  "evidence_id": "SCENE",
+                  "value_path": "",
+                  "quote": "Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed.",
+                  "raw": {
+                    "evidence_id": "SCENE",
+                    "value_path": "",
+                    "quote": "Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed."
+                  },
+                  "resolved_value_sha256": "868c6bf06df644a1336bdabd06197330fb6f59cd7718318d733c9a492d56d297",
+                  "semantic_support": "NOT_ASSESSED"
+                }
+              ]
+            },
+            "STATEMENT:110923ebec368bce73950cb0": {
+              "kind": "MAXIM",
+              "text": "If disclosing the minimum information to a treating physician is the only timely way to avert serious and otherwise unavoidable harm to the same patient, then one ought to disclose exactly that minimum.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": []
+            },
+            "STATEMENT:be2c357a76c64c3aef36b0d8": {
+              "kind": "NORMATIVE_PREMISE",
+              "text": "Preventing an imminent, serious harm to the patient has moral priority over keeping information confidential, provided the disclosure is strictly limited to what is necessary.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": []
+            },
+            "STATEMENT:38eecd7c8efb938f35903638": {
+              "kind": "NORMATIVE_PREMISE",
+              "text": "One ought to obey institutional confidentiality policies unless a higher-priority moral duty overrides them.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": []
+            },
+            "STATEMENT:5494daaf17ae2180fded451a": {
+              "kind": "NORMATIVE_JUDGMENT",
+              "text": "Therefore, Mara ought to share only the allergy entry with the on-call physician.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": []
+            }
+          },
+          "handles": {
+            "r_policy": "STATEMENT:a4a2e7dd03a2b9e9a16d7fca",
+            "r_emergency": "STATEMENT:b0e524e821c0bdd3c58f9217",
+            "m_minimum_disclose": "STATEMENT:110923ebec368bce73950cb0",
+            "p_priority": "STATEMENT:be2c357a76c64c3aef36b0d8",
+            "p_policy_duty": "STATEMENT:38eecd7c8efb938f35903638",
+            "c_share": "STATEMENT:5494daaf17ae2180fded451a"
+          },
+          "routes": {
+            "SUPPORT:04e10e10e863ab29d21b0c0c": {
+              "operation": "SOURCE",
+              "inputs": [],
+              "output": "STATEMENT:a4a2e7dd03a2b9e9a16d7fca",
+              "explanation": "Scenario text provides the confidentiality rule."
+            },
+            "SUPPORT:bb555a9f127b0717de7a4a26": {
+              "operation": "SOURCE",
+              "inputs": [],
+              "output": "STATEMENT:b0e524e821c0bdd3c58f9217",
+              "explanation": "Scenario text provides the possible life-saving effect."
+            },
+            "SUPPORT:ab98d96146c0bfb2d64b179d": {
+              "operation": "PRACTICAL_REASONING",
+              "inputs": [
+                "STATEMENT:b0e524e821c0bdd3c58f9217",
+                "STATEMENT:110923ebec368bce73950cb0"
+              ],
+              "output": "STATEMENT:be2c357a76c64c3aef36b0d8",
+              "explanation": "The emergency context brings the maxim into play, establishing the duty priority."
+            },
+            "SUPPORT:2b034e4a08d1f1bdd4290b5d": {
+              "operation": "NORM_PRIORITY",
+              "inputs": [
+                "STATEMENT:be2c357a76c64c3aef36b0d8",
+                "STATEMENT:38eecd7c8efb938f35903638"
+              ],
+              "output": "STATEMENT:5494daaf17ae2180fded451a",
+              "explanation": "Priority of preventing harm overrides ordinary policy obedience."
+            }
+          },
+          "events": [
+            {
+              "sequence": 1,
+              "kind": "ASSERT",
+              "payload": {
+                "statement_id": "STATEMENT:a4a2e7dd03a2b9e9a16d7fca"
+              },
+              "parent_sha256": "abd27b8334cfd876441dc62aafb5bb97fc44396bf90e0a66103c5aa411168573",
+              "sha256": "ac8b6d3e0fcdc3715f169e10fa2e0b54ff030da611e89f0d49c6564bb7a6ab82"
+            },
+            {
+              "sequence": 2,
+              "kind": "ASSERT",
+              "payload": {
+                "statement_id": "STATEMENT:b0e524e821c0bdd3c58f9217"
+              },
+              "parent_sha256": "ac8b6d3e0fcdc3715f169e10fa2e0b54ff030da611e89f0d49c6564bb7a6ab82",
+              "sha256": "fa48dad1a0991d239e4d76513844640ea708257f1c386c4065c1fca6293342d3"
+            },
+            {
+              "sequence": 3,
+              "kind": "ASSERT",
+              "payload": {
+                "statement_id": "STATEMENT:110923ebec368bce73950cb0"
+              },
+              "parent_sha256": "fa48dad1a0991d239e4d76513844640ea708257f1c386c4065c1fca6293342d3",
+              "sha256": "68372ebfede3c87db0f2515ecd09c4175cef7409448503ceeb6c8032634b1f0c"
+            },
+            {
+              "sequence": 4,
+              "kind": "ASSERT",
+              "payload": {
+                "statement_id": "STATEMENT:be2c357a76c64c3aef36b0d8"
+              },
+              "parent_sha256": "68372ebfede3c87db0f2515ecd09c4175cef7409448503ceeb6c8032634b1f0c",
+              "sha256": "3412a04cdbe6c50dadd880212fffe8b9202e984aaf7f8d3017cfd3b576146ebc"
+            },
+            {
+              "sequence": 5,
+              "kind": "ASSERT",
+              "payload": {
+                "statement_id": "STATEMENT:38eecd7c8efb938f35903638"
+              },
+              "parent_sha256": "3412a04cdbe6c50dadd880212fffe8b9202e984aaf7f8d3017cfd3b576146ebc",
+              "sha256": "8e3d5d782d6e84db7b7b1ba97d5b4a8def7379f3c743c223cb4283969460f871"
+            },
+            {
+              "sequence": 6,
+              "kind": "ASSERT",
+              "payload": {
+                "statement_id": "STATEMENT:5494daaf17ae2180fded451a"
+              },
+              "parent_sha256": "8e3d5d782d6e84db7b7b1ba97d5b4a8def7379f3c743c223cb4283969460f871",
+              "sha256": "b817a22ec75829d7b6c4abc45e34c42ce76ae998635ac80cc345acdd7849d44a"
+            },
+            {
+              "sequence": 7,
+              "kind": "PROPOSE_SUPPORT",
+              "payload": {
+                "support_id": "SUPPORT:04e10e10e863ab29d21b0c0c"
+              },
+              "parent_sha256": "b817a22ec75829d7b6c4abc45e34c42ce76ae998635ac80cc345acdd7849d44a",
+              "sha256": "3def65f2cd9f09d8382db0e03e05974431907e75e933d6cb4dabf6fbcd2c238d"
+            },
+            {
+              "sequence": 8,
+              "kind": "PROPOSE_SUPPORT",
+              "payload": {
+                "support_id": "SUPPORT:bb555a9f127b0717de7a4a26"
+              },
+              "parent_sha256": "3def65f2cd9f09d8382db0e03e05974431907e75e933d6cb4dabf6fbcd2c238d",
+              "sha256": "10dc8f7abb3a94b78407b2ff80bcecbf9fb9f7b6d92e0979f1c42338c79eb9d5"
+            },
+            {
+              "sequence": 9,
+              "kind": "PROPOSE_SUPPORT",
+              "payload": {
+                "support_id": "SUPPORT:ab98d96146c0bfb2d64b179d"
+              },
+              "parent_sha256": "10dc8f7abb3a94b78407b2ff80bcecbf9fb9f7b6d92e0979f1c42338c79eb9d5",
+              "sha256": "8218ce0c377bb8d8e62a78397b031f74de857abd648e761562ba86c9c5275e41"
+            },
+            {
+              "sequence": 10,
+              "kind": "PROPOSE_SUPPORT",
+              "payload": {
+                "support_id": "SUPPORT:2b034e4a08d1f1bdd4290b5d"
+              },
+              "parent_sha256": "8218ce0c377bb8d8e62a78397b031f74de857abd648e761562ba86c9c5275e41",
+              "sha256": "9e956092924fe735bd9c9802c7c7983dfb599f6874fef1f96e5d7d287b514724"
+            }
+          ],
+          "operative": false,
+          "world_state_authority": "NONE",
+          "construction_problems": [
+            {
+              "path": "supports/0",
+              "proposal": {
+                "operation": "ASSUMPTION",
+                "inputs": [
+                  "m_minimum_disclose",
+                  "p_priority"
+                ],
+                "output": "c_share",
+                "explanation": "Given the maxim and the priority premise, sharing the minimal information follows."
+              },
+              "error": "Assumptions must be explicit interpretive/normative roots"
+            }
+          ]
+        },
+        "raw_critique": {
+          "assessments": [
+            {
+              "support_id": "SUPPORT:04e10e10e863ab29d21b0c0c",
+              "status": "SUPPORTED",
+              "rationale": "Direct quotation from scenario exactly matches the statement about the confidentiality rule."
+            },
+            {
+              "support_id": "SUPPORT:bb555a9f127b0717de7a4a26",
+              "status": "SUPPORTED",
+              "rationale": "Scenario explicitly states the possible preventive value of sharing the allergy entry."
+            },
+            {
+              "support_id": "SUPPORT:ab98d96146c0bfb2d64b179d",
+              "status": "CHALLENGED",
+              "rationale": "The route derives a normative\u2010priority premise from a factual emergency description plus a maxim by \u2018practical reasoning\u2019. That step simply assumes the priority rather than entailing it; the operation launders a normative assumption as if inferred."
+            },
+            {
+              "support_id": "SUPPORT:2b034e4a08d1f1bdd4290b5d",
+              "status": "CONDITIONAL",
+              "rationale": "Overriding the policy by the priority premise is sound only if the priority premise is granted; its support is assumptive, so the norm-priority inference is valid conditional on that assumption."
+            }
+          ],
+          "revisions": [
+            {
+              "action": "withdraw",
+              "target": "SUPPORT:ab98d96146c0bfb2d64b179d",
+              "handle": null,
+              "statement": null,
+              "support": null,
+              "reason": "Removes the challenged laundering link."
+            },
+            {
+              "action": "add_support",
+              "target": null,
+              "handle": "SUPPORT:priority_assumption",
+              "statement": null,
+              "support": {
+                "operation": "ASSUMPTION",
+                "inputs": [],
+                "output": "STATEMENT:be2c357a76c64c3aef36b0d8",
+                "explanation": "The priority premise is taken as an independent moral assumption, not derived from descriptive facts."
+              },
+              "reason": "Makes the normative priority explicit as an un-derived root premise."
+            },
+            {
+              "action": "qualify",
+              "target": "STATEMENT:5494daaf17ae2180fded451a",
+              "handle": "STATEMENT:c_share_cond",
+              "statement": {
+                "kind": "NORMATIVE_JUDGMENT",
+                "text": "If preventing imminent serious harm morally overrides confidentiality, Mara ought to share only the allergy entry with the on-call physician.",
+                "polarity": "AFFIRMED",
+                "modality": "ASSERTED",
+                "hypothesis_ids": [],
+                "citations": []
+              },
+              "support": null,
+              "reason": "Marks the judgment as explicitly conditional on acceptance of the priority premise."
+            }
+          ],
+          "strongest_remaining_conclusion": "Conditional on accepting the moral priority of preventing imminent serious harm over confidentiality, Mara ought to disclose only the allergy entry to the treating physician.",
+          "remaining_questions": [
+            "What principle (professional code, patient-centred duty, or Kantian imperative) best grounds the claimed priority of harm prevention?",
+            "Does clinic governance recognise any authoritative override procedure for emergencies, and should Mara invoke it instead of acting unilaterally?"
+          ]
+        },
+        "status": "STAGED_PRIOR_RETAINED",
+        "error": "Unknown revised statement",
+        "argument": {
+          "version": "argument-support/0.1",
+          "world_sha256": "dbc0b35f7bdedf1b79e17e3dc22136c2f17a831010caec2d5c47ec907719e9d6",
+          "evidence": [
+            {
+              "ref": "SCENE",
+              "kind": "EXACT_SCENARIO",
+              "value": "A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent. The patient is unconscious. An on-call physician needs the allergy information to choose treatment safely. Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed. The stated policy contains no emergency exception. Mara proposes sharing only the relevant entry to obtain treatment, rather than publishing the record. Should she share it?"
+            }
+          ],
+          "issue_id": "privacy_emergency:0",
+          "statements": {
+            "STATEMENT:a4a2e7dd03a2b9e9a16d7fca": {
+              "kind": "SOURCE_RULE",
+              "text": "\"A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent.\"",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [
+                {
+                  "evidence_id": "SCENE",
+                  "value_path": "",
+                  "quote": "A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent.",
+                  "raw": {
+                    "evidence_id": "SCENE",
+                    "value_path": "",
+                    "quote": "A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent."
+                  },
+                  "resolved_value_sha256": "868c6bf06df644a1336bdabd06197330fb6f59cd7718318d733c9a492d56d297",
+                  "semantic_support": "NOT_ASSESSED"
+                }
+              ]
+            },
+            "STATEMENT:b0e524e821c0bdd3c58f9217": {
+              "kind": "SOURCE_RULE",
+              "text": "\"Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed.\"",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [
+                {
+                  "evidence_id": "SCENE",
+                  "value_path": "",
+                  "quote": "Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed.",
+                  "raw": {
+                    "evidence_id": "SCENE",
+                    "value_path": "",
+                    "quote": "Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed."
+                  },
+                  "resolved_value_sha256": "868c6bf06df644a1336bdabd06197330fb6f59cd7718318d733c9a492d56d297",
+                  "semantic_support": "NOT_ASSESSED"
+                }
+              ]
+            },
+            "STATEMENT:110923ebec368bce73950cb0": {
+              "kind": "MAXIM",
+              "text": "If disclosing the minimum information to a treating physician is the only timely way to avert serious and otherwise unavoidable harm to the same patient, then one ought to disclose exactly that minimum.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": []
+            },
+            "STATEMENT:be2c357a76c64c3aef36b0d8": {
+              "kind": "NORMATIVE_PREMISE",
+              "text": "Preventing an imminent, serious harm to the patient has moral priority over keeping information confidential, provided the disclosure is strictly limited to what is necessary.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": []
+            },
+            "STATEMENT:38eecd7c8efb938f35903638": {
+              "kind": "NORMATIVE_PREMISE",
+              "text": "One ought to obey institutional confidentiality policies unless a higher-priority moral duty overrides them.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": []
+            },
+            "STATEMENT:5494daaf17ae2180fded451a": {
+              "kind": "NORMATIVE_JUDGMENT",
+              "text": "Therefore, Mara ought to share only the allergy entry with the on-call physician.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": []
+            }
+          },
+          "handles": {
+            "r_policy": "STATEMENT:a4a2e7dd03a2b9e9a16d7fca",
+            "r_emergency": "STATEMENT:b0e524e821c0bdd3c58f9217",
+            "m_minimum_disclose": "STATEMENT:110923ebec368bce73950cb0",
+            "p_priority": "STATEMENT:be2c357a76c64c3aef36b0d8",
+            "p_policy_duty": "STATEMENT:38eecd7c8efb938f35903638",
+            "c_share": "STATEMENT:5494daaf17ae2180fded451a"
+          },
+          "routes": {
+            "SUPPORT:04e10e10e863ab29d21b0c0c": {
+              "operation": "SOURCE",
+              "inputs": [],
+              "output": "STATEMENT:a4a2e7dd03a2b9e9a16d7fca",
+              "explanation": "Scenario text provides the confidentiality rule."
+            },
+            "SUPPORT:bb555a9f127b0717de7a4a26": {
+              "operation": "SOURCE",
+              "inputs": [],
+              "output": "STATEMENT:b0e524e821c0bdd3c58f9217",
+              "explanation": "Scenario text provides the possible life-saving effect."
+            },
+            "SUPPORT:ab98d96146c0bfb2d64b179d": {
+              "operation": "PRACTICAL_REASONING",
+              "inputs": [
+                "STATEMENT:b0e524e821c0bdd3c58f9217",
+                "STATEMENT:110923ebec368bce73950cb0"
+              ],
+              "output": "STATEMENT:be2c357a76c64c3aef36b0d8",
+              "explanation": "The emergency context brings the maxim into play, establishing the duty priority."
+            },
+            "SUPPORT:2b034e4a08d1f1bdd4290b5d": {
+              "operation": "NORM_PRIORITY",
+              "inputs": [
+                "STATEMENT:be2c357a76c64c3aef36b0d8",
+                "STATEMENT:38eecd7c8efb938f35903638"
+              ],
+              "output": "STATEMENT:5494daaf17ae2180fded451a",
+              "explanation": "Priority of preventing harm overrides ordinary policy obedience."
+            }
+          },
+          "events": [
+            {
+              "sequence": 1,
+              "kind": "ASSERT",
+              "payload": {
+                "statement_id": "STATEMENT:a4a2e7dd03a2b9e9a16d7fca"
+              },
+              "parent_sha256": "abd27b8334cfd876441dc62aafb5bb97fc44396bf90e0a66103c5aa411168573",
+              "sha256": "ac8b6d3e0fcdc3715f169e10fa2e0b54ff030da611e89f0d49c6564bb7a6ab82"
+            },
+            {
+              "sequence": 2,
+              "kind": "ASSERT",
+              "payload": {
+                "statement_id": "STATEMENT:b0e524e821c0bdd3c58f9217"
+              },
+              "parent_sha256": "ac8b6d3e0fcdc3715f169e10fa2e0b54ff030da611e89f0d49c6564bb7a6ab82",
+              "sha256": "fa48dad1a0991d239e4d76513844640ea708257f1c386c4065c1fca6293342d3"
+            },
+            {
+              "sequence": 3,
+              "kind": "ASSERT",
+              "payload": {
+                "statement_id": "STATEMENT:110923ebec368bce73950cb0"
+              },
+              "parent_sha256": "fa48dad1a0991d239e4d76513844640ea708257f1c386c4065c1fca6293342d3",
+              "sha256": "68372ebfede3c87db0f2515ecd09c4175cef7409448503ceeb6c8032634b1f0c"
+            },
+            {
+              "sequence": 4,
+              "kind": "ASSERT",
+              "payload": {
+                "statement_id": "STATEMENT:be2c357a76c64c3aef36b0d8"
+              },
+              "parent_sha256": "68372ebfede3c87db0f2515ecd09c4175cef7409448503ceeb6c8032634b1f0c",
+              "sha256": "3412a04cdbe6c50dadd880212fffe8b9202e984aaf7f8d3017cfd3b576146ebc"
+            },
+            {
+              "sequence": 5,
+              "kind": "ASSERT",
+              "payload": {
+                "statement_id": "STATEMENT:38eecd7c8efb938f35903638"
+              },
+              "parent_sha256": "3412a04cdbe6c50dadd880212fffe8b9202e984aaf7f8d3017cfd3b576146ebc",
+              "sha256": "8e3d5d782d6e84db7b7b1ba97d5b4a8def7379f3c743c223cb4283969460f871"
+            },
+            {
+              "sequence": 6,
+              "kind": "ASSERT",
+              "payload": {
+                "statement_id": "STATEMENT:5494daaf17ae2180fded451a"
+              },
+              "parent_sha256": "8e3d5d782d6e84db7b7b1ba97d5b4a8def7379f3c743c223cb4283969460f871",
+              "sha256": "b817a22ec75829d7b6c4abc45e34c42ce76ae998635ac80cc345acdd7849d44a"
+            },
+            {
+              "sequence": 7,
+              "kind": "PROPOSE_SUPPORT",
+              "payload": {
+                "support_id": "SUPPORT:04e10e10e863ab29d21b0c0c"
+              },
+              "parent_sha256": "b817a22ec75829d7b6c4abc45e34c42ce76ae998635ac80cc345acdd7849d44a",
+              "sha256": "3def65f2cd9f09d8382db0e03e05974431907e75e933d6cb4dabf6fbcd2c238d"
+            },
+            {
+              "sequence": 8,
+              "kind": "PROPOSE_SUPPORT",
+              "payload": {
+                "support_id": "SUPPORT:bb555a9f127b0717de7a4a26"
+              },
+              "parent_sha256": "3def65f2cd9f09d8382db0e03e05974431907e75e933d6cb4dabf6fbcd2c238d",
+              "sha256": "10dc8f7abb3a94b78407b2ff80bcecbf9fb9f7b6d92e0979f1c42338c79eb9d5"
+            },
+            {
+              "sequence": 9,
+              "kind": "PROPOSE_SUPPORT",
+              "payload": {
+                "support_id": "SUPPORT:ab98d96146c0bfb2d64b179d"
+              },
+              "parent_sha256": "10dc8f7abb3a94b78407b2ff80bcecbf9fb9f7b6d92e0979f1c42338c79eb9d5",
+              "sha256": "8218ce0c377bb8d8e62a78397b031f74de857abd648e761562ba86c9c5275e41"
+            },
+            {
+              "sequence": 10,
+              "kind": "PROPOSE_SUPPORT",
+              "payload": {
+                "support_id": "SUPPORT:2b034e4a08d1f1bdd4290b5d"
+              },
+              "parent_sha256": "8218ce0c377bb8d8e62a78397b031f74de857abd648e761562ba86c9c5275e41",
+              "sha256": "9e956092924fe735bd9c9802c7c7983dfb599f6874fef1f96e5d7d287b514724"
+            }
+          ],
+          "operative": false,
+          "world_state_authority": "NONE",
+          "construction_problems": [
+            {
+              "path": "supports/0",
+              "proposal": {
+                "operation": "ASSUMPTION",
+                "inputs": [
+                  "m_minimum_disclose",
+                  "p_priority"
+                ],
+                "output": "c_share",
+                "explanation": "Given the maxim and the priority premise, sharing the minimal information follows."
+              },
+              "error": "Assumptions must be explicit interpretive/normative roots"
+            }
+          ]
+        },
+        "view": {
+          "statements": {
+            "STATEMENT:a4a2e7dd03a2b9e9a16d7fca": {
+              "kind": "SOURCE_RULE",
+              "text": "\"A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent.\"",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [
+                {
+                  "evidence_id": "SCENE",
+                  "value_path": "",
+                  "quote": "A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent.",
+                  "raw": {
+                    "evidence_id": "SCENE",
+                    "value_path": "",
+                    "quote": "A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent."
+                  },
+                  "resolved_value_sha256": "868c6bf06df644a1336bdabd06197330fb6f59cd7718318d733c9a492d56d297",
+                  "semantic_support": "NOT_ASSESSED"
+                }
+              ],
+              "id": "STATEMENT:a4a2e7dd03a2b9e9a16d7fca",
+              "lifecycle": "ACTIVE",
+              "support_status": "UNASSESSED",
+              "effective_hypotheses": []
+            },
+            "STATEMENT:b0e524e821c0bdd3c58f9217": {
+              "kind": "SOURCE_RULE",
+              "text": "\"Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed.\"",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [
+                {
+                  "evidence_id": "SCENE",
+                  "value_path": "",
+                  "quote": "Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed.",
+                  "raw": {
+                    "evidence_id": "SCENE",
+                    "value_path": "",
+                    "quote": "Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed."
+                  },
+                  "resolved_value_sha256": "868c6bf06df644a1336bdabd06197330fb6f59cd7718318d733c9a492d56d297",
+                  "semantic_support": "NOT_ASSESSED"
+                }
+              ],
+              "id": "STATEMENT:b0e524e821c0bdd3c58f9217",
+              "lifecycle": "ACTIVE",
+              "support_status": "UNASSESSED",
+              "effective_hypotheses": []
+            },
+            "STATEMENT:110923ebec368bce73950cb0": {
+              "kind": "MAXIM",
+              "text": "If disclosing the minimum information to a treating physician is the only timely way to avert serious and otherwise unavoidable harm to the same patient, then one ought to disclose exactly that minimum.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [],
+              "id": "STATEMENT:110923ebec368bce73950cb0",
+              "lifecycle": "ACTIVE",
+              "support_status": "UNASSESSED",
+              "effective_hypotheses": []
+            },
+            "STATEMENT:be2c357a76c64c3aef36b0d8": {
+              "kind": "NORMATIVE_PREMISE",
+              "text": "Preventing an imminent, serious harm to the patient has moral priority over keeping information confidential, provided the disclosure is strictly limited to what is necessary.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [],
+              "id": "STATEMENT:be2c357a76c64c3aef36b0d8",
+              "lifecycle": "ACTIVE",
+              "support_status": "REQUIRES_REASSESSMENT",
+              "effective_hypotheses": []
+            },
+            "STATEMENT:38eecd7c8efb938f35903638": {
+              "kind": "NORMATIVE_PREMISE",
+              "text": "One ought to obey institutional confidentiality policies unless a higher-priority moral duty overrides them.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [],
+              "id": "STATEMENT:38eecd7c8efb938f35903638",
+              "lifecycle": "ACTIVE",
+              "support_status": "UNASSESSED",
+              "effective_hypotheses": []
+            },
+            "STATEMENT:5494daaf17ae2180fded451a": {
+              "kind": "NORMATIVE_JUDGMENT",
+              "text": "Therefore, Mara ought to share only the allergy entry with the on-call physician.",
+              "polarity": "AFFIRMED",
+              "modality": "ASSERTED",
+              "hypothesis_ids": [],
+              "citations": [],
+              "id": "STATEMENT:5494daaf17ae2180fded451a",
+              "lifecycle": "ACTIVE",
+              "support_status": "REQUIRES_REASSESSMENT",
+              "effective_hypotheses": []
+            }
+          },
+          "support_routes": {
+            "SUPPORT:04e10e10e863ab29d21b0c0c": {
+              "status": "UNASSESSED",
+              "issues": [],
+              "effective_hypotheses": []
+            },
+            "SUPPORT:bb555a9f127b0717de7a4a26": {
+              "status": "UNASSESSED",
+              "issues": [],
+              "effective_hypotheses": []
+            },
+            "SUPPORT:ab98d96146c0bfb2d64b179d": {
+              "status": "REQUIRES_REASSESSMENT",
+              "issues": [
+                "PREMISE_REQUIRES_REASSESSMENT",
+                "AFFIRMATIVE_PRACTICAL_PREMISES_MISSING"
+              ],
+              "effective_hypotheses": []
+            },
+            "SUPPORT:2b034e4a08d1f1bdd4290b5d": {
+              "status": "REQUIRES_REASSESSMENT",
+              "issues": [
+                "PREMISE_REQUIRES_REASSESSMENT"
+              ],
+              "effective_hypotheses": []
+            }
+          },
+          "active_statement_ids": [
+            "STATEMENT:a4a2e7dd03a2b9e9a16d7fca",
+            "STATEMENT:b0e524e821c0bdd3c58f9217",
+            "STATEMENT:110923ebec368bce73950cb0",
+            "STATEMENT:be2c357a76c64c3aef36b0d8",
+            "STATEMENT:38eecd7c8efb938f35903638",
+            "STATEMENT:5494daaf17ae2180fded451a"
+          ],
+          "operative": false,
+          "semantic_support": "ATTRIBUTED_ASSESSMENTS_NOT_AUTOMATIC_TRUTH"
+        }
+      }
+    ],
+    "operative": false,
+    "native_admission": "NOT_AUTHORIZED_BY_THIS_ARGUMENT_VIEW",
+    "case_id": "privacy_emergency",
+    "elapsed_seconds": 10.695,
+    "provider_requests": 1
+  }
+]

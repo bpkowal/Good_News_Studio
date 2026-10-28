@@ -1,0 +1,336 @@
+{
+  "model": "o3",
+  "family": "PERSON_ROLE_CONSISTENCY",
+  "operative": false,
+  "source": "diagnostics/lab_all_agents_20261019/frameworks/framework_generation.json",
+  "source_sha256": "f71b5feea7253a808f8cc0b06406a6f486f7ac5f24472102025fa84c98b8d08e",
+  "card": {
+    "card_id": "REPAIR:701c17af6a11228878bf4b0b",
+    "version": "derivation-repair/0.1",
+    "family": "PERSON_ROLE_CONSISTENCY",
+    "action_id": "A0",
+    "record_id": "DEON_ASSESSMENT:deontological:A0",
+    "world_sha256": "8d5c5c310487309d959a5813921dd80640a24ee592ea167922dde7eb6e7a2947",
+    "record_sha256": "0ed692d99713843a29acc58b9cb8b781ce91bad8e36e3765fa44c91a08e41d0c",
+    "issue_records": [
+      {
+        "kind": "CALIBRATION",
+        "message": "candidate maxim denies intended use while proposing instrumental belief and purposive use",
+        "status": "ACTIVE"
+      }
+    ],
+    "target_paths": [
+      "means_relation",
+      "candidate_maxim.person_role",
+      "candidate_maxim.instrumental_belief",
+      "candidate_maxim.instrumental_use",
+      "candidate_maxim.practical_reasoning",
+      "candidate_maxim.means_effect_ids",
+      "candidate_maxim.end_effect_ids"
+    ],
+    "current_values": {
+      "means_relation": "FORESEEN_SIDE_EFFECT",
+      "candidate_maxim.person_role": "FORESEEN_AFFECTED",
+      "candidate_maxim.instrumental_belief": "RELIES_ON_PERSON",
+      "candidate_maxim.instrumental_use": "USES_PERSON",
+      "candidate_maxim.practical_reasoning": "Staff exposure is accepted to reach technician sooner.",
+      "candidate_maxim.means_effect_ids": [
+        "E1"
+      ],
+      "candidate_maxim.end_effect_ids": []
+    },
+    "evidence": [
+      {
+        "ref": "E1",
+        "path": "/effects/0",
+        "kind": "FROZEN_WORLD_COPY",
+        "value": {
+          "effect_id": "E1",
+          "action_id": "A0",
+          "party_id": "P2",
+          "outcome": "open the door now",
+          "relation": "OPEN",
+          "polarity": "NEUTRAL",
+          "directness": "DIRECT",
+          "modality": "CERTAIN",
+          "effect_kind": "INTERVENTION",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+            }
+          ],
+          "likelihood_qualifiers": [],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "open the door now",
+          "source_effect_ids": [],
+          "derivation_operation": "DIRECT_COPY",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      },
+      {
+        "ref": "E2",
+        "path": "/effects/1",
+        "kind": "FROZEN_WORLD_COPY",
+        "value": {
+          "effect_id": "E2",
+          "action_id": "A0",
+          "party_id": "P3",
+          "outcome": "doing so may expose nearby staff to hazardous fumes",
+          "relation": "EXPOSE",
+          "polarity": "ADVERSE",
+          "directness": "DOWNSTREAM",
+          "modality": "POSSIBLE",
+          "effect_kind": "OTHER",
+          "condition_ids": [],
+          "quantities": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+            }
+          ],
+          "likelihood_qualifiers": [
+            "may"
+          ],
+          "scope_qualifiers": [],
+          "temporal_qualifiers": [],
+          "condition_join": "AND",
+          "overall_likelihood_qualifiers": [],
+          "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+          "source_effect_ids": [
+            "E1"
+          ],
+          "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+          "derivation_explanation": "The blank was filled with this copy of the scenario.",
+          "derivation_assumptions": [],
+          "outcome_type_transformation": "PRESERVED"
+        }
+      },
+      {
+        "ref": "LINK:0",
+        "path": "/causal_links/0",
+        "kind": "FROZEN_WORLD_COPY",
+        "value": {
+          "source_id": "E1",
+          "relation": "ENABLES",
+          "target_id": "E2",
+          "modality": "CERTAIN",
+          "condition_ids": [],
+          "provenance": [
+            {
+              "clause_id": "C3",
+              "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+            }
+          ],
+          "action_id": "A0"
+        }
+      },
+      {
+        "ref": "ARGUMENT:means_relation",
+        "path": "DEON_ASSESSMENT:deontological:A0/means_relation",
+        "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+        "value": "FORESEEN_SIDE_EFFECT"
+      },
+      {
+        "ref": "ARGUMENT:candidate_maxim.person_role",
+        "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.person_role",
+        "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+        "value": "FORESEEN_AFFECTED"
+      },
+      {
+        "ref": "ARGUMENT:candidate_maxim.instrumental_belief",
+        "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_belief",
+        "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+        "value": "RELIES_ON_PERSON"
+      },
+      {
+        "ref": "ARGUMENT:candidate_maxim.instrumental_use",
+        "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_use",
+        "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+        "value": "USES_PERSON"
+      },
+      {
+        "ref": "ARGUMENT:candidate_maxim.practical_reasoning",
+        "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.practical_reasoning",
+        "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+        "value": "Staff exposure is accepted to reach technician sooner."
+      },
+      {
+        "ref": "ARGUMENT:candidate_maxim.means_effect_ids",
+        "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.means_effect_ids",
+        "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+        "value": [
+          "E1"
+        ]
+      },
+      {
+        "ref": "ARGUMENT:candidate_maxim.end_effect_ids",
+        "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.end_effect_ids",
+        "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+        "value": []
+      }
+    ],
+    "violated_invariant": "Means relation, person role, instrumental belief/use and same-action means/end references must be mutually consistent; physical necessity is not proof of intention.",
+    "required_repair": "Repair the person-role bundle atomically, or leave it unresolved. Do not infer actual intentions, consent or a moral verdict.",
+    "invalidate_if_changed": [
+      "verdict",
+      "governing_norm",
+      "priority_basis",
+      "resolution_status",
+      "priority_rule",
+      "reason",
+      "candidate_maxim.action_permissibility",
+      "candidate_maxim.maxim_assessment",
+      "candidate_maxim.universalization"
+    ],
+    "authority": "VALIDATOR_DERIVED_REPAIR_SCOPE_NOT_MORAL_VERDICT"
+  },
+  "provider_attempts": 1,
+  "status": "PROBE_FAILED",
+  "request": {
+    "model": "o3",
+    "messages": [
+      {
+        "role": "user",
+        "content": "LOCAL DERIVATION REPAIR. Return only the requested local fields. Keep the framework commitments and all other actions fixed. Do not choose a verdict. Values remain attributed interpretations; abstention is valid.\n{\"card_id\": \"REPAIR:701c17af6a11228878bf4b0b\", \"version\": \"derivation-repair/0.1\", \"family\": \"PERSON_ROLE_CONSISTENCY\", \"action_id\": \"A0\", \"record_id\": \"DEON_ASSESSMENT:deontological:A0\", \"world_sha256\": \"8d5c5c310487309d959a5813921dd80640a24ee592ea167922dde7eb6e7a2947\", \"record_sha256\": \"0ed692d99713843a29acc58b9cb8b781ce91bad8e36e3765fa44c91a08e41d0c\", \"issue_records\": [{\"kind\": \"CALIBRATION\", \"message\": \"candidate maxim denies intended use while proposing instrumental belief and purposive use\", \"status\": \"ACTIVE\"}], \"target_paths\": [\"means_relation\", \"candidate_maxim.person_role\", \"candidate_maxim.instrumental_belief\", \"candidate_maxim.instrumental_use\", \"candidate_maxim.practical_reasoning\", \"candidate_maxim.means_effect_ids\", \"candidate_maxim.end_effect_ids\"], \"current_values\": {\"means_relation\": \"FORESEEN_SIDE_EFFECT\", \"candidate_maxim.person_role\": \"FORESEEN_AFFECTED\", \"candidate_maxim.instrumental_belief\": \"RELIES_ON_PERSON\", \"candidate_maxim.instrumental_use\": \"USES_PERSON\", \"candidate_maxim.practical_reasoning\": \"Staff exposure is accepted to reach technician sooner.\", \"candidate_maxim.means_effect_ids\": [\"E1\"], \"candidate_maxim.end_effect_ids\": []}, \"evidence\": [{\"ref\": \"E1\", \"path\": \"/effects/0\", \"kind\": \"FROZEN_WORLD_COPY\", \"value\": {\"effect_id\": \"E1\", \"action_id\": \"A0\", \"party_id\": \"P2\", \"outcome\": \"open the door now\", \"relation\": \"OPEN\", \"polarity\": \"NEUTRAL\", \"directness\": \"DIRECT\", \"modality\": \"CERTAIN\", \"effect_kind\": \"INTERVENTION\", \"condition_ids\": [], \"quantities\": [], \"provenance\": [{\"clause_id\": \"C3\", \"excerpt\": \"Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes.\"}], \"likelihood_qualifiers\": [], \"scope_qualifiers\": [], \"temporal_qualifiers\": [], \"condition_join\": \"AND\", \"overall_likelihood_qualifiers\": [], \"source_proposition\": \"open the door now\", \"source_effect_ids\": [], \"derivation_operation\": \"DIRECT_COPY\", \"derivation_explanation\": \"The blank was filled with this copy of the scenario.\", \"derivation_assumptions\": [], \"outcome_type_transformation\": \"PRESERVED\"}}, {\"ref\": \"E2\", \"path\": \"/effects/1\", \"kind\": \"FROZEN_WORLD_COPY\", \"value\": {\"effect_id\": \"E2\", \"action_id\": \"A0\", \"party_id\": \"P3\", \"outcome\": \"doing so may expose nearby staff to hazardous fumes\", \"relation\": \"EXPOSE\", \"polarity\": \"ADVERSE\", \"directness\": \"DOWNSTREAM\", \"modality\": \"POSSIBLE\", \"effect_kind\": \"OTHER\", \"condition_ids\": [], \"quantities\": [], \"provenance\": [{\"clause_id\": \"C3\", \"excerpt\": \"Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes.\"}], \"likelihood_qualifiers\": [\"may\"], \"scope_qualifiers\": [], \"temporal_qualifiers\": [], \"condition_join\": \"AND\", \"overall_likelihood_qualifiers\": [], \"source_proposition\": \"doing so may expose nearby staff to hazardous fumes\", \"source_effect_ids\": [\"E1\"], \"derivation_operation\": \"SOURCE_STIPULATED_CAUSAL\", \"derivation_explanation\": \"The blank was filled with this copy of the scenario.\", \"derivation_assumptions\": [], \"outcome_type_transformation\": \"PRESERVED\"}}, {\"ref\": \"LINK:0\", \"path\": \"/causal_links/0\", \"kind\": \"FROZEN_WORLD_COPY\", \"value\": {\"source_id\": \"E1\", \"relation\": \"ENABLES\", \"target_id\": \"E2\", \"modality\": \"CERTAIN\", \"condition_ids\": [], \"provenance\": [{\"clause_id\": \"C3\", \"excerpt\": \"Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes.\"}], \"action_id\": \"A0\"}}, {\"ref\": \"ARGUMENT:means_relation\", \"path\": \"DEON_ASSESSMENT:deontological:A0/means_relation\", \"kind\": \"ATTRIBUTED_COMMITTED_ARGUMENT\", \"value\": \"FORESEEN_SIDE_EFFECT\"}, {\"ref\": \"ARGUMENT:candidate_maxim.person_role\", \"path\": \"DEON_ASSESSMENT:deontological:A0/candidate_maxim.person_role\", \"kind\": \"ATTRIBUTED_COMMITTED_ARGUMENT\", \"value\": \"FORESEEN_AFFECTED\"}, {\"ref\": \"ARGUMENT:candidate_maxim.instrumental_belief\", \"path\": \"DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_belief\", \"kind\": \"ATTRIBUTED_COMMITTED_ARGUMENT\", \"value\": \"RELIES_ON_PERSON\"}, {\"ref\": \"ARGUMENT:candidate_maxim.instrumental_use\", \"path\": \"DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_use\", \"kind\": \"ATTRIBUTED_COMMITTED_ARGUMENT\", \"value\": \"USES_PERSON\"}, {\"ref\": \"ARGUMENT:candidate_maxim.practical_reasoning\", \"path\": \"DEON_ASSESSMENT:deontological:A0/candidate_maxim.practical_reasoning\", \"kind\": \"ATTRIBUTED_COMMITTED_ARGUMENT\", \"value\": \"Staff exposure is accepted to reach technician sooner.\"}, {\"ref\": \"ARGUMENT:candidate_maxim.means_effect_ids\", \"path\": \"DEON_ASSESSMENT:deontological:A0/candidate_maxim.means_effect_ids\", \"kind\": \"ATTRIBUTED_COMMITTED_ARGUMENT\", \"value\": [\"E1\"]}, {\"ref\": \"ARGUMENT:candidate_maxim.end_effect_ids\", \"path\": \"DEON_ASSESSMENT:deontological:A0/candidate_maxim.end_effect_ids\", \"kind\": \"ATTRIBUTED_COMMITTED_ARGUMENT\", \"value\": []}], \"violated_invariant\": \"Means relation, person role, instrumental belief/use and same-action means/end references must be mutually consistent; physical necessity is not proof of intention.\", \"required_repair\": \"Repair the person-role bundle atomically, or leave it unresolved. Do not infer actual intentions, consent or a moral verdict.\", \"invalidate_if_changed\": [\"verdict\", \"governing_norm\", \"priority_basis\", \"resolution_status\", \"priority_rule\", \"reason\", \"candidate_maxim.action_permissibility\", \"candidate_maxim.maxim_assessment\", \"candidate_maxim.universalization\"], \"authority\": \"VALIDATOR_DERIVED_REPAIR_SCOPE_NOT_MORAL_VERDICT\"}"
+      }
+    ],
+    "max_completion_tokens": 4096,
+    "timeout": 90,
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "workspace_response",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "card_id": {
+              "type": "string",
+              "enum": [
+                "REPAIR:701c17af6a11228878bf4b0b"
+              ]
+            },
+            "changes": {
+              "type": "object",
+              "properties": {
+                "means_relation": {
+                  "type": "string",
+                  "enum": [
+                    "INTENDED_AS_MEANS",
+                    "FORESEEN_SIDE_EFFECT",
+                    "NO_INSTRUMENTALIZATION",
+                    "NOT_APPLICABLE",
+                    "UNRESOLVED"
+                  ]
+                },
+                "candidate_maxim.person_role": {
+                  "type": "string",
+                  "enum": [
+                    "INTENDED_MEANS",
+                    "FORESEEN_AFFECTED",
+                    "NOT_USED",
+                    "UNRESOLVED"
+                  ]
+                },
+                "candidate_maxim.instrumental_belief": {
+                  "type": "string",
+                  "enum": [
+                    "RELIES_ON_PERSON",
+                    "DOES_NOT_RELY",
+                    "UNRESOLVED"
+                  ]
+                },
+                "candidate_maxim.instrumental_use": {
+                  "type": "string",
+                  "enum": [
+                    "USES_PERSON",
+                    "DOES_NOT_USE",
+                    "UNRESOLVED"
+                  ]
+                },
+                "candidate_maxim.practical_reasoning": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "candidate_maxim.means_effect_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "candidate_maxim.end_effect_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "means_relation",
+                "candidate_maxim.person_role",
+                "candidate_maxim.instrumental_belief",
+                "candidate_maxim.instrumental_use",
+                "candidate_maxim.practical_reasoning",
+                "candidate_maxim.means_effect_ids",
+                "candidate_maxim.end_effect_ids"
+              ],
+              "additionalProperties": false
+            },
+            "evidence_refs": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "E1",
+                  "E2",
+                  "LINK:0",
+                  "ARGUMENT:means_relation",
+                  "ARGUMENT:candidate_maxim.person_role",
+                  "ARGUMENT:candidate_maxim.instrumental_belief",
+                  "ARGUMENT:candidate_maxim.instrumental_use",
+                  "ARGUMENT:candidate_maxim.practical_reasoning",
+                  "ARGUMENT:candidate_maxim.means_effect_ids",
+                  "ARGUMENT:candidate_maxim.end_effect_ids"
+                ]
+              }
+            },
+            "explanation": {
+              "type": "string",
+              "minLength": 1
+            },
+            "unresolved_questions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "card_id",
+            "changes",
+            "evidence_refs",
+            "explanation",
+            "unresolved_questions"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "reasoning_effort": "low"
+  },
+  "error_type": "ModelCallUnavailable",
+  "error": "OpenAI connection failed",
+  "elapsed_seconds": 0.098,
+  "source_world_unchanged": true,
+  "source_ledger_unchanged": true
+}

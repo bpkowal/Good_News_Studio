@@ -284,6 +284,17 @@ def review(assessment_path, output_dir, backend_factory, *, tokens=3072, max_cal
     if fingerprint(shared) != assessment['shared_input_sha256'] or shared['scenario'] != assessment['scenario'] or shared['action_source_grounding'] != assessment['action_source_grounding']:
         raise ValueError('Review shared input differs from assessed input')
     output_dir.mkdir(parents=True, exist_ok=True)
+    # Discovery only: local repair is a separate, nonvoting staging path.
+    # Do not enlarge the full-review prompt or grant model-authored permissions.
+    from deontology_repair_cards import build_cards
+    repair_cards = []
+    for candidate in assessment.get('cycles', [])[-1]['candidates']:
+        if candidate['specialist'] == 'deontological':
+            repair_cards.extend(c.to_dict() for c in build_cards(
+                shared['action_source_grounding']['world_model'],
+                candidate.get('committed_native_ledger') or {}))
+    (output_dir/'derivation_repair_cards.json').write_text(
+        json.dumps({'operative':False, 'cards':repair_cards}, indent=2)+'\n')
     replay_payload = deepcopy(assessment)
     replay_payload['canonical_action_records'] = deepcopy(shared['canonical_action_records'])
     replay_path = output_dir/'frozen_review_input.json'

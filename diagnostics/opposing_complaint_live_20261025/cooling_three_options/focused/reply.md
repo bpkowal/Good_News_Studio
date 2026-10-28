@@ -1,0 +1,59 @@
+# Response to opposing complaint
+
+Jo objects that the council’s preferred Plan B leaves her—the person facing the single greatest residential heat exposure—entirely without protection during a dangerous heat-wave. She holds that this unmitigated, life-threatening exposure is a basic-needs threat comparable in seriousness to the other burdens under discussion. Plan C would remove her risk, and doing so would impose instead (i) temporary closure of Sal’s only shop for eight weeks without compensation and (ii) loss of cooling for the twelve households that Plan B would protect. Jo therefore claims that any principle that permits the council to proceed with Plan B, when Plan C could eliminate her severe heat risk, is one she can reasonably reject.
+
+## Conceded points
+
+- Jo’s heat exposure is potentially life-threatening and not a trivial inconvenience.
+- Plan B offers Jo no benefit, whereas Plan C would remove that severe risk from her.
+- Under Plan C Sal would incur an uncompensated livelihood loss and twelve households would lose an important, though not life-threatening, health benefit.
+
+## Priority premise
+
+Premise NP2: A principle that avoids imposing any new severe burden without consent, while still providing significant benefit to some, is harder to reasonably reject when no better alternative is available.
+
+## Answer
+
+Why should Jo accept NP2 even though she bears the remaining severe heat burden?
+
+1. Distinction between "leaving" and "imposing" a severe burden.
+   • Under Plan B the council does not newly create Jo’s extreme-heat risk; it fails to relieve it.  By contrast, Plan C would *create* a new severe, non-consensual burden for Sal by shutting her only income source for eight weeks.  Within contractualism, individuals have a stronger complaint when a principle authorises *imposition* of a serious burden on them than when it merely withholds a benefit they hoped to receive.  Jo can reasonably criticise the failure of relief, but Sal can reasonably object to being selected as the sacrificial bearer of a burden she does not already face.
+
+2. Comparability of burdens.
+   • Sal’s eight-week uncompensated loss of livelihood directly threatens her capacity to secure basic needs such as food, rent and bills during that period.  That is a severe, non-fungible setback, not merely a moderate discomfort.  
+   • The twelve households each face a non-trivial risk of heat-related illness if they lose cooling under Plan C.  Individually, their complaint may be weaker than Jo’s; collectively, there would be twelve separate persons with a comparable moderate-to-serious health complaint.  Contractualism does not aggregate utilities, but it does recognise that when many people each have a complaint of roughly the same weight, the set of those complaints can together defeat a single person’s otherwise stronger claim when the principle under review must be justifiable to *each* affected individual.  The point is not counting heads but recognising that each of the twelve would have a personal rejection reason of some force.
+
+3. Reversible perspective test.
+   • A person who is uncertain whether she will turn out to be Jo or Sal (or one of the twelve) before the plans are chosen would have reason to favour a principle that refuses to *impose* a severe burden on anyone and instead leaves in place the already existing severe burden on the worst-off person, while delivering at least some relief to others.  That precautionary stance reflects the moral importance, under contractualism, of avoiding actions that single someone out for a grave, unchosen loss.
+
+4. Limited permission, not dismissal of Jo’s plight.
+   • The principle supporting Plan B does not deny the seriousness of Jo’s need.  It simply holds that in the present menu of options the council lacks moral permission to transfer a fresh, severe burden onto Sal and simultaneously withdraw important benefits from twelve households in order to rescue Jo.  Jo retains a standing claim to priority in any *future* feasible revision that could help her without imposing a comparable unconsented burden on another.
+
+5. Assurance of even-handedness.
+   • The same principle that now disadvantages Jo also protects her from being future “Sal-type” collateral damage were another project contemplated that would close *her* workplace or demolish *her* home for the sake of others’ benefit.  That reciprocity gives Jo a generic reason to tolerate the current outcome, hard though it is.
+
+What Jo must bear and what remains objectionable: she remains exposed to extreme heat—a grave hardship the community ought to keep seeking to remedy.  The response above only explains why, between the three fixed plans, the balance of reasonable rejection does not authorise shifting the hardship onto Sal and the twelve households now.  Jo’s complaint therefore remains morally serious even if it does not defeat NP2 under present constraints.
+
+## Countercomplaint to the alternative
+
+Under Plan C Sal would justifiably protest that the council is selecting her, without consent or compensation, to shoulder a newly created livelihood-threatening loss so that another resident’s pre-existing hardship can be removed while also revoking a material benefit from twelve households who were about to receive it.  Each of those twelve households would likewise protest that a benefit essential to their health in a heat-wave is being withdrawn for reasons that do not reduce (and in fact worsen) the total number of people facing serious heat risks.
+
+## Comparative justification
+
+The decisive consideration is the moral asymmetry between *imposing* and *not relieving* a severe burden.  Plan B leaves one person’s severe hardship unaddressed; Plan C *creates* another severe hardship and eliminates existing protections for twelve others.  Because a principle that licenses the active creation of a grave, uncompensated burden on Sal is reasonably rejectable by her—and because each of the twelve can also reasonably reject losing their promised protection—the set of reasonable rejections to Plan C collectively outweigh Jo’s single, though weighty, rejection of Plan B.  Therefore NP2 withstands Jo’s challenge.
+
+## Revised conclusion
+
+B / PROVISIONAL_PREFERENCE
+
+The explanation above shows why Jo’s powerful complaint does not defeat the broader set of reasonable rejections that Plan C would face from Sal and the twelve households.  Therefore Plan B remains the provisionally preferable choice among the fixed options, though the council owes Jo continued efforts to find an acceptable remedy.
+
+## Remaining objection
+
+Jo may still argue that the eight-week duration makes Sal’s burden temporary whereas her own heat risk lasts the whole heat-wave.  A different factual showing about Sal’s financial resilience or the duration/severity of Jo’s risk could tilt the balance.
+
+## Reversal condition
+
+If a feasible variant of Plan C compensated Sal or extended cooling to some of the twelve households without introducing a different severe burden, Jo’s rejection of Plan B would likely become reasonable and Plan C (or the variant) could justifiably displace Plan B.
+
+Model self-report: ANSWERED (not independently accepted).

@@ -27,6 +27,25 @@ The interface is read-only. No live execution or world selection is implemented.
 Download a presentation JSON, or open one with the import control. Unknown versions
 and invalid shapes show an error. No moral verdict is inferred from graph admission.
 
+The **Thermal blanket contractualist** run uses four fresh native framework passes
+and a fresh Contractualist argument in place of Rawls, all over the same accepted
+blanket world. Open
+`http://127.0.0.1:7860/?run=thermal_blanket_contractualist&view=frameworks`
+to inspect its questions, conditional preference and original argument. The old
+Rawlsian run remains separate. `CLARIFICATION` denotes a question-focused
+contribution with no claimed ranking; Contractualist conditional preferences are
+marked `ATTENUATED`, with no fabricated native ledger or coordinate. See
+[the runner design](../CONTRACTUALIST_DEMO.md).
+
+The catalog also includes **Thermal blanket promise**, a new live rescue allocation
+plus promise case, and its stopped first attempt. Open
+`http://127.0.0.1:7860/?run=thermal_blanket_promise` to inspect the frozen world,
+five framework records and bounded review. Its FRAMEWORK_PARTIAL status is
+intentional: unresolved arguments remain unresolved. See
+[the run review](../diagnostics/thermal_blanket_end_to_end_20261023/RESULT.md)
+for the saved-response continuation and remaining representation defects.
+Additional safe catalog IDs now export through the same presentation contract.
+
 Refresh the bundled three reports after generating updated saved artifacts.
 `--refresh` and a bare export read `frontend/saved_runs.json`
 (`parliament-saved-runs/1`); that catalog currently pins

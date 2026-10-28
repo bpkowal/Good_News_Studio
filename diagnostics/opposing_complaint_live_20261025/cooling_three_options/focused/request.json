@@ -1,0 +1,185 @@
+{
+  "model": "o3",
+  "reasoning_effort": "low",
+  "max_completion_tokens": 8192,
+  "messages": [
+    {
+      "role": "system",
+      "content": "Respond from the same assigned ethical framework to the supplied opposing complaint about your saved argument. The source is unchanged; the prior reply and objection are fallible attributed arguments, not new facts or authoritative verdicts. You may retain, qualify or change your preference. A changed choice earns no credit by itself. Give a substantive answer, not a declaration that the objection has been resolved. Separate source facts, normative commitments and conditional assumptions. Do not invent empirical magnitudes, people's knowledge or consent to make an argument work. A conditional preference is useful; mere uncertainty is not an instruction to abstain. Self-reported ANSWERED is not ledger acceptance or moral proof. original_quote fields must match a contiguous span at original_path in the saved argument; source_quotes must match the exact source. Keep the final conclusion, its status and remaining objection consistent. Do not reconstruct the entire world or argument graph.\nFirst restate the disadvantaged person's actual complaint fairly, including what they lose under your recommendation and what the feasible alternative would offer them. Concede what is true or morally serious about it. Identify the exact priority premise your answer must defend. Then answer WHY the complainant has reason to accept that priority despite their own burden; repeating your preferred principle or pointing out benefits to a different person is not yet that explanation. Compare the strongest countercomplaint to the alternative and explain which consideration makes a difference. If you rely on numbers, explain why counting is licensed by your framework; if you rely on consent or an assurance, explain its force and limits. Acknowledge what your proposed rule asks the losing person to bear and what remains objectionable after your answer. If you cannot defend the comparative premise, revise the inferential claim and the strength of the conclusion, not just its confidence label. State the strongest useful conclusion that survives. Do not force agreement, a winner, or an automatic priority of imposition over omission, promise over rescue, or rescue effectiveness over assurance."
+    },
+    {
+      "role": "user",
+      "content": "{\"framework_id\": \"contractualist\", \"framework_instruction\": \"Evaluate general principles by their justifiability to affected individuals. A principle may permit multiple actions and an action may be permitted by multiple principles. Form individual, personal reasons expressed in terms available to anyone in a relevantly similar position. Include excluded recipients and involuntary contributors. Tie each personal reason to one individual or generic individual position, one relevant value and the principle/action challenged or supported. These are reconstructed arguments, not reported preferences or speech. Compare objections to alternative principles with explicit grounds and warrants. Neither count reasons nor maximize a minimum welfare score. Do not invent strength weights or assume actual unanimity or that any objection is a veto. Defend which rejections are reasonable or preserve the comparison as unresolved. For risk distinguish ex ante prospects from ex post burdens. An unfulfilled assurance does not by itself establish wrongful betrayal or actual reliance. Construct each option's individual positions before comparing complaints. Keep shared burdens in the comparison; rejecting one option does not justify a different option against every remaining alternative. An unresolved complaint comparison may support a provisional choice, but does not establish that nobody could reasonably reject the chosen principle.\", \"source\": {\"id\": \"cooling_three_options\", \"scenario\": \"During a heat wave, a council has funds for one of three technically feasible cooling plans. Plan A cools twenty households but requires demolishing Mira's occupied home, leaving her without housing; she refuses. Plan B cools twelve of those same households and displaces nobody. Plan C cools Jo's home, which has the greatest heat exposure of any home in this case, but requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period. Sal refuses. Jo's home is not cooled by A or B. Mira, Jo, and Sal are not members of the twenty households. No additional cooling, relocation, or compensation plan is available in this exercise. The text stipulates these effects, not total welfare scores or a ranking of whose overall position is worst. Which plan should the council adopt?\", \"actions\": [{\"id\": \"A\", \"label\": \"Adopt cooling plan A\"}, {\"id\": \"B\", \"label\": \"Adopt cooling plan B\"}, {\"id\": \"C\", \"label\": \"Adopt cooling plan C\"}], \"source_text_sha256\": \"3a7a1aa655c3a36135dec3188e12af3496923039c8f8707092370ecb704ec9d6\", \"source_status\": \"FROZEN_TEXT_NOT_ADMITTED_WORLD\", \"evidence\": [{\"ref\": \"SCENE\", \"kind\": \"EXACT_SCENARIO\", \"value\": \"During a heat wave, a council has funds for one of three technically feasible cooling plans. Plan A cools twenty households but requires demolishing Mira's occupied home, leaving her without housing; she refuses. Plan B cools twelve of those same households and displaces nobody. Plan C cools Jo's home, which has the greatest heat exposure of any home in this case, but requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period. Sal refuses. Jo's home is not cooled by A or B. Mira, Jo, and Sal are not members of the twenty households. No additional cooling, relocation, or compensation plan is available in this exercise. The text stipulates these effects, not total welfare scores or a ranking of whose overall position is worst. Which plan should the council adopt?\"}]}, \"prior_argument\": {\"persons\": [{\"id\": \"Mira\", \"label\": \"Mira (home would be demolished)\", \"source_quotes\": [\"Plan A cools twenty households but requires demolishing Mira's occupied home, leaving her without housing; she refuses.\"]}, {\"id\": \"Sal\", \"label\": \"Sal (shop closed 8 weeks)\", \"source_quotes\": [\"Plan C ... requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period. Sal refuses.\"]}, {\"id\": \"Jo\", \"label\": \"Jo (greatest heat exposure)\", \"source_quotes\": [\"Plan C cools Jo's home, which has the greatest heat exposure of any home in this case, ... Jo's home is not cooled by A or B.\"]}, {\"id\": \"H12\", \"label\": \"One of the twelve households that would be cooled by Plans A or B\", \"source_quotes\": [\"Plan A cools twenty households\", \"Plan B cools twelve of those same households\"]}, {\"id\": \"H8\", \"label\": \"One of the eight additional households cooled only by Plan A\", \"source_quotes\": [\"Plan A cools twenty households\", \"Plan B cools twelve of those same households\"]}], \"burdens\": [{\"id\": \"B_Mira_Homeless\", \"person_id\": \"Mira\", \"description\": \"Loss of housing (home demolished, no relocation) \"}, {\"id\": \"B_Sal_Income\", \"person_id\": \"Sal\", \"description\": \"Loss of shop income for eight weeks\"}, {\"id\": \"B_Jo_Heat\", \"person_id\": \"Jo\", \"description\": \"Continued extreme heat exposure at home\"}, {\"id\": \"B_H12_Heat\", \"person_id\": \"H12\", \"description\": \"Continued heat exposure if home not cooled\"}, {\"id\": \"B_H8_Heat\", \"person_id\": \"H8\", \"description\": \"Continued heat exposure if home not cooled\"}], \"burden_positions\": [{\"burden_id\": \"B_Mira_Homeless\", \"action_id\": \"A\", \"status\": \"PRESENT\", \"position\": \"Mira loses her home under Plan A\", \"ground_handles\": [\"fp1\"]}, {\"burden_id\": \"B_Mira_Homeless\", \"action_id\": \"B\", \"status\": \"ABSENT\", \"position\": \"No demolition under Plan B\", \"ground_handles\": [\"fp2\"]}, {\"burden_id\": \"B_Mira_Homeless\", \"action_id\": \"C\", \"status\": \"ABSENT\", \"position\": \"No demolition under Plan C\", \"ground_handles\": [\"fp2\"]}, {\"burden_id\": \"B_Sal_Income\", \"action_id\": \"A\", \"status\": \"ABSENT\", \"position\": \"Shop remains open under Plan A\", \"ground_handles\": [\"fp3\"]}, {\"burden_id\": \"B_Sal_Income\", \"action_id\": \"B\", \"status\": \"ABSENT\", \"position\": \"Shop remains open under Plan B\", \"ground_handles\": [\"fp3\"]}, {\"burden_id\": \"B_Sal_Income\", \"action_id\": \"C\", \"status\": \"PRESENT\", \"position\": \"Shop closed 8 weeks under Plan C\", \"ground_handles\": [\"fp4\"]}, {\"burden_id\": \"B_Jo_Heat\", \"action_id\": \"A\", \"status\": \"PRESENT\", \"position\": \"Jo’s house not cooled by A\", \"ground_handles\": [\"fp5\"]}, {\"burden_id\": \"B_Jo_Heat\", \"action_id\": \"B\", \"status\": \"PRESENT\", \"position\": \"Jo’s house not cooled by B\", \"ground_handles\": [\"fp5\"]}, {\"burden_id\": \"B_Jo_Heat\", \"action_id\": \"C\", \"status\": \"ABSENT\", \"position\": \"Jo’s house cooled by C\", \"ground_handles\": [\"fp6\"]}, {\"burden_id\": \"B_H12_Heat\", \"action_id\": \"A\", \"status\": \"ABSENT\", \"position\": \"Household cooled by A\", \"ground_handles\": [\"fp7\"]}, {\"burden_id\": \"B_H12_Heat\", \"action_id\": \"B\", \"status\": \"ABSENT\", \"position\": \"Household cooled by B\", \"ground_handles\": [\"fp8\"]}, {\"burden_id\": \"B_H12_Heat\", \"action_id\": \"C\", \"status\": \"PRESENT\", \"position\": \"Household not cooled by C\", \"ground_handles\": [\"fp9\"]}, {\"burden_id\": \"B_H8_Heat\", \"action_id\": \"A\", \"status\": \"ABSENT\", \"position\": \"Household cooled by A\", \"ground_handles\": [\"fp7\"]}, {\"burden_id\": \"B_H8_Heat\", \"action_id\": \"B\", \"status\": \"PRESENT\", \"position\": \"Household not cooled by B\", \"ground_handles\": [\"fp10\"]}, {\"burden_id\": \"B_H8_Heat\", \"action_id\": \"C\", \"status\": \"PRESENT\", \"position\": \"Household not cooled by C\", \"ground_handles\": [\"fp9\"]}], \"principles\": [{\"id\": \"P1\", \"statement_handle\": \"np1\", \"action_ids\": [\"A\"]}, {\"id\": \"P2\", \"statement_handle\": \"np2\", \"action_ids\": [\"B\"]}, {\"id\": \"P3\", \"statement_handle\": \"np3\", \"action_ids\": [\"C\"]}], \"statements\": [{\"kind\": \"FACTUAL_PREMISE\", \"text\": \"Plan A requires demolishing Mira's occupied home, leaving her without housing.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [{\"evidence_id\": \"SCENE\", \"value_path\": \"\", \"quote\": \"requires demolishing Mira's occupied home, leaving her without housing\"}], \"handle\": \"fp1\"}, {\"kind\": \"FACTUAL_PREMISE\", \"text\": \"Plans B and C do not demolish Mira's home.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [{\"evidence_id\": \"SCENE\", \"value_path\": \"\", \"quote\": \"Plan B cools twelve of those same households and displaces nobody.\"}], \"handle\": \"fp2\"}, {\"kind\": \"FACTUAL_PREMISE\", \"text\": \"Plans A and B leave Sal's shop open.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [{\"evidence_id\": \"SCENE\", \"value_path\": \"\", \"quote\": \"requires closing Sal's only shop for eight weeks\"}], \"handle\": \"fp3\"}, {\"kind\": \"FACTUAL_PREMISE\", \"text\": \"Plan C closes Sal's only shop for eight weeks without compensation.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [{\"evidence_id\": \"SCENE\", \"value_path\": \"\", \"quote\": \"requires closing Sal's only shop for eight weeks without compensation\"}], \"handle\": \"fp4\"}, {\"kind\": \"FACTUAL_PREMISE\", \"text\": \"Jo's home is not cooled by Plans A or B.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [{\"evidence_id\": \"SCENE\", \"value_path\": \"\", \"quote\": \"Jo's home is not cooled by A or B\"}], \"handle\": \"fp5\"}, {\"kind\": \"FACTUAL_PREMISE\", \"text\": \"Plan C cools Jo's home.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [{\"evidence_id\": \"SCENE\", \"value_path\": \"\", \"quote\": \"Plan C cools Jo's home\"}], \"handle\": \"fp6\"}, {\"kind\": \"FACTUAL_PREMISE\", \"text\": \"Plan A cools twenty households.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [{\"evidence_id\": \"SCENE\", \"value_path\": \"\", \"quote\": \"Plan A cools twenty households\"}], \"handle\": \"fp7\"}, {\"kind\": \"FACTUAL_PREMISE\", \"text\": \"Plan B cools twelve of the same households cooled by A.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [{\"evidence_id\": \"SCENE\", \"value_path\": \"\", \"quote\": \"Plan B cools twelve of those same households\"}], \"handle\": \"fp8\"}, {\"kind\": \"FACTUAL_PREMISE\", \"text\": \"Plan C does not cool the twenty households mentioned.\", \"polarity\": \"AFFIRMED\", \"modality\": \"POSSIBLE\", \"hypothesis_ids\": [], \"citations\": [{\"evidence_id\": \"SCENE\", \"value_path\": \"\", \"quote\": \"Plan C cools Jo's home\"}], \"handle\": \"fp9\"}, {\"kind\": \"FACTUAL_PREMISE\", \"text\": \"Under Plan B eight of the twenty households remain without cooling.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [{\"evidence_id\": \"SCENE\", \"value_path\": \"\", \"quote\": \"Plan B cools twelve of those same households\"}], \"handle\": \"fp10\"}, {\"kind\": \"NORMATIVE_PREMISE\", \"text\": \"A principle is reasonably rejectable if it permits imposing a severe, non-consensual basic-needs loss on one person to provide moderate benefits to others who can be helped otherwise.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [], \"handle\": \"np1\"}, {\"kind\": \"NORMATIVE_PREMISE\", \"text\": \"A principle that avoids imposing any severe burden without consent, while providing some cooling benefit, is harder to reasonably reject when no better alternative is available.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [], \"handle\": \"np2\"}, {\"kind\": \"NORMATIVE_PREMISE\", \"text\": \"A principle that shifts a severe burden from one person onto another in order to help a third person and removes benefits from many others is reasonably rejectable if the burdened person receives no compensation and did not consent.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [], \"handle\": \"np3\"}, {\"kind\": \"NORMATIVE_JUDGMENT\", \"text\": \"Plan A is reasonably rejectable because it imposes homelessness on Mira for a lesser benefit that can partly be achieved by Plan B.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [], \"handle\": \"nj1\"}, {\"kind\": \"NORMATIVE_JUDGMENT\", \"text\": \"Plan B is not reasonably rejectable given the available alternatives.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [], \"handle\": \"nj2\"}, {\"kind\": \"NORMATIVE_JUDGMENT\", \"text\": \"Whether Plan C is reasonably rejectable is unresolved due to competing complaints from Sal, Jo, and the twelve households.\", \"polarity\": \"UNKNOWN\", \"modality\": \"UNKNOWN\", \"hypothesis_ids\": [], \"citations\": [], \"handle\": \"nj3\"}, {\"kind\": \"EVALUATIVE_COMPARISON\", \"text\": \"Compared with Plan A, Plan B better addresses the strongest reasonable complaints.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\", \"hypothesis_ids\": [], \"citations\": [], \"handle\": \"cmp1\"}], \"supports\": [{\"operation\": \"SOURCE\", \"inputs\": [], \"output\": \"fp1\", \"explanation\": \"/quote from scenario/\"}, {\"operation\": \"SOURCE\", \"inputs\": [], \"output\": \"fp2\", \"explanation\": \"/quote from scenario/\"}, {\"operation\": \"SOURCE\", \"inputs\": [], \"output\": \"fp3\", \"explanation\": \"/quote from scenario/\"}, {\"operation\": \"SOURCE\", \"inputs\": [], \"output\": \"fp4\", \"explanation\": \"/quote from scenario/\"}, {\"operation\": \"SOURCE\", \"inputs\": [], \"output\": \"fp5\", \"explanation\": \"/quote from scenario/\"}, {\"operation\": \"SOURCE\", \"inputs\": [], \"output\": \"fp6\", \"explanation\": \"/quote from scenario/\"}, {\"operation\": \"SOURCE\", \"inputs\": [], \"output\": \"fp7\", \"explanation\": \"/quote from scenario/\"}, {\"operation\": \"SOURCE\", \"inputs\": [], \"output\": \"fp8\", \"explanation\": \"/quote from scenario/\"}, {\"operation\": \"SOURCE\", \"inputs\": [], \"output\": \"fp9\", \"explanation\": \"/quote from scenario/\"}, {\"operation\": \"SOURCE\", \"inputs\": [], \"output\": \"fp10\", \"explanation\": \"/quote from scenario/\"}, {\"operation\": \"ASSUMPTION\", \"inputs\": [], \"output\": \"np1\", \"explanation\": \"Stated contractualist test for severe burden.\"}, {\"operation\": \"ASSUMPTION\", \"inputs\": [], \"output\": \"np2\", \"explanation\": \"Stated contractualist test.\"}, {\"operation\": \"ASSUMPTION\", \"inputs\": [], \"output\": \"np3\", \"explanation\": \"Stated contractualist test.\"}, {\"operation\": \"NORM_APPLICATION\", \"inputs\": [\"np1\", \"fp1\", \"fp8\"], \"output\": \"nj1\", \"explanation\": \"Homelessness is severe and avoidable by Plan B, so principle allowing A is rejectable.\"}, {\"operation\": \"NORM_APPLICATION\", \"inputs\": [\"np2\", \"fp8\", \"fp3\", \"fp2\"], \"output\": \"nj2\", \"explanation\": \"Plan B avoids severe, non-consensual burdens and gives some benefit; objections appear weaker.\"}, {\"operation\": \"NORM_APPLICATION\", \"inputs\": [\"np3\", \"fp4\", \"fp6\", \"fp8\"], \"output\": \"nj3\", \"explanation\": \"Competing burdens leave reasonable-rejectability unsettled.\"}, {\"operation\": \"NORM_PRIORITY\", \"inputs\": [\"nj1\", \"nj2\"], \"output\": \"cmp1\", \"explanation\": \"Stronger complaint against homelessness outweighs complaint of eight households losing cooling.\"}], \"reasons\": [{\"id\": \"rMiraA\", \"person_id\": \"Mira\", \"principle_id\": \"P1\", \"action_id\": \"A\", \"stance\": \"AGAINST\", \"value\": \"Security of basic shelter\", \"conclusion_handle\": \"nj1\", \"ground_handles\": [\"fp1\"], \"warrant_handles\": [\"np1\"], \"generic_basis\": \"Homelessness without consent is a severe burden\"}, {\"id\": \"rHouse8B\", \"person_id\": \"H8\", \"principle_id\": \"P2\", \"action_id\": \"B\", \"stance\": \"AGAINST\", \"value\": \"Health during heat wave\", \"conclusion_handle\": \"nj2\", \"ground_handles\": [\"fp10\"], \"warrant_handles\": [\"np2\"], \"generic_basis\": \"Lack of cooling is harmful but not a basic-needs loss as severe as homelessness\"}, {\"id\": \"rSalC\", \"person_id\": \"Sal\", \"principle_id\": \"P3\", \"action_id\": \"C\", \"stance\": \"AGAINST\", \"value\": \"Livelihood\", \"conclusion_handle\": \"nj3\", \"ground_handles\": [\"fp4\"], \"warrant_handles\": [\"np3\"], \"generic_basis\": \"Uncompensated income loss is a serious, non-trivial burden\"}], \"comparisons\": [{\"id\": \"comp_A_B\", \"from_action_id\": \"A\", \"to_action_id\": \"B\", \"status\": \"FAVORS_TO\", \"relieved_burden_ids\": [\"B_Mira_Homeless\"], \"introduced_burden_ids\": [\"B_H8_Heat\"], \"retained_burden_ids\": [\"B_H12_Heat\", \"B_Jo_Heat\"], \"reason_ids\": [\"rMiraA\", \"rHouse8B\"], \"judgment_handle\": \"cmp1\", \"explanation\": \"Removing Mira’s homelessness is weightier than adding heat burden to eight households.\"}, {\"id\": \"comp_B_C\", \"from_action_id\": \"B\", \"to_action_id\": \"C\", \"status\": \"UNRESOLVED\", \"relieved_burden_ids\": [\"B_Jo_Heat\"], \"introduced_burden_ids\": [\"B_Sal_Income\", \"B_H12_Heat\"], \"retained_burden_ids\": [\"B_H8_Heat\"], \"reason_ids\": [\"rSalC\"], \"judgment_handle\": \"nj3\", \"explanation\": \"Jo’s relief vs Sal’s burden and lost cooling for twelve households remain in tension.\"}, {\"id\": \"comp_A_C\", \"from_action_id\": \"A\", \"to_action_id\": \"C\", \"status\": \"FAVORS_TO\", \"relieved_burden_ids\": [\"B_Mira_Homeless\"], \"introduced_burden_ids\": [\"B_Sal_Income\", \"B_Jo_Heat\"], \"retained_burden_ids\": [\"B_H12_Heat\", \"B_H8_Heat\"], \"reason_ids\": [\"rMiraA\", \"rSalC\"], \"judgment_handle\": \"nj3\", \"explanation\": \"C avoids homelessness but imposes income loss; due to unresolved B vs C, A is disfavored but overall choice leans through B.\"}], \"challenges\": [], \"action_assessments\": [{\"action_id\": \"A\", \"conclusion_handle\": \"nj1\", \"assessment\": \"REJECTED\"}, {\"action_id\": \"B\", \"conclusion_handle\": \"nj2\", \"assessment\": \"DEFENSIBLE\"}, {\"action_id\": \"C\", \"conclusion_handle\": \"nj3\", \"assessment\": \"UNRESOLVED\"}], \"recommendation_action_id\": \"B\", \"recommendation_status\": \"PROVISIONAL_PREFERENCE\", \"recommendation_comparison_ids\": [\"comp_A_B\", \"comp_B_C\"], \"remaining_complaint_ids\": [\"rSalC\"], \"conclusion\": \"Plan B is provisionally preferred: it avoids the most severe unconsented burden (Mira’s homelessness) while providing substantial though not maximal cooling, and it does not newly impose severe burdens on others. Reasonable rejection of Plan B has not been demonstrated, whereas Plan A is reasonably rejectable and Plan C remains contested.\", \"strongest_objection\": \"Sal can reasonably reject Plan B’s priority if she shows her uncompensated livelihood loss under Plan C is comparable to or less onerous than Mira’s homelessness avoided by choosing B over A, making C comparatively fairer.\", \"answer_to_objection\": \"Sal’s shop remains open under Plan B, so her specific complaint does not arise; adopting B neither imposes nor shifts that burden onto her.\", \"reversal_condition\": \"If a feasible revision could cool Jo and the eight households without imposing homelessness or uncompensated livelihood loss, the relative justification for Plan B would weaken and it might become reasonably rejectable.\", \"residual_disagreement\": [\"Whether Jo’s extreme heat exposure should outweigh the eight households’ cooling loss and Sal’s income loss remains unsettled, leaving Plan C’s status open\"]}, \"prior_argument_origin\": \"SAVED_MODEL_ARGUMENT_NOT_WORLD_FACT\", \"assigned_complaint\": {\"raw_assignment\": {\"status\": \"GROUNDED_TARGET_PROPOSED\", \"complainant\": \"Jo (resident with the greatest heat exposure)\", \"recommended_action_id\": \"B\", \"alternative_action_id\": \"C\", \"source_quotes\": [\"\\\"Plan C cools Jo's home, which has the greatest heat exposure of any home in this case\\\"\", \"\\\"Jo's home is not cooled by A or B.\\\"\"], \"complaint\": \"Plan B leaves me – the resident whose home has the single greatest heat exposure – entirely without relief during a dangerous heat-wave, whereas Plan C would remove that life-threatening risk at the cost of closing Sal’s shop for eight weeks and withholding cooling from twelve other households.  Extreme residential heat can imperil basic bodily functioning just as surely as loss of shelter or livelihood; a principle that permits the council to ignore the *worst* unmitigated heat risk when a feasible alternative could eliminate it is reasonably rejectable from my position.  The fact that twelve households would forgo a *moderate* benefit under Plan C does not explain why my unmitigated, severe heat burden may be left wholly in place; nor is it clear that Sal’s temporary income loss is weightier than imminent health-and-safety threats to me.  Therefore, the inference that Plan B is “not reasonably rejectable” fails to take my basic-needs risk seriously enough.\", \"target_path\": \"/statements/14/text\", \"target_quote\": \"Plan B is not reasonably rejectable given the available alternatives.\", \"challenged_inference\": \"That the continuing, unmitigated extreme-heat burden on Jo is not a severe basic-needs loss sufficient to render the principle permitting Plan B reasonably rejectable, given that an alternative (Plan C) could lift that burden.\", \"why_prior_answer_is_insufficient\": \"The prior answer simply labels the heat burden on Jo (and on the eight uncool households) as “weaker” than Mira’s homelessness without examining whether *Jo’s* burden is comparably severe to Sal’s income loss or to the benefits foregone by the twelve households.  It gives no contractualist reason why a life-threatening environmental hazard should count as only a moderate inconvenience, nor why a principle that sacrifices the most exposed resident’s basic safety is justifiable when another feasible plan could eliminate that risk.  Hence Jo’s complaint remains unresolved yet directly targets the claim that Plan B is not reasonably rejectable.\", \"selection_limits\": \"One principled, grounded complaint from Jo against the recommendation of Plan B relative to the live alternative Plan C has been articulated without inventing further facts or asserting veto power.\"}, \"binding_issues\": [\"SOURCE_QUOTE_MISMATCH\"], \"origin\": \"MODEL_PROPOSED_OPPOSING_COMPLAINT\", \"semantic_support\": \"NOT_INDEPENDENTLY_ASSESSED\", \"operative\": false}}"
+    }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "opposing_complaint",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "complaint_restatement": {
+            "type": "string",
+            "minLength": 1
+          },
+          "conceded_points": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "priority_premise": {
+            "type": "string",
+            "minLength": 1
+          },
+          "answer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "countercomplaint_to_alternative": {
+            "type": "string",
+            "minLength": 1
+          },
+          "comparative_justification": {
+            "type": "string",
+            "minLength": 1
+          },
+          "premises": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "claim": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "SOURCE_FACT",
+                    "NORMATIVE_COMMITMENT",
+                    "EMPIRICAL_ASSUMPTION",
+                    "CONDITIONAL_INTERPRETATION"
+                  ]
+                },
+                "source_quotes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "claim",
+                "kind",
+                "source_quotes"
+              ]
+            }
+          },
+          "conclusion": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "action_id": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PROVISIONAL_PREFERENCE",
+                  "UNIQUE_DEFENSIBLE",
+                  "MULTIPLE_DEFENSIBLE",
+                  "UNRESOLVED"
+                ]
+              },
+              "rationale": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "action_id",
+              "status",
+              "rationale"
+            ]
+          },
+          "changed_inferences": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "original_path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "original_quote": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "replacement": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "original_path",
+                "original_quote",
+                "replacement",
+                "reason"
+              ]
+            }
+          },
+          "disposition": {
+            "type": "string",
+            "enum": [
+              "ANSWERED",
+              "PARTLY_ANSWERED",
+              "UNANSWERED"
+            ]
+          },
+          "remaining_objection": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reversal_condition": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "complaint_restatement",
+          "conceded_points",
+          "priority_premise",
+          "answer",
+          "countercomplaint_to_alternative",
+          "comparative_justification",
+          "premises",
+          "conclusion",
+          "changed_inferences",
+          "disposition",
+          "remaining_objection",
+          "reversal_condition"
+        ]
+      }
+    }
+  }
+}

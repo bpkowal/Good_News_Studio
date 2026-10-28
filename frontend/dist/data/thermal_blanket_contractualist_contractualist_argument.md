@@ -1,0 +1,592 @@
+# Contractualist — recorded argument
+
+## Critical unanswered questions
+
+**Q1 — INTERPRETIVE / DECISION_DEPENDENCY**
+
+Did Sasha reasonably rely on Ellis’s promise in a way that amplifies the wrong of breach?
+
+Affected people: Sasha.
+Options: A0, A1.
+
+Why it matters: If reliance is strong, the promissory claim might plausibly outweigh survival-probability gains.
+
+What could help: Evidence of reliance costs or expectations set by the promise.
+
+- If Strong reliance established: ST_WEIGHT would tilt, comparison C1 could become UNRESOLVED or favor A1.
+- If No reliance beyond hope: Current weighting remains reasonable.
+
+These are proposed questions and conditional arguments, not settled moral findings.
+
+
+Participation: ATTENUATED. Argument adapter; no native ledger.
+
+## Readable explanation
+
+Saving the person with the markedly higher survival chance (Rowan) is provisionally preferable, because the certain loss of Rowan’s life is a stronger reasonable objection than Sasha’s complaint of broken promise, absent evidence of special reliance.
+
+Presentation basis: RECORDED_CONTRACTUALIST_ARGUMENT.
+
+## Assumptions and interpretive commitments
+
+- Model proposed interpretive premise: Breaking the promise would wrong Sasha by violating an undertaken assurance.
+- Model proposed normative premise: A principle is unreasonable if any affected person could reasonably reject it.
+- Model proposed principle: When only one person can be saved, the rescuer should maximize the individual chance of survival (PRIORITISE_SURVIVAL).
+- Model proposed principle: An explicit promise made to someone establishes a claim that should normally be honoured even when new information appears (KEEP_PROMISES).
+- Model proposed normative premise: In a life-and-death rescue, avoiding an avoidable death is normally a weightier reason than preventing a promissory wrong, unless the promisee relied on the assurance.
+
+## Source and uncertainty
+
+The exact scenario and the same validated frozen world supplied to the other four specialists.
+- Weight of promissory obligation versus survival advantage
+- The argument graph has 25 binding findings; the original argument and questions remain inspectable.
+
+## Conditions for reconsidering
+
+
+## Original recorded fields
+
+These fields are preserved verbatim as data. They can include incomplete or malformed model text.
+
+```json
+{
+  "persons": [
+    {
+      "id": "Rowan",
+      "label": "Rowan",
+      "source_quotes": [
+        "\"If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.\""
+      ]
+    },
+    {
+      "id": "Sasha",
+      "label": "Sasha",
+      "source_quotes": [
+        "\"If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.\""
+      ]
+    },
+    {
+      "id": "Ellis",
+      "label": "Rescuer Ellis",
+      "source_quotes": [
+        "\"Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.\""
+      ]
+    }
+  ],
+  "burdens": [
+    {
+      "id": "B1",
+      "person_id": "Rowan",
+      "description": "Certain death if blanket withheld"
+    },
+    {
+      "id": "B2",
+      "person_id": "Rowan",
+      "description": "Residual 20% risk of death even if given blanket"
+    },
+    {
+      "id": "B3",
+      "person_id": "Sasha",
+      "description": "Certain death if blanket withheld"
+    },
+    {
+      "id": "B4",
+      "person_id": "Sasha",
+      "description": "Residual 40% risk of death even if given blanket"
+    },
+    {
+      "id": "B5",
+      "person_id": "Sasha",
+      "description": "Broken promise by Ellis"
+    },
+    {
+      "id": "B6",
+      "person_id": "Ellis",
+      "description": "Breach-of-promise moral cost"
+    }
+  ],
+  "burden_positions": [
+    {
+      "burden_id": "B1",
+      "action_id": "A1",
+      "status": "PRESENT",
+      "position": "Rowan will die without blanket",
+      "ground_handles": [
+        "S_ROWAN_DIES"
+      ]
+    },
+    {
+      "burden_id": "B1",
+      "action_id": "A0",
+      "status": "ABSENT",
+      "position": "Rowan receives blanket",
+      "ground_handles": [
+        "S_ROWAN_GETS"
+      ]
+    },
+    {
+      "burden_id": "B2",
+      "action_id": "A0",
+      "status": "PRESENT",
+      "position": "20% death risk for Rowan",
+      "ground_handles": [
+        "S_ROWAN_80"
+      ]
+    },
+    {
+      "burden_id": "B2",
+      "action_id": "A1",
+      "status": "ABSENT",
+      "position": "No residual risk because Rowan certainly dies",
+      "ground_handles": [
+        "S_ROWAN_DIES"
+      ]
+    },
+    {
+      "burden_id": "B3",
+      "action_id": "A0",
+      "status": "PRESENT",
+      "position": "Sasha will die without blanket",
+      "ground_handles": [
+        "S_SASHA_DIES"
+      ]
+    },
+    {
+      "burden_id": "B3",
+      "action_id": "A1",
+      "status": "ABSENT",
+      "position": "Sasha receives blanket",
+      "ground_handles": [
+        "S_SASHA_GETS"
+      ]
+    },
+    {
+      "burden_id": "B4",
+      "action_id": "A1",
+      "status": "PRESENT",
+      "position": "40% death risk for Sasha",
+      "ground_handles": [
+        "S_SASHA_60"
+      ]
+    },
+    {
+      "burden_id": "B4",
+      "action_id": "A0",
+      "status": "ABSENT",
+      "position": "No residual risk because Sasha certainly dies",
+      "ground_handles": [
+        "S_SASHA_DIES"
+      ]
+    },
+    {
+      "burden_id": "B5",
+      "action_id": "A0",
+      "status": "PRESENT",
+      "position": "Promise to Sasha broken",
+      "ground_handles": [
+        "S_PROMISE"
+      ]
+    },
+    {
+      "burden_id": "B5",
+      "action_id": "A1",
+      "status": "ABSENT",
+      "position": "Promise kept",
+      "ground_handles": [
+        "S_PROMISE"
+      ]
+    },
+    {
+      "burden_id": "B6",
+      "action_id": "A0",
+      "status": "PRESENT",
+      "position": "Ellis breaches own promise",
+      "ground_handles": [
+        "S_PROMISE"
+      ]
+    },
+    {
+      "burden_id": "B6",
+      "action_id": "A1",
+      "status": "ABSENT",
+      "position": "No breach",
+      "ground_handles": [
+        "S_PROMISE"
+      ]
+    }
+  ],
+  "principles": [
+    {
+      "id": "PRIORITISE_SURVIVAL",
+      "statement_handle": "ST_P1",
+      "action_ids": [
+        "A0"
+      ]
+    },
+    {
+      "id": "KEEP_PROMISES",
+      "statement_handle": "ST_P2",
+      "action_ids": [
+        "A1"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "The hiker who does not get the blanket will die.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "The hiker who does not get the blanket will die."
+        }
+      ],
+      "handle": "S_DIE"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "Rowan has an 80% chance of survival."
+        }
+      ],
+      "handle": "S_ROWAN_80"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "Sasha has a 60% chance of survival."
+        }
+      ],
+      "handle": "S_SASHA_60"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "Ellis promised Sasha that Sasha would get the blanket."
+        }
+      ],
+      "handle": "S_PROMISE"
+    },
+    {
+      "kind": "INTERPRETIVE_PREMISE",
+      "text": "Breaking the promise would wrong Sasha by violating an undertaken assurance.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "INT_WRONG"
+    },
+    {
+      "kind": "NORMATIVE_PREMISE",
+      "text": "A principle is unreasonable if any affected person could reasonably reject it.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "ST_CNTRL"
+    },
+    {
+      "kind": "PRINCIPLE",
+      "text": "When only one person can be saved, the rescuer should maximize the individual chance of survival (PRIORITISE_SURVIVAL).",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "ST_P1"
+    },
+    {
+      "kind": "PRINCIPLE",
+      "text": "An explicit promise made to someone establishes a claim that should normally be honoured even when new information appears (KEEP_PROMISES).",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "ST_P2"
+    },
+    {
+      "kind": "NORMATIVE_PREMISE",
+      "text": "In a life-and-death rescue, avoiding an avoidable death is normally a weightier reason than preventing a promissory wrong, unless the promisee relied on the assurance.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "ST_WEIGHT"
+    }
+  ],
+  "supports": [
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "S_ROWAN_80",
+      "explanation": ": exact quote"
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "S_SASHA_60",
+      "explanation": ": exact quote"
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "S_DIE",
+      "explanation": ": exact quote"
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [],
+      "output": "S_PROMISE",
+      "explanation": ": exact quote"
+    },
+    {
+      "operation": "ASSUMPTION",
+      "inputs": [],
+      "output": "INT_WRONG",
+      "explanation": "interpretive"
+    },
+    {
+      "operation": "ASSUMPTION",
+      "inputs": [],
+      "output": "ST_P1",
+      "explanation": "candidate principle"
+    },
+    {
+      "operation": "ASSUMPTION",
+      "inputs": [],
+      "output": "ST_P2",
+      "explanation": "candidate principle"
+    },
+    {
+      "operation": "ASSUMPTION",
+      "inputs": [],
+      "output": "ST_WEIGHT",
+      "explanation": "comparative weight guideline"
+    },
+    {
+      "operation": "ASSUMPTION",
+      "inputs": [],
+      "output": "ST_CNTRL",
+      "explanation": "contractualist standard"
+    },
+    {
+      "operation": "NORM_APPLICATION",
+      "inputs": [
+        "S_ROWAN_80",
+        "S_DIE",
+        "ST_P1"
+      ],
+      "output": "RJ_P2",
+      "explanation": "Rowan could reasonably reject KEEP_PROMISES if it dooms him despite higher chance"
+    },
+    {
+      "operation": "NORM_APPLICATION",
+      "inputs": [
+        "S_PROMISE",
+        "INT_WRONG",
+        "ST_P2"
+      ],
+      "output": "RJ_P1",
+      "explanation": "Sasha could reasonably reject PRIORITISE_SURVIVAL because it breaks promise made to her"
+    },
+    {
+      "operation": "NORM_PRIORITY",
+      "inputs": [
+        "RJ_P2",
+        "RJ_P1",
+        "ST_WEIGHT"
+      ],
+      "output": "COMP_WEIGHT",
+      "explanation": "Lives at stake override promissory wrong absent reliance"
+    }
+  ],
+  "reasons": [
+    {
+      "id": "R1",
+      "person_id": "Rowan",
+      "principle_id": "PRIORITISE_SURVIVAL",
+      "action_id": "A0",
+      "stance": "FOR",
+      "value": "avoid certain death",
+      "conclusion_handle": "RJ_P2",
+      "ground_handles": [
+        "S_ROWAN_80"
+      ],
+      "warrant_handles": [
+        "ST_P1"
+      ],
+      "generic_basis": "Higher chance of survival"
+    },
+    {
+      "id": "R2",
+      "person_id": "Sasha",
+      "principle_id": "KEEP_PROMISES",
+      "action_id": "A1",
+      "stance": "FOR",
+      "value": "respect for assurance",
+      "conclusion_handle": "RJ_P1",
+      "ground_handles": [
+        "S_PROMISE"
+      ],
+      "warrant_handles": [
+        "ST_P2"
+      ],
+      "generic_basis": "Keeps explicit promise"
+    },
+    {
+      "id": "R3",
+      "person_id": "Rowan",
+      "principle_id": null,
+      "action_id": "A1",
+      "stance": "AGAINST",
+      "value": "avoids being left to die",
+      "conclusion_handle": "RJ_P1",
+      "ground_handles": [
+        "S_DIE"
+      ],
+      "warrant_handles": [
+        "ST_P1"
+      ],
+      "generic_basis": "would die if promise kept"
+    },
+    {
+      "id": "R4",
+      "person_id": "Sasha",
+      "principle_id": null,
+      "action_id": "A0",
+      "stance": "AGAINST",
+      "value": "not to be betrayed and left to die",
+      "conclusion_handle": "RJ_P2",
+      "ground_handles": [
+        "S_DIE",
+        "S_PROMISE"
+      ],
+      "warrant_handles": [
+        "INT_WRONG"
+      ],
+      "generic_basis": "dies and promise broken"
+    }
+  ],
+  "comparisons": [
+    {
+      "id": "C1",
+      "from_action_id": "A1",
+      "to_action_id": "A0",
+      "status": "FAVORS_TO",
+      "relieved_burden_ids": [
+        "B3",
+        "B5",
+        "B6"
+      ],
+      "introduced_burden_ids": [
+        "B2"
+      ],
+      "retained_burden_ids": [
+        "B1"
+      ],
+      "reason_ids": [
+        "R1",
+        "R2"
+      ],
+      "judgment_handle": "COMP_WEIGHT",
+      "explanation": "A0 saves a life with higher probability and avoids one certain death; promissory wrong is judged outweighed."
+    }
+  ],
+  "challenges": [
+    {
+      "id": "CH1",
+      "kind": "UNDERMINING",
+      "target_kind": "STATEMENT",
+      "target_id": "ST_WEIGHT",
+      "challenge_handle": "Q_PROMISE_RELIANCE",
+      "response_handle": null,
+      "status": "OPEN"
+    }
+  ],
+  "action_assessments": [
+    {
+      "action_id": "A0",
+      "conclusion_handle": "COMP_WEIGHT",
+      "assessment": "DEFENSIBLE"
+    },
+    {
+      "action_id": "A1",
+      "conclusion_handle": "RJ_P2",
+      "assessment": "REJECTED"
+    }
+  ],
+  "critical_questions": [
+    {
+      "id": "Q1",
+      "kind": "INTERPRETIVE",
+      "role": "DECISION_DEPENDENCY",
+      "question": "Did Sasha reasonably rely on Ellis’s promise in a way that amplifies the wrong of breach?",
+      "person_ids": [
+        "Sasha"
+      ],
+      "action_ids": [
+        "A0",
+        "A1"
+      ],
+      "principle_ids": [
+        "KEEP_PROMISES"
+      ],
+      "target_handles": [
+        "INT_WRONG",
+        "ST_WEIGHT"
+      ],
+      "why_it_matters": "If reliance is strong, the promissory claim might plausibly outweigh survival-probability gains.",
+      "needed_to_resolve": "Evidence of reliance costs or expectations set by the promise.",
+      "conditional_implications": [
+        {
+          "assumption": "Strong reliance established",
+          "implication": "ST_WEIGHT would tilt, comparison C1 could become UNRESOLVED or favor A1."
+        },
+        {
+          "assumption": "No reliance beyond hope",
+          "implication": "Current weighting remains reasonable."
+        }
+      ]
+    }
+  ],
+  "recommendation_action_id": "A0",
+  "recommendation_status": "PROVISIONAL_PREFERENCE",
+  "recommendation_comparison_ids": [
+    "C1"
+  ],
+  "remaining_complaint_ids": [
+    "B5"
+  ],
+  "conclusion": "Saving the person with the markedly higher survival chance (Rowan) is provisionally preferable, because the certain loss of Rowan’s life is a stronger reasonable objection than Sasha’s complaint of broken promise, absent evidence of special reliance.",
+  "strongest_objection": "Sasha’s claim that breaking the explicit promise wrongs her and that she faces both betrayal and death under A0.",
+  "answer_to_objection": "Breach is serious, but under ST_WEIGHT it does not defeat Rowan’s stronger life-or-death complaint; promise-keeping cannot require sacrificing another’s much stronger survival prospect when reliance costs are unknown.",
+  "reversal_condition": "If Sasha had materially relied on the promise or if the survival probabilities were roughly equal, KEEP_PROMISES could no longer be reasonably rejected, and giving the blanket to Sasha might become defensible.",
+  "residual_disagreement": [
+    "Weight of promissory obligation versus survival advantage"
+  ]
+}
+```

@@ -1,0 +1,87 @@
+{
+  "version": "opposing-complaint-response/0.1",
+  "prepared_at": "2026-10-26T13:13:01.288569+00:00",
+  "framework": "contractualist",
+  "cases": [
+    "cooling_three_options",
+    "cooling_contributor_consents",
+    "blanket_prior_assurance",
+    "blanket_no_assurance"
+  ],
+  "model": "o3",
+  "reasoning_effort": "low",
+  "selector_max_tokens": 4096,
+  "reply_max_tokens": 8192,
+  "maximum_provider_calls": 12,
+  "sdk_retries": 0,
+  "stages": [
+    "freeze_original_inputs",
+    "all_complaint_assignments",
+    "matched_reply_arms"
+  ],
+  "arms": [
+    "ordinary",
+    "focused"
+  ],
+  "source_run": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/contractualist_comparison_v03_live_20261025",
+  "origins": {
+    "cooling_three_options": {
+      "folder": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/contractualist_comparison_v03_live_20261025/cooling_three_options/contractualist",
+      "source_sha256": "47082a8210b9934cca1a6131265c2390c13a77776f37b261098f389c2f19db45",
+      "prior_response_sha256": "3ab1fc309394ece4c1001419df464e4ba7b369c5d4782192f363bba0dfd95d1c",
+      "prior_request_sha256": "1121bfc1b90428fddfa87906c558d399fc20f4f5887ff4123050dae1b2edd896"
+    },
+    "cooling_contributor_consents": {
+      "folder": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/contractualist_comparison_v03_live_20261025/cooling_contributor_consents/contractualist",
+      "source_sha256": "3d3d6121661c26f0e5ff570b40d04a38d984f778d4e01175751782f959140998",
+      "prior_response_sha256": "e81dc4981fc4ddaee287b04e7e1b753b802fe454a217ebfe69c839c682c50677",
+      "prior_request_sha256": "a3c825b3ed632c446966c33938cbd2b873b6d7b15b51bd9860a51e9834e72d48"
+    },
+    "blanket_prior_assurance": {
+      "folder": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/contractualist_comparison_v03_live_20261025/blanket_prior_assurance/contractualist",
+      "source_sha256": "ab70c9c0d45fbbd5280c164f0848529740a09f1c334e55b0fd9279472622493a",
+      "prior_response_sha256": "fcb6636953242b2a640ff1a97b6c36c880df554bcb1314735403cffa167f43b7",
+      "prior_request_sha256": "1220eb87c179d0103d401927d16a0ef32eacb64e3f0b72e61adb4442be997003"
+    },
+    "blanket_no_assurance": {
+      "folder": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/contractualist_comparison_v03_live_20261025/blanket_no_assurance/contractualist",
+      "source_sha256": "3cc015c5948885ce40aaed9f0aee735b5a82062778a2bf8e8114d9b7f87c971b",
+      "prior_response_sha256": "38c2051cb09629e2c4192e350c82303e69d00b93aabc8e8b22f1f2e5d38eebe9",
+      "prior_request_sha256": "9445a739b929d52108498f822f874e65c6f261f4902638d667dad44c07e1cd85"
+    }
+  },
+  "instructions": {
+    "selector": "Act as an objection proposer, not a verdict authority. Read the exact source and the saved framework argument. Identify ONE of the strongest grounded complaints against its ACTUAL recommendation from a person disadvantaged by that choice relative to a feasible alternative. Do not just copy its strongest_objection field: that field may name the wrong person or action. Reconstruct the person's reason in its strongest defensible form without inventing facts, preferences, mental states or a fixed numerical moral weight. State the available alternative, the exact inferential step challenged, and why the prior answer does not settle that complaint. Cite contiguous source quotations and one exact quoted span at a JSON pointer in the prior argument. Distinguish facts, moral warrants and disputed priority. A serious complaint is not automatically reasonable rejection or a veto. If complaints are incomparable, explain why this is one important challenge rather than declaring it objectively strongest. If no grounded opposing complaint is identifiable, say so; do not fabricate one.",
+    "common_reply": "Respond from the same assigned ethical framework to the supplied opposing complaint about your saved argument. The source is unchanged; the prior reply and objection are fallible attributed arguments, not new facts or authoritative verdicts. You may retain, qualify or change your preference. A changed choice earns no credit by itself. Give a substantive answer, not a declaration that the objection has been resolved. Separate source facts, normative commitments and conditional assumptions. Do not invent empirical magnitudes, people's knowledge or consent to make an argument work. A conditional preference is useful; mere uncertainty is not an instruction to abstain. Self-reported ANSWERED is not ledger acceptance or moral proof. original_quote fields must match a contiguous span at original_path in the saved argument; source_quotes must match the exact source. Keep the final conclusion, its status and remaining objection consistent. Do not reconstruct the entire world or argument graph.",
+    "ordinary": "Revise your reasoning in light of the assigned complaint, using your framework.",
+    "focused": "First restate the disadvantaged person's actual complaint fairly, including what they lose under your recommendation and what the feasible alternative would offer them. Concede what is true or morally serious about it. Identify the exact priority premise your answer must defend. Then answer WHY the complainant has reason to accept that priority despite their own burden; repeating your preferred principle or pointing out benefits to a different person is not yet that explanation. Compare the strongest countercomplaint to the alternative and explain which consideration makes a difference. If you rely on numbers, explain why counting is licensed by your framework; if you rely on consent or an assurance, explain its force and limits. Acknowledge what your proposed rule asks the losing person to bear and what remains objectionable after your answer. If you cannot defend the comparative premise, revise the inferential claim and the strength of the conclusion, not just its confidence label. State the strongest useful conclusion that survives. Do not force agreement, a winner, or an automatic priority of imposition over omission, promise over rescue, or rescue effectiveness over assurance."
+  },
+  "code_sha256": {
+    "opposing_complaint.py": "d0bf4ac2d4a13ccb84d4af78b205cb896e76b538501da61c70d15b15fb30722a",
+    "run_opposing_complaint_probe.py": "2a1da6b78d6a21d2672270654636b5d693d3a2f09da4d73df7908fe2da2b4f46",
+    "run_contractualist_pilot.py": "65383d3cffa02051bd266ba41962ea15a216c2c566db1b21785b6de44f6db389",
+    "contractualist_pilot.py": "4bbf79ab93d3e4d07efd135f240161e219e631d5de96ed0a8b4bc56f07c377e3",
+    "argument_construction.py": "053942f616e14467b42f9df0ab37db05a846142171be53e49bc08148f4bebd93",
+    "argument_support.py": "4efd91e8b33607a5285e4126039393798c0587723d7beceb81f8c9313839f5bd",
+    "argument_frameworks.py": "eddf4fdb1f62705842c99830a876062b4917b209251c812ce3ba7cb1712d9c0b",
+    "inference_boundaries.py": "91bec44d0d072e03c3697609d217eb740a543318289eb5d248630a666887f626",
+    "deontology_repair_cards.py": "495d556309274944a49286235590d2a1a346d67a73a3036f294947125a864672"
+  },
+  "runtime": {
+    "python": "3.11.11 (main, Dec  3 2024, 17:20:40) [Clang 16.0.0 (clang-1600.0.26.4)]",
+    "packages": {
+      "openai": "3.31.0",
+      "python-dotenv": "1.2.4"
+    }
+  },
+  "world_mutation": false,
+  "native_dispatch": false,
+  "peer_input": false,
+  "limits": [
+    "One assignment and one response per arm per case; exploratory.",
+    "Assignment is a fallible model-proposed objection, not a verified strongest complaint.",
+    "Both arms receive the same assignment and saved argument; no cross-arm replies.",
+    "Extra review versus the opening is not a matched-cost treatment comparison.",
+    "Self-reported answer status does not retire any objection or commit a ledger."
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "id": "chatcmpl-EcsnaOLL9yA1kGUMqCdJaAaF57Dm6",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "{\"persons\":[{\"id\":\"P1\",\"label\":\"Rowan\",\"source_quotes\":[\"If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.\"]},{\"id\":\"P2\",\"label\":\"Sasha\",\"source_quotes\":[\"If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.\"]}],\"burdens\":[{\"id\":\"B1\",\"person_id\":\"P1\",\"description\":\"Risk of death from hypothermia\"},{\"id\":\"B2\",\"person_id\":\"P2\",\"description\":\"Risk of death from hypothermia\"}],\"burden_positions\":[{\"burden_id\":\"B1\",\"action_id\":\"A\",\"status\":\"PRESENT\",\"position\":\"20 % chance of death remains for Rowan\",\"ground_handles\":[\"S1\"]},{\"burden_id\":\"B2\",\"action_id\":\"A\",\"status\":\"PRESENT\",\"position\":\"100 % chance of death for Sasha\",\"ground_handles\":[\"S3\"]},{\"burden_id\":\"B1\",\"action_id\":\"B\",\"status\":\"PRESENT\",\"position\":\"100 % chance of death for Rowan\",\"ground_handles\":[\"S2\"]},{\"burden_id\":\"B2\",\"action_id\":\"B\",\"status\":\"PRESENT\",\"position\":\"40 % chance of death remains for Sasha\",\"ground_handles\":[\"S4\"]}],\"principles\":[{\"id\":\"PR1\",\"statement_handle\":\"N1\",\"action_ids\":[\"A\",\"B\"]}],\"statements\":[{\"kind\":\"FACTUAL_PREMISE\",\"text\":\"If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.\",\"polarity\":\"AFFIRMED\",\"modality\":\"ASSERTED\",\"hypothesis_ids\":[],\"citations\":[{\"evidence_id\":\"SCENE\",\"value_path\":\"\",\"quote\":\"If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.\"}],\"handle\":\"S1\"},{\"kind\":\"FACTUAL_PREMISE\",\"text\":\"If Ellis gives the blanket to Rowan, the hiker who does not get the blanket (Sasha) will die.\",\"polarity\":\"AFFIRMED\",\"modality\":\"ASSERTED\",\"hypothesis_ids\":[],\"citations\":[{\"evidence_id\":\"SCENE\",\"value_path\":\"\",\"quote\":\"The hiker who does not get the blanket will die.\"}],\"handle\":\"S3\"},{\"kind\":\"FACTUAL_PREMISE\",\"text\":\"If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.\",\"polarity\":\"AFFIRMED\",\"modality\":\"ASSERTED\",\"hypothesis_ids\":[],\"citations\":[{\"evidence_id\":\"SCENE\",\"value_path\":\"\",\"quote\":\"If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.\"}],\"handle\":\"S4\"},{\"kind\":\"FACTUAL_PREMISE\",\"text\":\"If Ellis gives the blanket to Sasha, the hiker who does not get the blanket (Rowan) will die.\",\"polarity\":\"AFFIRMED\",\"modality\":\"ASSERTED\",\"hypothesis_ids\":[],\"citations\":[{\"evidence_id\":\"SCENE\",\"value_path\":\"\",\"quote\":\"The hiker who does not get the blanket will die.\"}],\"handle\":\"S2\"},{\"kind\":\"NORMATIVE_PREMISE\",\"text\":\"Ellis morally ought to choose the option with the higher expected number of survivors.\",\"polarity\":\"AFFIRMED\",\"modality\":\"ASSERTED\",\"hypothesis_ids\":[],\"citations\":[],\"handle\":\"N1\"},{\"kind\":\"EVALUATIVE_COMPARISON\",\"text\":\"Action A yields an expected 0.8 survivors; action B yields an expected 0.6 survivors.\",\"polarity\":\"AFFIRMED\",\"modality\":\"ASSERTED\",\"hypothesis_ids\":[],\"citations\":[],\"handle\":\"C1\"}],\"supports\":[{\"operation\":\"SOURCE\",\"inputs\":[],\"output\":\"S1\",\"explanation\":\"/\"},{\"operation\":\"SOURCE\",\"inputs\":[],\"output\":\"S3\",\"explanation\":\"/\"},{\"operation\":\"SOURCE\",\"inputs\":[],\"output\":\"S4\",\"explanation\":\"/\"},{\"operation\":\"SOURCE\",\"inputs\":[],\"output\":\"S2\",\"explanation\":\"/\"},{\"operation\":\"ASSUMPTION\",\"inputs\":[],\"output\":\"N1\",\"explanation\":\"Utilitarian maximizing expected survival\"},{\"operation\":\"CALCULATION\",\"inputs\":[\"S1\",\"S3\"],\"output\":\"C1\",\"explanation\":\"0.8 expected survivor when Rowan gets blanket\"},{\"operation\":\"CALCULATION\",\"inputs\":[\"S4\",\"S2\"],\"output\":\"C1\",\"explanation\":\"0.6 expected survivor when Sasha gets blanket\"},{\"operation\":\"NORM_APPLICATION\",\"inputs\":[\"N1\",\"C1\"],\"output\":\"J1\",\"explanation\":\"Higher expected survivors makes A preferable\"}],\"reasons\":[{\"id\":\"R1\",\"person_id\":null,\"principle_id\":\"PR1\",\"action_id\":\"A\",\"stance\":\"FOR\",\"value\":\"Higher expected survival (0.8)\",\"conclusion_handle\":\"J1\",\"ground_handles\":[\"C1\"],\"warrant_handles\":[\"N1\"],\"generic_basis\":\"aggregate welfare\"}],\"comparisons\":[{\"id\":\"COMP1\",\"from_action_id\":\"A\",\"to_action_id\":\"B\",\"status\":\"FAVORS_FROM\",\"relieved_burden_ids\":[],\"introduced_burden_ids\":[],\"retained_burden_ids\":[\"B1\",\"B2\"],\"reason_ids\":[\"R1\"],\"judgment_handle\":\"J1\",\"explanation\":\"0.8 expected survivors vs 0.6\"}],\"challenges\":[{\"id\":\"O1\",\"kind\":\"REBUTTING\",\"target_kind\":\"STATEMENT\",\"target_id\":\"N1\",\"challenge_handle\":\"O1H\",\"response_handle\":\"O1R\",\"status\":\"ANSWERED\"}],\"action_assessments\":[{\"action_id\":\"A\",\"conclusion_handle\":\"J1\",\"assessment\":\"DEFENSIBLE\"},{\"action_id\":\"B\",\"conclusion_handle\":\"J1\",\"assessment\":\"REJECTED\"}],\"recommendation_action_id\":\"A\",\"recommendation_status\":\"UNIQUE_DEFENSIBLE\",\"recommendation_comparison_ids\":[\"COMP1\"],\"remaining_complaint_ids\":[],\"conclusion\":\"Giving the blanket to Rowan uniquely maximizes expected survival and is therefore the utilitarian choice.\",\"strongest_objection\":\"Aggregation is unfair because it ignores Sasha’s greater need once Rowan already has a higher chance; fairness demands an equal chance, so Ellis should flip a coin.\",\"answer_to_objection\":\"Under utilitarianism, equal chances are not an independent moral good; expected welfare dominates unless giving Sasha an equal chance would increase overall welfare, which it does not. Hence maximizing 0.8 expected survivors remains preferable.\",\"reversal_condition\":\"If new evidence showed Sasha’s survival probability with the blanket exceeded Rowan’s (e.g., 90 %), utilitarian calculation would reverse and favor giving the blanket to Sasha.\",\"residual_disagreement\":[]}",
+        "refusal": null,
+        "role": "assistant",
+        "annotations": [],
+        "audio": null,
+        "function_call": null,
+        "tool_calls": null
+      }
+    }
+  ],
+  "created": 1792935818,
+  "model": "o3-2025-04-16",
+  "object": "chat.completion",
+  "metadata": null,
+  "moderation": null,
+  "service_tier": "default",
+  "system_fingerprint": null,
+  "usage": {
+    "completion_tokens": 1595,
+    "prompt_tokens": 2650,
+    "total_tokens": 4245,
+    "completion_tokens_details": {
+      "accepted_prediction_tokens": 0,
+      "audio_tokens": 0,
+      "reasoning_tokens": 192,
+      "rejected_prediction_tokens": 0,
+      "text_tokens": null
+    },
+    "prompt_tokens_details": {
+      "audio_tokens": 0,
+      "cache_write_tokens": null,
+      "cached_tokens": 1792,
+      "image_tokens": null,
+      "text_tokens": null
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "version": "parliament-topography/1",
+  "status": "RECORDED",
+  "unavailable_reason": null,
+  "caption": "Survivor arithmetic does not settle total welfare. Coordinates are native ledger records, not a calibrated moral physics. Attractors are occupancy of recorded points, not interpolated terrain.",
+  "axes": {
+    "care": {
+      "available": false,
+      "encoding": "ordinal",
+      "levels": [
+        "NEGLECTFUL",
+        "MIXED",
+        "RESPONSIVE"
+      ],
+      "omit_reason": "No CARE_RELATIONSHIP_LEDGER commit."
+    },
+    "welfare": {
+      "available": false,
+      "encoding": "numeric",
+      "unit": null,
+      "scope": "RESTRICTED_SURVIVOR_ENDPOINT_NOT_TOTAL_WELFARE",
+      "omit_reason": "No arithmetic-verified utilitarian expected-value record."
+    },
+    "obligation": {
+      "available": true,
+      "encoding": "ordinal",
+      "levels": [
+        "PROHIBITED",
+        "CONFLICTED",
+        "PERMISSIBLE",
+        "REQUIRED"
+      ]
+    }
+  },
+  "actions": [
+    {
+      "id": "A0",
+      "label": "gives the blanket to Rowan",
+      "care": {
+        "present": false,
+        "omit_reason": "No CARE_RELATIONSHIP_LEDGER commit."
+      },
+      "welfare": {
+        "present": false,
+        "omit_reason": "No arithmetic-verified utilitarian expected-value record."
+      },
+      "obligation": {
+        "present": true,
+        "ordinal": 1,
+        "verdict": "CONFLICTED",
+        "unresolved": true,
+        "reason": "Breaks a promise that could not be universalized without contradiction in conception.",
+        "norm": "keep promises (fidelity)"
+      }
+    },
+    {
+      "id": "A1",
+      "label": "gives the blanket to Sasha",
+      "care": {
+        "present": false,
+        "omit_reason": "No CARE_RELATIONSHIP_LEDGER commit."
+      },
+      "welfare": {
+        "present": false,
+        "omit_reason": "No arithmetic-verified utilitarian expected-value record."
+      },
+      "obligation": {
+        "present": true,
+        "ordinal": 1,
+        "verdict": "CONFLICTED",
+        "unresolved": true,
+        "reason": "Fulfills promise without instrumentalizing anyone.",
+        "norm": "keep promises (fidelity)"
+      }
+    }
+  ],
+  "framework_arrows": [
+    {
+      "framework": "utilitarian",
+      "preference": null,
+      "action_id": null,
+      "position": "ABSTAIN",
+      "ledger_status": "COMMITTED"
+    },
+    {
+      "framework": "deontological",
+      "preference": "gives the blanket to Sasha",
+      "action_id": "A1",
+      "position": "ABSTAIN",
+      "ledger_status": "COMMITTED_WITH_UNCERTAINTY"
+    },
+    {
+      "framework": "care",
+      "preference": "gives the blanket to Rowan",
+      "action_id": "A0",
+      "position": "ABSTAIN",
+      "ledger_status": "NONE"
+    },
+    {
+      "framework": "virtue",
+      "preference": "gives the blanket to Rowan",
+      "action_id": "A0",
+      "position": "ATTENUATED",
+      "ledger_status": "COMMITTED"
+    }
+  ],
+  "flags": {
+    "degenerate": [],
+    "attractors": [],
+    "conflicts": [],
+    "holes": [
+      "care",
+      "welfare"
+    ],
+    "maxima": {
+      "care": null,
+      "welfare": null,
+      "obligation": null
+    }
+  },
+  "notices": [
+    "Contractualist questions appear in Frameworks and Hinges; no Rawls score or Contractualist coordinate is inferred."
+  ]
+}

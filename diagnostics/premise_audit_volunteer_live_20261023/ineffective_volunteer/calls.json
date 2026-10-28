@@ -1,0 +1,258 @@
+[
+  {
+    "prompt": "Audit only source applicability, independently of whether the ethical conclusion is attractive. For EVERY supplied statement, separate its decisive factual components and conditions from normative principles. Copy exact claim_span substrings. Check each added qualifier, role, absence claim, mental state, quantifier, modality and necessity condition against the FULL source. SOURCE_SUPPORTED means the quoted source supports that precise component, not merely that a quote exists. CONTRADICTED needs contrary source support. Missing information is NOT_ESTABLISHED, never the opposite fact. NORMATIVE_ASSUMPTION identifies a moral principle needing argument, not a factual error. CONDITIONAL_PRECONDITION identifies a genuinely hypothetical factual antecedent not established in this case; it must remain a condition when the norm is applied. Do not let a moral principle hide unstated factual applicability. Cite exact source spans for source judgments. Preserve whatever weaker factual or conditional reading survives. Do not recommend an action or decide duty priority.\n{\"version\": \"premise-audit/0.1\", \"source_sha256\": \"a8ee0c1cde8371b7f2eb624c242be5490d3aef3209429692fcd363a5e448a970\", \"argument_sha256\": \"84e258452724d979d211e22b1e3ffa8ce3f111979fedef64302d2a2398915812\", \"evidence\": [{\"ref\": \"SCENE\", \"kind\": \"EXACT_SCENARIO\", \"value\": \"During a flood warning, Len believes that asking volunteer Ivo to hold a contact plate will close a gate. Len asks Ivo to hold it for that purpose, and Ivo freely agrees. Unknown to Len, the contact plate is disconnected and cannot close the gate. A posted rule says only trained staff should operate the controls; no emergency priority is stated. Analyze whether Len employs Ivo as a means, whether the failed mechanism changes that account, and whether consent or the posted rule alone settles permissibility.\"}], \"claims\": [{\"statement_id\": \"STATEMENT:15585e810d80806ef07c3453\", \"text\": \"One ought to comply with standing safety rules unless a clearly overriding moral duty is present.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\"}, {\"statement_id\": \"STATEMENT:313908c7f25853803516e377\", \"text\": \"Len nevertheless enlists untrained volunteer Ivo to handle the control.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\"}, {\"statement_id\": \"STATEMENT:7a6a9555b4ea1b9ef7e6a155\", \"text\": \"Accordingly, Len\\u2019s consent-based request remains presumptively impermissible because it violates the standing safety rule, whose authority is not defeated on the given facts.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\"}, {\"statement_id\": \"STATEMENT:ab398ef025e11e2a8aa4767e\", \"text\": \"No explicit emergency override of the posted rule is given in the circumstances described.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\"}, {\"statement_id\": \"STATEMENT:d57f3b74709bbaa5acaa4a4f\", \"text\": \"Obtaining a person\\u2019s voluntary and informed consent normally satisfies the duty not to treat that person merely as a means.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\"}, {\"statement_id\": \"STATEMENT:f8680884109715600d57d0f8\", \"text\": \"A posted rule states that only trained staff should operate the controls and gives no emergency exception.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\"}]}",
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "statement_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "components": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "claim_span": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "SOURCE_SUPPORTED",
+                        "CONTRADICTED",
+                        "NOT_ESTABLISHED",
+                        "NORMATIVE_ASSUMPTION",
+                        "CONDITIONAL_PRECONDITION"
+                      ]
+                    },
+                    "evidence": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "evidence_id": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "value_path": {
+                            "type": "string"
+                          },
+                          "quote": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "evidence_id",
+                          "value_path",
+                          "quote"
+                        ]
+                      }
+                    },
+                    "reason": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "claim_span",
+                    "status",
+                    "evidence",
+                    "reason"
+                  ]
+                },
+                "minItems": 1
+              },
+              "source_preserving_reading": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "statement_id",
+              "components",
+              "source_preserving_reading"
+            ]
+          }
+        }
+      },
+      "required": [
+        "findings"
+      ]
+    },
+    "status": "RETURNED",
+    "provider_attempts": 1,
+    "request": {
+      "model": "o3",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Audit only source applicability, independently of whether the ethical conclusion is attractive. For EVERY supplied statement, separate its decisive factual components and conditions from normative principles. Copy exact claim_span substrings. Check each added qualifier, role, absence claim, mental state, quantifier, modality and necessity condition against the FULL source. SOURCE_SUPPORTED means the quoted source supports that precise component, not merely that a quote exists. CONTRADICTED needs contrary source support. Missing information is NOT_ESTABLISHED, never the opposite fact. NORMATIVE_ASSUMPTION identifies a moral principle needing argument, not a factual error. CONDITIONAL_PRECONDITION identifies a genuinely hypothetical factual antecedent not established in this case; it must remain a condition when the norm is applied. Do not let a moral principle hide unstated factual applicability. Cite exact source spans for source judgments. Preserve whatever weaker factual or conditional reading survives. Do not recommend an action or decide duty priority.\n{\"version\": \"premise-audit/0.1\", \"source_sha256\": \"a8ee0c1cde8371b7f2eb624c242be5490d3aef3209429692fcd363a5e448a970\", \"argument_sha256\": \"84e258452724d979d211e22b1e3ffa8ce3f111979fedef64302d2a2398915812\", \"evidence\": [{\"ref\": \"SCENE\", \"kind\": \"EXACT_SCENARIO\", \"value\": \"During a flood warning, Len believes that asking volunteer Ivo to hold a contact plate will close a gate. Len asks Ivo to hold it for that purpose, and Ivo freely agrees. Unknown to Len, the contact plate is disconnected and cannot close the gate. A posted rule says only trained staff should operate the controls; no emergency priority is stated. Analyze whether Len employs Ivo as a means, whether the failed mechanism changes that account, and whether consent or the posted rule alone settles permissibility.\"}], \"claims\": [{\"statement_id\": \"STATEMENT:15585e810d80806ef07c3453\", \"text\": \"One ought to comply with standing safety rules unless a clearly overriding moral duty is present.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\"}, {\"statement_id\": \"STATEMENT:313908c7f25853803516e377\", \"text\": \"Len nevertheless enlists untrained volunteer Ivo to handle the control.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\"}, {\"statement_id\": \"STATEMENT:7a6a9555b4ea1b9ef7e6a155\", \"text\": \"Accordingly, Len\\u2019s consent-based request remains presumptively impermissible because it violates the standing safety rule, whose authority is not defeated on the given facts.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\"}, {\"statement_id\": \"STATEMENT:ab398ef025e11e2a8aa4767e\", \"text\": \"No explicit emergency override of the posted rule is given in the circumstances described.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\"}, {\"statement_id\": \"STATEMENT:d57f3b74709bbaa5acaa4a4f\", \"text\": \"Obtaining a person\\u2019s voluntary and informed consent normally satisfies the duty not to treat that person merely as a means.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\"}, {\"statement_id\": \"STATEMENT:f8680884109715600d57d0f8\", \"text\": \"A posted rule states that only trained staff should operate the controls and gives no emergency exception.\", \"polarity\": \"AFFIRMED\", \"modality\": \"ASSERTED\"}]}"
+        }
+      ],
+      "max_completion_tokens": 8192,
+      "timeout": 120,
+      "response_format": {
+        "type": "json_schema",
+        "json_schema": {
+          "name": "workspace_response",
+          "strict": true,
+          "schema": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "findings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "statement_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "components": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "claim_span": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "SOURCE_SUPPORTED",
+                              "CONTRADICTED",
+                              "NOT_ESTABLISHED",
+                              "NORMATIVE_ASSUMPTION",
+                              "CONDITIONAL_PRECONDITION"
+                            ]
+                          },
+                          "evidence": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "evidence_id": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "value_path": {
+                                  "type": "string"
+                                },
+                                "quote": {
+                                  "type": "string",
+                                  "minLength": 1
+                                }
+                              },
+                              "required": [
+                                "evidence_id",
+                                "value_path",
+                                "quote"
+                              ]
+                            }
+                          },
+                          "reason": {
+                            "type": "string",
+                            "minLength": 1
+                          }
+                        },
+                        "required": [
+                          "claim_span",
+                          "status",
+                          "evidence",
+                          "reason"
+                        ]
+                      },
+                      "minItems": 1
+                    },
+                    "source_preserving_reading": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "statement_id",
+                    "components",
+                    "source_preserving_reading"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "findings"
+            ]
+          }
+        }
+      },
+      "reasoning_effort": "low"
+    },
+    "provider_response": {
+      "id": "chatcmpl-EcBPB2AISrULcoEWSATDRltZrg0jn",
+      "choices": [
+        {
+          "finish_reason": "stop",
+          "index": 0,
+          "logprobs": null,
+          "message": {
+            "content": "{\"findings\":[{\"statement_id\":\"STATEMENT:15585e810d80806ef07c3453\",\"components\":[{\"claim_span\":\"One ought to comply with standing safety rules\",\"status\":\"NORMATIVE_ASSUMPTION\",\"evidence\":[],\"reason\":\"Purely prescriptive; no empirical claim in source to check.\"},{\"claim_span\":\"unless a clearly overriding moral duty is present\",\"status\":\"NORMATIVE_ASSUMPTION\",\"evidence\":[],\"reason\":\"Also ethical qualifier, not a factual claim established in the scenario.\"}],\"source_preserving_reading\":\"Entire statement is a moral principle not asserted as fact in the scenario.\"},{\"statement_id\":\"STATEMENT:313908c7f25853803516e377\",\"components\":[{\"claim_span\":\"Len ... enlists ... volunteer Ivo to handle the control\",\"status\":\"SOURCE_SUPPORTED\",\"evidence\":[{\"evidence_id\":\"EV1\",\"value_path\":\"SCENE\",\"quote\":\"Len believes that asking volunteer Ivo to hold a contact plate will close a gate. Len asks Ivo to hold it for that purpose, and Ivo freely agrees.\"}],\"reason\":\"Source explicitly states Len asked Ivo to operate the plate and Ivo agreed.\"},{\"claim_span\":\"untrained\",\"status\":\"NOT_ESTABLISHED\",\"evidence\":[],\"reason\":\"Scenario never says whether Ivo is or is not trained; only that he is a volunteer.\"}],\"source_preserving_reading\":\"Fact that Len recruits Ivo is supported; Ivo\u2019s lack of training is not given.\"},{\"statement_id\":\"STATEMENT:7a6a9555b4ea1b9ef7e6a155\",\"components\":[{\"claim_span\":\"Len\u2019s consent-based request remains presumptively impermissible\",\"status\":\"NORMATIVE_ASSUMPTION\",\"evidence\":[],\"reason\":\"Moral evaluation, not a factual assertion.\"},{\"claim_span\":\"it violates the standing safety rule\",\"status\":\"NOT_ESTABLISHED\",\"evidence\":[],\"reason\":\"Violation depends on Ivo\u2019s training status, which source does not state.\"},{\"claim_span\":\"whose authority is not defeated on the given facts\",\"status\":\"SOURCE_SUPPORTED\",\"evidence\":[{\"evidence_id\":\"EV2\",\"value_path\":\"SCENE\",\"quote\":\"A posted rule says only trained staff should operate the controls; no emergency priority is stated.\"}],\"reason\":\"Source affirms no override or priority is provided for emergencies.\"}],\"source_preserving_reading\":\"Only the lack of override is factually grounded; whether a violation occurs and moral impermissibility are not established by source facts.\"},{\"statement_id\":\"STATEMENT:ab398ef025e11e2a8aa4767e\",\"components\":[{\"claim_span\":\"No explicit emergency override of the posted rule is given in the circumstances described\",\"status\":\"SOURCE_SUPPORTED\",\"evidence\":[{\"evidence_id\":\"EV2\",\"value_path\":\"SCENE\",\"quote\":\"A posted rule says only trained staff should operate the controls; no emergency priority is stated.\"}],\"reason\":\"Quote directly states absence of emergency priority/override.\"}],\"source_preserving_reading\":\"Statement repeats factual absence of an override expressly noted in the scenario.\"},{\"statement_id\":\"STATEMENT:d57f3b74709bbaa5acaa4a4f\",\"components\":[{\"claim_span\":\"Obtaining a person\u2019s voluntary and informed consent normally satisfies the duty not to treat that person merely as a means\",\"status\":\"NORMATIVE_ASSUMPTION\",\"evidence\":[],\"reason\":\"Ethical principle, not verified or contradicted by scenario facts.\"}],\"source_preserving_reading\":\"A general moral proposition not tied to source facts.\"},{\"statement_id\":\"STATEMENT:f8680884109715600d57d0f8\",\"components\":[{\"claim_span\":\"A posted rule states that only trained staff should operate the controls\",\"status\":\"SOURCE_SUPPORTED\",\"evidence\":[{\"evidence_id\":\"EV2\",\"value_path\":\"SCENE\",\"quote\":\"A posted rule says only trained staff should operate the controls; no emergency priority is stated.\"}],\"reason\":\"Directly quoted.\"},{\"claim_span\":\"and gives no emergency exception\",\"status\":\"SOURCE_SUPPORTED\",\"evidence\":[{\"evidence_id\":\"EV2\",\"value_path\":\"SCENE\",\"quote\":\"A posted rule says only trained staff should operate the controls; no emergency priority is stated.\"}],\"reason\":\"Same sentence affirms absence of emergency exception.\"}],\"source_preserving_reading\":\"Both parts explicitly appear in the scenario description.\"}]}",
+            "refusal": null,
+            "role": "assistant",
+            "annotations": [],
+            "audio": null,
+            "function_call": null,
+            "tool_calls": null
+          }
+        }
+      ],
+      "created": 1792769013,
+      "model": "o3-2025-04-16",
+      "object": "chat.completion",
+      "metadata": null,
+      "moderation": null,
+      "service_tier": "default",
+      "system_fingerprint": null,
+      "usage": {
+        "completion_tokens": 2223,
+        "prompt_tokens": 975,
+        "total_tokens": 3198,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 1280,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      }
+    },
+    "response": {
+      "choices": [
+        {
+          "text": "{\"findings\":[{\"statement_id\":\"STATEMENT:15585e810d80806ef07c3453\",\"components\":[{\"claim_span\":\"One ought to comply with standing safety rules\",\"status\":\"NORMATIVE_ASSUMPTION\",\"evidence\":[],\"reason\":\"Purely prescriptive; no empirical claim in source to check.\"},{\"claim_span\":\"unless a clearly overriding moral duty is present\",\"status\":\"NORMATIVE_ASSUMPTION\",\"evidence\":[],\"reason\":\"Also ethical qualifier, not a factual claim established in the scenario.\"}],\"source_preserving_reading\":\"Entire statement is a moral principle not asserted as fact in the scenario.\"},{\"statement_id\":\"STATEMENT:313908c7f25853803516e377\",\"components\":[{\"claim_span\":\"Len ... enlists ... volunteer Ivo to handle the control\",\"status\":\"SOURCE_SUPPORTED\",\"evidence\":[{\"evidence_id\":\"EV1\",\"value_path\":\"SCENE\",\"quote\":\"Len believes that asking volunteer Ivo to hold a contact plate will close a gate. Len asks Ivo to hold it for that purpose, and Ivo freely agrees.\"}],\"reason\":\"Source explicitly states Len asked Ivo to operate the plate and Ivo agreed.\"},{\"claim_span\":\"untrained\",\"status\":\"NOT_ESTABLISHED\",\"evidence\":[],\"reason\":\"Scenario never says whether Ivo is or is not trained; only that he is a volunteer.\"}],\"source_preserving_reading\":\"Fact that Len recruits Ivo is supported; Ivo\u2019s lack of training is not given.\"},{\"statement_id\":\"STATEMENT:7a6a9555b4ea1b9ef7e6a155\",\"components\":[{\"claim_span\":\"Len\u2019s consent-based request remains presumptively impermissible\",\"status\":\"NORMATIVE_ASSUMPTION\",\"evidence\":[],\"reason\":\"Moral evaluation, not a factual assertion.\"},{\"claim_span\":\"it violates the standing safety rule\",\"status\":\"NOT_ESTABLISHED\",\"evidence\":[],\"reason\":\"Violation depends on Ivo\u2019s training status, which source does not state.\"},{\"claim_span\":\"whose authority is not defeated on the given facts\",\"status\":\"SOURCE_SUPPORTED\",\"evidence\":[{\"evidence_id\":\"EV2\",\"value_path\":\"SCENE\",\"quote\":\"A posted rule says only trained staff should operate the controls; no emergency priority is stated.\"}],\"reason\":\"Source affirms no override or priority is provided for emergencies.\"}],\"source_preserving_reading\":\"Only the lack of override is factually grounded; whether a violation occurs and moral impermissibility are not established by source facts.\"},{\"statement_id\":\"STATEMENT:ab398ef025e11e2a8aa4767e\",\"components\":[{\"claim_span\":\"No explicit emergency override of the posted rule is given in the circumstances described\",\"status\":\"SOURCE_SUPPORTED\",\"evidence\":[{\"evidence_id\":\"EV2\",\"value_path\":\"SCENE\",\"quote\":\"A posted rule says only trained staff should operate the controls; no emergency priority is stated.\"}],\"reason\":\"Quote directly states absence of emergency priority/override.\"}],\"source_preserving_reading\":\"Statement repeats factual absence of an override expressly noted in the scenario.\"},{\"statement_id\":\"STATEMENT:d57f3b74709bbaa5acaa4a4f\",\"components\":[{\"claim_span\":\"Obtaining a person\u2019s voluntary and informed consent normally satisfies the duty not to treat that person merely as a means\",\"status\":\"NORMATIVE_ASSUMPTION\",\"evidence\":[],\"reason\":\"Ethical principle, not verified or contradicted by scenario facts.\"}],\"source_preserving_reading\":\"A general moral proposition not tied to source facts.\"},{\"statement_id\":\"STATEMENT:f8680884109715600d57d0f8\",\"components\":[{\"claim_span\":\"A posted rule states that only trained staff should operate the controls\",\"status\":\"SOURCE_SUPPORTED\",\"evidence\":[{\"evidence_id\":\"EV2\",\"value_path\":\"SCENE\",\"quote\":\"A posted rule says only trained staff should operate the controls; no emergency priority is stated.\"}],\"reason\":\"Directly quoted.\"},{\"claim_span\":\"and gives no emergency exception\",\"status\":\"SOURCE_SUPPORTED\",\"evidence\":[{\"evidence_id\":\"EV2\",\"value_path\":\"SCENE\",\"quote\":\"A posted rule says only trained staff should operate the controls; no emergency priority is stated.\"}],\"reason\":\"Same sentence affirms absence of emergency exception.\"}],\"source_preserving_reading\":\"Both parts explicitly appear in the scenario description.\"}]}"
+        }
+      ]
+    }
+  }
+]

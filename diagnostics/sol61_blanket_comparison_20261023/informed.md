@@ -1,0 +1,68 @@
+# Recommendation
+
+On the stated facts, the substantial survival advantage outweighs Ellis’s genuine obligation to Sasha. Ellis should act promptly, explain the changed circumstances honestly, and acknowledge the broken promise rather than dismissing it.
+
+The scenario permits only two allocations, and the unblanketed hiker certainly dies. Giving Rowan the blanket therefore yields 0.8 expected survivors, compared with 0.6 for Sasha: a difference of 0.2 expected lives. Equivalently, the probability that someone survives rises by 20 percentage points, and the probability both die falls from 40% to 20%. These calculations do not alone establish the moral verdict. Sasha has a special claim because of the promise, not merely an interest in Ellis’s reputation. Nevertheless, my normative priority is that a rescuer allocating otherwise unassigned lifesaving equipment should give substantial weight to rescue effectiveness while respecting both people equally. An undertaking made before discovering another equally endangered person should not, without stronger grounds, settle that person’s fate despite a substantial survival advantage. This does not make Rowan’s life more valuable or make Sasha’s claim negligible.
+
+## Perspectives
+
+### Consequences and rescue effectiveness
+
+For Rowan: Rowan’s allocation produces the higher expected survivor count and halves the risk that neither hiker survives.
+
+For Sasha: Keeping commitments can prevent betrayal and sustain trust; any detrimental reliance could create additional harm.
+
+The stipulated survival consequences favor Rowan. Additional trust or reliance effects are possible but are not quantified or established here.
+
+### Promises and competing duties
+
+For Rowan: Discovering Rowan creates a competing rescue obligation that Ellis did not consider when promising the blanket.
+
+For Sasha: A promise creates a directed obligation to Sasha that cannot simply be erased by comparing probabilities.
+
+Sasha’s claim is serious but defeasible. In this initial allocation, a substantial lifesaving advantage justifies overriding it. A sincere promise later overridden by unforeseen circumstances is not automatically equivalent to deceptive promising.
+
+### Equal respect and fairness
+
+For Rowan: Likelihood of successful rescue is a relevant, impersonal allocation criterion, unlike social worth or personal preference.
+
+For Sasha: Equal respect can support giving both hikers a chance, while the prior promise supplies a non-arbitrary reason to prioritize Sasha.
+
+Equal moral worth does not require ignoring a substantial effectiveness difference. However, Rowan’s allocation does not improve both hikers’ prospects: it benefits Rowan at Sasha’s expense.
+
+### Care and practical wisdom
+
+For Rowan: Competent care considers whether an intervention is likely to save its recipient.
+
+For Sasha: Attentive care also recognizes the particular dependency and trust Ellis created through the promise.
+
+Responsible care supports Rowan here while requiring honesty and compassion toward Sasha. Choosing Sasha would not be mere waste or proof of incompetence; it would prioritize a competing moral commitment.
+
+## Strongest objection
+
+Sasha was specifically promised the blanket and still has a substantial 60% chance of survival. Breaking that undertaking condemns Sasha to certain death for a probabilistic improvement elsewhere. If rescuers may revoke lifesaving commitments whenever someone with better odds appears, their assurances offer little security to vulnerable people.
+
+That objection rules out treating promises as costless or allowing every marginal statistical advantage to defeat them. It does not establish absolute priority. Ellis must now answer to two equally endangered people, and the 20-percentage-point difference is substantial. A limited principle allowing reconsideration of an unfulfilled allocation promise after discovering an unforeseen competing emergency need not license casual abandonment, deception, or withdrawal of established treatment. On the facts given, preserving Sasha’s promised priority would sacrifice too much rescue effectiveness. The breach remains morally significant: Ellis owes acknowledgment and explanation, not a claim that Sasha never had a legitimate expectation.
+
+## Assumptions
+
+- Interpretive assumption: this is an initial allocation, not removal of a blanket already protecting Sasha.
+- Interpretive assumption: the promise is genuine, but the scenario establishes no additional ownership right, treatment relationship, or detrimental reliance that strengthens Sasha’s priority.
+- Normative priority: both lives have equal worth; substantial rescue effectiveness can override an ordinary promise under an unforeseen competing emergency, though not every tiny advantage would suffice.
+
+## Uncertainties
+
+- Whether Sasha changed course or abandoned another viable means of survival because of Ellis’s promise.
+- Whether the promise formed part of a stronger undertaking or an already-established rescue allocation.
+- The survival probabilities are stipulated facts of this fictional case, not factual unknowns. The precise moral threshold at which effectiveness overrides fidelity remains contestable.
+
+## Reversal conditions
+
+- If the survival probabilities were equal, the promise would favor Sasha.
+- If Sasha’s survival probability exceeded Rowan’s, both rescue effectiveness and fidelity would favor Sasha.
+- If Ellis’s assurance induced Sasha to surrender a viable alternative escape or warming opportunity, the resulting responsibility could outweigh Rowan’s present advantage.
+- If this were withdrawal of already-effective protection from Sasha rather than an initial allocation, stronger continuity-of-care and non-abandonment reasons could change the verdict.
+
+## Assessment of supplied analysis
+
+The supplied analysis identifies the central conflict but does not resolve it by authority, framework counts, or plotted probabilities. Its technical objection that expected survivors cannot be recomputed is unpersuasive: the source explicitly identifies two individuals, their survival probabilities, and certain death without the blanket. That supports 0.8 versus 0.6 expected survivors, though not a complete calculation of total welfare. Its Rawlsian maximin argument is incorrect for the fixed allocations: the worst individual survival prospect is zero under either choice. Its promise-based argument also assumes, rather than establishes, an absolute duty priority. Conversely, a promise can create a genuine obligation without a separate prohibition on physical harm; technical concerns about classifying omissions do not eliminate Sasha’s claim. The model-derived plots measure assessments of the packet, not moral truth or additional scenario evidence.

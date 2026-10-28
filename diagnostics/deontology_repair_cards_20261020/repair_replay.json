@@ -1,0 +1,1653 @@
+{
+  "api_calls": 0,
+  "operative": false,
+  "status": "NONVOTING_STAGED_REPAIR",
+  "source": "diagnostics/lab_all_agents_20261019/frameworks/framework_generation.json",
+  "source_sha256": "f71b5feea7253a808f8cc0b06406a6f486f7ac5f24472102025fa84c98b8d08e",
+  "saved_reply": "diagnostics/lab_all_agents_20261019/review/deontological/model_calls.json",
+  "saved_reply_sha256": "60a2414a3498a0657e3ff4c4ffe1b87e446f292e8d84f3b3938d8afbcd1a6939",
+  "world_sha256": "8d5c5c310487309d959a5813921dd80640a24ee592ea167922dde7eb6e7a2947",
+  "initial_cards": [
+    {
+      "card_id": "REPAIR:861a1a6cb004c295bbbb1a94",
+      "version": "derivation-repair/0.1",
+      "family": "HARM_CLASSIFICATION",
+      "action_id": "A0",
+      "record_id": "DEON_ASSESSMENT:deontological:A0",
+      "world_sha256": "8d5c5c310487309d959a5813921dd80640a24ee592ea167922dde7eb6e7a2947",
+      "record_sha256": "0ed692d99713843a29acc58b9cb8b781ce91bad8e36e3765fa44c91a08e41d0c",
+      "issue_records": [
+        {
+          "kind": "HARM_RELATION_GRAPH_MISALIGN",
+          "message": "doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+          "status": "ACTIVE"
+        }
+      ],
+      "target_paths": [
+        "harm_relation"
+      ],
+      "current_values": {
+        "harm_relation": "DOING_HARM"
+      },
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P2",
+            "outcome": "open the door now",
+            "relation": "OPEN",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "open the door now",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        },
+        {
+          "ref": "E2",
+          "path": "/effects/1",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "doing so may expose nearby staff to hazardous fumes",
+            "relation": "EXPOSE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "POSSIBLE",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+              }
+            ],
+            "likelihood_qualifiers": [
+              "may"
+            ],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        },
+        {
+          "ref": "LINK:0",
+          "path": "/causal_links/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "source_id": "E1",
+            "relation": "ENABLES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+              }
+            ],
+            "action_id": "A0"
+          }
+        },
+        {
+          "ref": "ARGUMENT:harm_relation",
+          "path": "DEON_ASSESSMENT:deontological:A0/harm_relation",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "DOING_HARM"
+        }
+      ],
+      "violated_invariant": "Under the native classification contract, DOING_HARM needs admitted agent-caused settled welfare harm; possibility and ENABLES alone do not establish it.",
+      "required_repair": "Reconsider the harm classification using this action topology, or leave it unresolved. Do not infer permissibility or settled injury.",
+      "invalidate_if_changed": [
+        "verdict",
+        "governing_norm",
+        "priority_basis",
+        "resolution_status",
+        "priority_rule",
+        "reason",
+        "candidate_maxim.action_permissibility",
+        "candidate_maxim.maxim_assessment",
+        "candidate_maxim.universalization"
+      ],
+      "authority": "VALIDATOR_DERIVED_REPAIR_SCOPE_NOT_MORAL_VERDICT"
+    },
+    {
+      "card_id": "REPAIR:701c17af6a11228878bf4b0b",
+      "version": "derivation-repair/0.1",
+      "family": "PERSON_ROLE_CONSISTENCY",
+      "action_id": "A0",
+      "record_id": "DEON_ASSESSMENT:deontological:A0",
+      "world_sha256": "8d5c5c310487309d959a5813921dd80640a24ee592ea167922dde7eb6e7a2947",
+      "record_sha256": "0ed692d99713843a29acc58b9cb8b781ce91bad8e36e3765fa44c91a08e41d0c",
+      "issue_records": [
+        {
+          "kind": "CALIBRATION",
+          "message": "candidate maxim denies intended use while proposing instrumental belief and purposive use",
+          "status": "ACTIVE"
+        }
+      ],
+      "target_paths": [
+        "means_relation",
+        "candidate_maxim.person_role",
+        "candidate_maxim.instrumental_belief",
+        "candidate_maxim.instrumental_use",
+        "candidate_maxim.practical_reasoning",
+        "candidate_maxim.means_effect_ids",
+        "candidate_maxim.end_effect_ids"
+      ],
+      "current_values": {
+        "means_relation": "FORESEEN_SIDE_EFFECT",
+        "candidate_maxim.person_role": "FORESEEN_AFFECTED",
+        "candidate_maxim.instrumental_belief": "RELIES_ON_PERSON",
+        "candidate_maxim.instrumental_use": "USES_PERSON",
+        "candidate_maxim.practical_reasoning": "Staff exposure is accepted to reach technician sooner.",
+        "candidate_maxim.means_effect_ids": [
+          "E1"
+        ],
+        "candidate_maxim.end_effect_ids": []
+      },
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P2",
+            "outcome": "open the door now",
+            "relation": "OPEN",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "open the door now",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        },
+        {
+          "ref": "E2",
+          "path": "/effects/1",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "doing so may expose nearby staff to hazardous fumes",
+            "relation": "EXPOSE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "POSSIBLE",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+              }
+            ],
+            "likelihood_qualifiers": [
+              "may"
+            ],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        },
+        {
+          "ref": "LINK:0",
+          "path": "/causal_links/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "source_id": "E1",
+            "relation": "ENABLES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+              }
+            ],
+            "action_id": "A0"
+          }
+        },
+        {
+          "ref": "ARGUMENT:means_relation",
+          "path": "DEON_ASSESSMENT:deontological:A0/means_relation",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "FORESEEN_SIDE_EFFECT"
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.person_role",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.person_role",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "FORESEEN_AFFECTED"
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.instrumental_belief",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_belief",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "RELIES_ON_PERSON"
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.instrumental_use",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_use",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "USES_PERSON"
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.practical_reasoning",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.practical_reasoning",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "Staff exposure is accepted to reach technician sooner."
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.means_effect_ids",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.means_effect_ids",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": [
+            "E1"
+          ]
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.end_effect_ids",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.end_effect_ids",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": []
+        }
+      ],
+      "violated_invariant": "Means relation, person role, instrumental belief/use and same-action means/end references must be mutually consistent; physical necessity is not proof of intention.",
+      "required_repair": "Repair the person-role bundle atomically, or leave it unresolved. Do not infer actual intentions, consent or a moral verdict.",
+      "invalidate_if_changed": [
+        "verdict",
+        "governing_norm",
+        "priority_basis",
+        "resolution_status",
+        "priority_rule",
+        "reason",
+        "candidate_maxim.action_permissibility",
+        "candidate_maxim.maxim_assessment",
+        "candidate_maxim.universalization"
+      ],
+      "authority": "VALIDATOR_DERIVED_REPAIR_SCOPE_NOT_MORAL_VERDICT"
+    }
+  ],
+  "audits": [
+    {
+      "version": "derivation-repair/0.1",
+      "card_id": "REPAIR:861a1a6cb004c295bbbb1a94",
+      "family": "HARM_CLASSIFICATION",
+      "response": {
+        "card_id": "REPAIR:861a1a6cb004c295bbbb1a94",
+        "changes": {
+          "harm_relation": "MIXED"
+        },
+        "evidence_refs": [
+          "E1",
+          "E2"
+        ],
+        "explanation": "A0 no longer claims the staff are used as a means; exposure is a foreseen side effect. Harm-relation premise remains contested because only a risk, not certain harm, is stated, but precautionary reading of perfect non-maleficence still governs.",
+        "unresolved_questions": []
+      },
+      "status": "STAGED_NATIVE_REVALIDATED",
+      "errors": [],
+      "world_state_authority": "NONE",
+      "operative": false,
+      "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+      "revision_category": "APPLICATION_REVISION",
+      "before_record_sha256": "0ed692d99713843a29acc58b9cb8b781ce91bad8e36e3765fa44c91a08e41d0c",
+      "after_record_sha256": "8eeefdaf0f4557b2914b21722e7833b481c434bd6f1cede0686139a6428f27e6",
+      "changes": {
+        "harm_relation": "MIXED"
+      },
+      "invalidated_paths": [
+        "verdict",
+        "governing_norm",
+        "priority_basis",
+        "resolution_status",
+        "priority_rule",
+        "reason",
+        "candidate_maxim.action_permissibility",
+        "candidate_maxim.maxim_assessment",
+        "candidate_maxim.universalization"
+      ],
+      "superseded_closure": {
+        "verdict": "CONFLICTED",
+        "governing_norm": "UNRESOLVED",
+        "priority_basis": "UNRESOLVED",
+        "resolution_status": "CONTESTED",
+        "priority_rule": "perfect negative duties override imperfect positives",
+        "reason": "directly endangering staff uses them as mere means to rescue another.",
+        "candidate_maxim.action_permissibility": "IMPERMISSIBLE",
+        "candidate_maxim.maxim_assessment": "INDEFENSIBLE",
+        "candidate_maxim.universalization": "would allow endangering others whenever quick rescue desired"
+      },
+      "dependency_rule": "CONSERVATIVE_AFFECTED_ROW_INVALIDATION",
+      "effective_resolution": "CONTESTED",
+      "preference_status": "REQUIRES_REDELIBERATION",
+      "native_validation_status": "COMMITTED_WITH_UNCERTAINTY",
+      "native_warnings": [
+        "A0 ADJUDICATION_CALIBRATION: candidate maxim denies intended use while proposing instrumental belief and purposive use",
+        "A1 primary protected party lacks current-run action grounding"
+      ],
+      "native_transaction": {
+        "submitted": {
+          "assessments": [
+            {
+              "verdict": "CONFLICTED",
+              "relation": "VIOLATES",
+              "norm_kind": "DUTY",
+              "competing_norm": "imperfect duty of rescue",
+              "competing_norm_kind": "DUTY",
+              "competing_relation": "CONFLICTS",
+              "competing_protected_party": "technician",
+              "competing_reason": "rescue duty conflicts but is weaker",
+              "duty_type": "PERFECT_NEGATIVE",
+              "harm_relation": "MIXED",
+              "special_obligation_status": "NOT_REQUIRED",
+              "special_obligation_basis": "no special relation to staff needed",
+              "means_relation": "FORESEEN_SIDE_EFFECT",
+              "candidate_maxim": {
+                "circumstance": "experiment running, technician trapped",
+                "policy": "open containment door immediately",
+                "end": "reach technician quickly",
+                "means": "opening door during run",
+                "person_role": "FORESEEN_AFFECTED",
+                "consent_constraint": "NONE",
+                "universalization": "Prior assessment is superseded; universalization requires renewed adjudication.",
+                "action_permissibility": "UNRESOLVED",
+                "maxim_assessment": "UNRESOLVED",
+                "instrumental_belief": "RELIES_ON_PERSON",
+                "instrumental_use": "USES_PERSON",
+                "practical_reasoning": "Staff exposure is accepted to reach technician sooner.",
+                "means_effect_ids": [
+                  "E1"
+                ],
+                "end_effect_ids": []
+              },
+              "governing_norm": "UNRESOLVED",
+              "priority_basis": "UNRESOLVED",
+              "priority_rule": "Priority requires renewed adjudication after an upstream repair.",
+              "protected_standing": "BODILY_INTEGRITY",
+              "competing_protected_standing": "BODILY_INTEGRITY",
+              "coercion_kind": "NONE",
+              "coercive_actor": "NONE",
+              "coerced_party": "NONE",
+              "public_justification": "cannot will universal permission to harm bystanders",
+              "reciprocity_status": "FAILED",
+              "necessity_status": "UNKNOWN",
+              "authorization_status": "NOT_APPLICABLE",
+              "derivation": "RESPECT_PERSONS",
+              "resolution_status": "CONTESTED",
+              "evidence_basis": "FRAMEWORK_ONLY",
+              "reason": "Prior adjudication is superseded; the repaired classification does not settle permissibility.",
+              "protected_party": "nearby staff",
+              "norm": "do not harm innocents",
+              "duty_bearer": "mira",
+              "action_id": "A0"
+            },
+            {
+              "verdict": "REQUIRED",
+              "relation": "SATISFIES",
+              "norm_kind": "DUTY",
+              "competing_norm": "imperfect duty of rescue",
+              "competing_norm_kind": "DUTY",
+              "competing_relation": "CONFLICTS",
+              "competing_protected_party": "technician",
+              "competing_reason": "rescue duty less stringent",
+              "duty_type": "PERFECT_NEGATIVE",
+              "harm_relation": "ALLOWING_HARM",
+              "special_obligation_status": "NOT_REQUIRED",
+              "special_obligation_basis": "no special obligation established",
+              "means_relation": "NO_INSTRUMENTALIZATION",
+              "candidate_maxim": {
+                "circumstance": "experiment running, technician trapped",
+                "policy": "stop experiment and wait",
+                "end": "reach technician safely",
+                "means": "halt hazardous process",
+                "person_role": "NOT_USED",
+                "consent_constraint": "NONE",
+                "universalization": "consistent with universal safety adherence",
+                "action_permissibility": "PERMISSIBLE",
+                "maxim_assessment": "DEFENSIBLE",
+                "instrumental_belief": "DOES_NOT_RELY",
+                "instrumental_use": "DOES_NOT_USE",
+                "practical_reasoning": "Protect others while preparing safe rescue.",
+                "means_effect_ids": [
+                  "E3"
+                ],
+                "end_effect_ids": []
+              },
+              "governing_norm": "PRIMARY",
+              "priority_basis": "RESPECT_PERSONS",
+              "priority_rule": "avoid doing harm prevails over preventing harm",
+              "protected_standing": "BODILY_INTEGRITY",
+              "competing_protected_standing": "BODILY_INTEGRITY",
+              "coercion_kind": "NONE",
+              "coercive_actor": "NONE",
+              "coerced_party": "NONE",
+              "public_justification": "universal law to wait when opening would endanger others",
+              "reciprocity_status": "SATISFIED",
+              "necessity_status": "UNKNOWN",
+              "authorization_status": "NOT_APPLICABLE",
+              "derivation": "RESPECT_PERSONS",
+              "resolution_status": "RESOLVED",
+              "evidence_basis": "FRAMEWORK_ONLY",
+              "reason": "stops experiment first, respecting others' safety.",
+              "protected_party": "nearby staff",
+              "norm": "avoid harming innocents",
+              "duty_bearer": "mira",
+              "action_id": "A1"
+            }
+          ]
+        },
+        "committed_assessments": [
+          {
+            "assessment_node_id": "DEON_ASSESSMENT:deontological:A0",
+            "canonical_action_id": "A0",
+            "verdict": "CONFLICTED",
+            "proposed_verdict": "CONFLICTED",
+            "norm_kind": "DUTY",
+            "norm": "do not harm innocents",
+            "relation": "VIOLATES",
+            "proposed_relation": "VIOLATES",
+            "duty_bearer": "mira",
+            "protected_party": "nearby staff",
+            "competing_norm": "imperfect duty of rescue",
+            "competing_norm_kind": "DUTY",
+            "competing_relation": "CONFLICTS",
+            "competing_protected_party": "technician",
+            "competing_reason": "rescue duty conflicts but is weaker",
+            "duty_type": "PERFECT_NEGATIVE",
+            "harm_relation": "MIXED",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "no special relation to staff needed",
+            "means_relation": "FORESEEN_SIDE_EFFECT",
+            "candidate_maxim": {
+              "circumstance": "experiment running, technician trapped",
+              "policy": "open containment door immediately",
+              "end": "reach technician quickly",
+              "means": "opening door during run",
+              "person_role": "FORESEEN_AFFECTED",
+              "consent_constraint": "NONE",
+              "universalization": "Prior assessment is superseded; universalization requires renewed adjudication.",
+              "action_permissibility": "UNRESOLVED",
+              "maxim_assessment": "UNRESOLVED",
+              "instrumental_belief": "RELIES_ON_PERSON",
+              "instrumental_use": "USES_PERSON",
+              "practical_reasoning": "Staff exposure is accepted to reach technician sooner.",
+              "means_effect_ids": [
+                "E1"
+              ],
+              "end_effect_ids": []
+            },
+            "maxim_origin": "CANDIDATE_INTERPRETATION",
+            "governing_norm": "UNRESOLVED",
+            "priority_basis": "UNRESOLVED",
+            "priority_rule": "Priority requires renewed adjudication after an upstream repair.",
+            "protected_standing": "BODILY_INTEGRITY",
+            "competing_protected_standing": "BODILY_INTEGRITY",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "cannot will universal permission to harm bystanders",
+            "reciprocity_status": "FAILED",
+            "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "RESPECT_PERSONS",
+            "resolution_status": "CONTESTED",
+            "calibration_errors": [
+              "candidate maxim denies intended use while proposing instrumental belief and purposive use"
+            ],
+            "calibration_issues": [
+              {
+                "kind": "CALIBRATION",
+                "message": "candidate maxim denies intended use while proposing instrumental belief and purposive use",
+                "status": "ACTIVE"
+              }
+            ],
+            "calibration_support_node_ids": [],
+            "evidence_basis": "FRAMEWORK_ONLY",
+            "epistemic_status": "FRAMEWORK_INTERPRETATION",
+            "reason": "Prior adjudication is superseded; the repaired classification does not settle permissibility."
+          },
+          {
+            "assessment_node_id": "DEON_ASSESSMENT:deontological:A1",
+            "canonical_action_id": "A1",
+            "verdict": "REQUIRED",
+            "proposed_verdict": "REQUIRED",
+            "norm_kind": "DUTY",
+            "norm": "avoid harming innocents",
+            "relation": "SATISFIES",
+            "proposed_relation": "SATISFIES",
+            "duty_bearer": "mira",
+            "protected_party": "nearby staff",
+            "competing_norm": "imperfect duty of rescue",
+            "competing_norm_kind": "DUTY",
+            "competing_relation": "CONFLICTS",
+            "competing_protected_party": "technician",
+            "competing_reason": "rescue duty less stringent",
+            "duty_type": "PERFECT_NEGATIVE",
+            "harm_relation": "ALLOWING_HARM",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "no special obligation established",
+            "means_relation": "NO_INSTRUMENTALIZATION",
+            "candidate_maxim": {
+              "circumstance": "experiment running, technician trapped",
+              "policy": "stop experiment and wait",
+              "end": "reach technician safely",
+              "means": "halt hazardous process",
+              "person_role": "NOT_USED",
+              "consent_constraint": "NONE",
+              "universalization": "consistent with universal safety adherence",
+              "action_permissibility": "PERMISSIBLE",
+              "maxim_assessment": "DEFENSIBLE",
+              "instrumental_belief": "DOES_NOT_RELY",
+              "instrumental_use": "DOES_NOT_USE",
+              "practical_reasoning": "Protect others while preparing safe rescue.",
+              "means_effect_ids": [
+                "E3"
+              ],
+              "end_effect_ids": []
+            },
+            "maxim_origin": "CANDIDATE_INTERPRETATION",
+            "governing_norm": "PRIMARY",
+            "priority_basis": "RESPECT_PERSONS",
+            "priority_rule": "avoid doing harm prevails over preventing harm",
+            "protected_standing": "BODILY_INTEGRITY",
+            "competing_protected_standing": "BODILY_INTEGRITY",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "universal law to wait when opening would endanger others",
+            "reciprocity_status": "SATISFIED",
+            "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "RESPECT_PERSONS",
+            "resolution_status": "RESOLVED",
+            "calibration_errors": [],
+            "calibration_issues": [],
+            "calibration_support_node_ids": [],
+            "evidence_basis": "FRAMEWORK_ONLY",
+            "epistemic_status": "UNRESOLVED_PARTY",
+            "reason": "stops experiment first, respecting others' safety."
+          }
+        ]
+      },
+      "response_origin": "OFFLINE_PROJECTION_OF_SAVED_FULL_REPLY_NOT_NEW_LOCAL_MODEL_RESPONSE",
+      "trusted_card": {
+        "card_id": "REPAIR:861a1a6cb004c295bbbb1a94",
+        "version": "derivation-repair/0.1",
+        "family": "HARM_CLASSIFICATION",
+        "action_id": "A0",
+        "record_id": "DEON_ASSESSMENT:deontological:A0",
+        "world_sha256": "8d5c5c310487309d959a5813921dd80640a24ee592ea167922dde7eb6e7a2947",
+        "record_sha256": "0ed692d99713843a29acc58b9cb8b781ce91bad8e36e3765fa44c91a08e41d0c",
+        "issue_records": [
+          {
+            "kind": "HARM_RELATION_GRAPH_MISALIGN",
+            "message": "doing-harm classification lacks an agent-caused settled welfare harm on the protected party",
+            "status": "ACTIVE"
+          }
+        ],
+        "target_paths": [
+          "harm_relation"
+        ],
+        "current_values": {
+          "harm_relation": "DOING_HARM"
+        },
+        "evidence": [
+          {
+            "ref": "E1",
+            "path": "/effects/0",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "effect_id": "E1",
+              "action_id": "A0",
+              "party_id": "P2",
+              "outcome": "open the door now",
+              "relation": "OPEN",
+              "polarity": "NEUTRAL",
+              "directness": "DIRECT",
+              "modality": "CERTAIN",
+              "effect_kind": "INTERVENTION",
+              "condition_ids": [],
+              "quantities": [],
+              "provenance": [
+                {
+                  "clause_id": "C3",
+                  "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                }
+              ],
+              "likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "overall_likelihood_qualifiers": [],
+              "source_proposition": "open the door now",
+              "source_effect_ids": [],
+              "derivation_operation": "DIRECT_COPY",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED"
+            }
+          },
+          {
+            "ref": "E2",
+            "path": "/effects/1",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "effect_id": "E2",
+              "action_id": "A0",
+              "party_id": "P3",
+              "outcome": "doing so may expose nearby staff to hazardous fumes",
+              "relation": "EXPOSE",
+              "polarity": "ADVERSE",
+              "directness": "DOWNSTREAM",
+              "modality": "POSSIBLE",
+              "effect_kind": "OTHER",
+              "condition_ids": [],
+              "quantities": [],
+              "provenance": [
+                {
+                  "clause_id": "C3",
+                  "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                }
+              ],
+              "likelihood_qualifiers": [
+                "may"
+              ],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "overall_likelihood_qualifiers": [],
+              "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+              "source_effect_ids": [
+                "E1"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED"
+            }
+          },
+          {
+            "ref": "LINK:0",
+            "path": "/causal_links/0",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "source_id": "E1",
+              "relation": "ENABLES",
+              "target_id": "E2",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "provenance": [
+                {
+                  "clause_id": "C3",
+                  "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                }
+              ],
+              "action_id": "A0"
+            }
+          },
+          {
+            "ref": "ARGUMENT:harm_relation",
+            "path": "DEON_ASSESSMENT:deontological:A0/harm_relation",
+            "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+            "value": "DOING_HARM"
+          }
+        ],
+        "violated_invariant": "Under the native classification contract, DOING_HARM needs admitted agent-caused settled welfare harm; possibility and ENABLES alone do not establish it.",
+        "required_repair": "Reconsider the harm classification using this action topology, or leave it unresolved. Do not infer permissibility or settled injury.",
+        "invalidate_if_changed": [
+          "verdict",
+          "governing_norm",
+          "priority_basis",
+          "resolution_status",
+          "priority_rule",
+          "reason",
+          "candidate_maxim.action_permissibility",
+          "candidate_maxim.maxim_assessment",
+          "candidate_maxim.universalization"
+        ],
+        "authority": "VALIDATOR_DERIVED_REPAIR_SCOPE_NOT_MORAL_VERDICT"
+      }
+    },
+    {
+      "version": "derivation-repair/0.1",
+      "card_id": "REPAIR:1ab47cbf2be15eef84c44b48",
+      "family": "PERSON_ROLE_CONSISTENCY",
+      "response": {
+        "card_id": "REPAIR:1ab47cbf2be15eef84c44b48",
+        "changes": {
+          "means_relation": "FORESEEN_SIDE_EFFECT",
+          "candidate_maxim.person_role": "FORESEEN_AFFECTED",
+          "candidate_maxim.instrumental_belief": "DOES_NOT_RELY",
+          "candidate_maxim.instrumental_use": "DOES_NOT_USE",
+          "candidate_maxim.practical_reasoning": "Door is opened to save technician; staff risk is accepted but not pursued as a means.",
+          "candidate_maxim.means_effect_ids": [
+            "E1"
+          ],
+          "candidate_maxim.end_effect_ids": []
+        },
+        "evidence_refs": [
+          "E1",
+          "E2"
+        ],
+        "explanation": "A0 no longer claims the staff are used as a means; exposure is a foreseen side effect. Harm-relation premise remains contested because only a risk, not certain harm, is stated, but precautionary reading of perfect non-maleficence still governs.",
+        "unresolved_questions": []
+      },
+      "status": "STAGED_NATIVE_REVALIDATED",
+      "errors": [],
+      "world_state_authority": "NONE",
+      "operative": false,
+      "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+      "revision_category": "APPLICATION_REVISION",
+      "before_record_sha256": "8eeefdaf0f4557b2914b21722e7833b481c434bd6f1cede0686139a6428f27e6",
+      "after_record_sha256": "3ff483b1e0ede1a54cfb2ddf70ffdf31a155c17dd78e4087ee7164a5498968d4",
+      "changes": {
+        "means_relation": "FORESEEN_SIDE_EFFECT",
+        "candidate_maxim.person_role": "FORESEEN_AFFECTED",
+        "candidate_maxim.instrumental_belief": "DOES_NOT_RELY",
+        "candidate_maxim.instrumental_use": "DOES_NOT_USE",
+        "candidate_maxim.practical_reasoning": "Door is opened to save technician; staff risk is accepted but not pursued as a means.",
+        "candidate_maxim.means_effect_ids": [
+          "E1"
+        ],
+        "candidate_maxim.end_effect_ids": []
+      },
+      "invalidated_paths": [
+        "verdict",
+        "governing_norm",
+        "priority_basis",
+        "resolution_status",
+        "priority_rule",
+        "reason",
+        "candidate_maxim.action_permissibility",
+        "candidate_maxim.maxim_assessment",
+        "candidate_maxim.universalization"
+      ],
+      "superseded_closure": {
+        "verdict": "CONFLICTED",
+        "governing_norm": "UNRESOLVED",
+        "priority_basis": "UNRESOLVED",
+        "resolution_status": "CONTESTED",
+        "priority_rule": "Priority requires renewed adjudication after an upstream repair.",
+        "reason": "Prior adjudication is superseded; the repaired classification does not settle permissibility.",
+        "candidate_maxim.action_permissibility": "UNRESOLVED",
+        "candidate_maxim.maxim_assessment": "UNRESOLVED",
+        "candidate_maxim.universalization": "Prior assessment is superseded; universalization requires renewed adjudication."
+      },
+      "dependency_rule": "CONSERVATIVE_AFFECTED_ROW_INVALIDATION",
+      "effective_resolution": "CONTESTED",
+      "preference_status": "REQUIRES_REDELIBERATION",
+      "native_validation_status": "COMMITTED_WITH_UNCERTAINTY",
+      "native_warnings": [
+        "A1 primary protected party lacks current-run action grounding"
+      ],
+      "native_transaction": {
+        "submitted": {
+          "assessments": [
+            {
+              "verdict": "CONFLICTED",
+              "relation": "VIOLATES",
+              "norm_kind": "DUTY",
+              "competing_norm": "imperfect duty of rescue",
+              "competing_norm_kind": "DUTY",
+              "competing_relation": "CONFLICTS",
+              "competing_protected_party": "technician",
+              "competing_reason": "rescue duty conflicts but is weaker",
+              "duty_type": "PERFECT_NEGATIVE",
+              "harm_relation": "MIXED",
+              "special_obligation_status": "NOT_REQUIRED",
+              "special_obligation_basis": "no special relation to staff needed",
+              "means_relation": "FORESEEN_SIDE_EFFECT",
+              "candidate_maxim": {
+                "circumstance": "experiment running, technician trapped",
+                "policy": "open containment door immediately",
+                "end": "reach technician quickly",
+                "means": "opening door during run",
+                "person_role": "FORESEEN_AFFECTED",
+                "consent_constraint": "NONE",
+                "universalization": "Prior assessment is superseded; universalization requires renewed adjudication.",
+                "action_permissibility": "UNRESOLVED",
+                "maxim_assessment": "UNRESOLVED",
+                "instrumental_belief": "DOES_NOT_RELY",
+                "instrumental_use": "DOES_NOT_USE",
+                "practical_reasoning": "Door is opened to save technician; staff risk is accepted but not pursued as a means.",
+                "means_effect_ids": [
+                  "E1"
+                ],
+                "end_effect_ids": []
+              },
+              "governing_norm": "UNRESOLVED",
+              "priority_basis": "UNRESOLVED",
+              "priority_rule": "Priority requires renewed adjudication after an upstream repair.",
+              "protected_standing": "BODILY_INTEGRITY",
+              "competing_protected_standing": "BODILY_INTEGRITY",
+              "coercion_kind": "NONE",
+              "coercive_actor": "NONE",
+              "coerced_party": "NONE",
+              "public_justification": "cannot will universal permission to harm bystanders",
+              "reciprocity_status": "FAILED",
+              "necessity_status": "UNKNOWN",
+              "authorization_status": "NOT_APPLICABLE",
+              "derivation": "RESPECT_PERSONS",
+              "resolution_status": "CONTESTED",
+              "evidence_basis": "FRAMEWORK_ONLY",
+              "reason": "Prior adjudication is superseded; the repaired classification does not settle permissibility.",
+              "protected_party": "nearby staff",
+              "norm": "do not harm innocents",
+              "duty_bearer": "mira",
+              "action_id": "A0"
+            },
+            {
+              "verdict": "REQUIRED",
+              "relation": "SATISFIES",
+              "norm_kind": "DUTY",
+              "competing_norm": "imperfect duty of rescue",
+              "competing_norm_kind": "DUTY",
+              "competing_relation": "CONFLICTS",
+              "competing_protected_party": "technician",
+              "competing_reason": "rescue duty less stringent",
+              "duty_type": "PERFECT_NEGATIVE",
+              "harm_relation": "ALLOWING_HARM",
+              "special_obligation_status": "NOT_REQUIRED",
+              "special_obligation_basis": "no special obligation established",
+              "means_relation": "NO_INSTRUMENTALIZATION",
+              "candidate_maxim": {
+                "circumstance": "experiment running, technician trapped",
+                "policy": "stop experiment and wait",
+                "end": "reach technician safely",
+                "means": "halt hazardous process",
+                "person_role": "NOT_USED",
+                "consent_constraint": "NONE",
+                "universalization": "consistent with universal safety adherence",
+                "action_permissibility": "PERMISSIBLE",
+                "maxim_assessment": "DEFENSIBLE",
+                "instrumental_belief": "DOES_NOT_RELY",
+                "instrumental_use": "DOES_NOT_USE",
+                "practical_reasoning": "Protect others while preparing safe rescue.",
+                "means_effect_ids": [
+                  "E3"
+                ],
+                "end_effect_ids": []
+              },
+              "governing_norm": "PRIMARY",
+              "priority_basis": "RESPECT_PERSONS",
+              "priority_rule": "avoid doing harm prevails over preventing harm",
+              "protected_standing": "BODILY_INTEGRITY",
+              "competing_protected_standing": "BODILY_INTEGRITY",
+              "coercion_kind": "NONE",
+              "coercive_actor": "NONE",
+              "coerced_party": "NONE",
+              "public_justification": "universal law to wait when opening would endanger others",
+              "reciprocity_status": "SATISFIED",
+              "necessity_status": "UNKNOWN",
+              "authorization_status": "NOT_APPLICABLE",
+              "derivation": "RESPECT_PERSONS",
+              "resolution_status": "RESOLVED",
+              "evidence_basis": "FRAMEWORK_ONLY",
+              "reason": "stops experiment first, respecting others' safety.",
+              "protected_party": "nearby staff",
+              "norm": "avoid harming innocents",
+              "duty_bearer": "mira",
+              "action_id": "A1"
+            }
+          ]
+        },
+        "committed_assessments": [
+          {
+            "assessment_node_id": "DEON_ASSESSMENT:deontological:A0",
+            "canonical_action_id": "A0",
+            "verdict": "CONFLICTED",
+            "proposed_verdict": "CONFLICTED",
+            "norm_kind": "DUTY",
+            "norm": "do not harm innocents",
+            "relation": "VIOLATES",
+            "proposed_relation": "VIOLATES",
+            "duty_bearer": "mira",
+            "protected_party": "nearby staff",
+            "competing_norm": "imperfect duty of rescue",
+            "competing_norm_kind": "DUTY",
+            "competing_relation": "CONFLICTS",
+            "competing_protected_party": "technician",
+            "competing_reason": "rescue duty conflicts but is weaker",
+            "duty_type": "PERFECT_NEGATIVE",
+            "harm_relation": "MIXED",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "no special relation to staff needed",
+            "means_relation": "FORESEEN_SIDE_EFFECT",
+            "candidate_maxim": {
+              "circumstance": "experiment running, technician trapped",
+              "policy": "open containment door immediately",
+              "end": "reach technician quickly",
+              "means": "opening door during run",
+              "person_role": "FORESEEN_AFFECTED",
+              "consent_constraint": "NONE",
+              "universalization": "Prior assessment is superseded; universalization requires renewed adjudication.",
+              "action_permissibility": "UNRESOLVED",
+              "maxim_assessment": "UNRESOLVED",
+              "instrumental_belief": "DOES_NOT_RELY",
+              "instrumental_use": "DOES_NOT_USE",
+              "practical_reasoning": "Door is opened to save technician; staff risk is accepted but not pursued as a means.",
+              "means_effect_ids": [
+                "E1"
+              ],
+              "end_effect_ids": []
+            },
+            "maxim_origin": "CANDIDATE_INTERPRETATION",
+            "governing_norm": "UNRESOLVED",
+            "priority_basis": "UNRESOLVED",
+            "priority_rule": "Priority requires renewed adjudication after an upstream repair.",
+            "protected_standing": "BODILY_INTEGRITY",
+            "competing_protected_standing": "BODILY_INTEGRITY",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "cannot will universal permission to harm bystanders",
+            "reciprocity_status": "FAILED",
+            "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "RESPECT_PERSONS",
+            "resolution_status": "CONTESTED",
+            "calibration_errors": [],
+            "calibration_issues": [],
+            "calibration_support_node_ids": [],
+            "evidence_basis": "FRAMEWORK_ONLY",
+            "epistemic_status": "FRAMEWORK_INTERPRETATION",
+            "reason": "Prior adjudication is superseded; the repaired classification does not settle permissibility."
+          },
+          {
+            "assessment_node_id": "DEON_ASSESSMENT:deontological:A1",
+            "canonical_action_id": "A1",
+            "verdict": "REQUIRED",
+            "proposed_verdict": "REQUIRED",
+            "norm_kind": "DUTY",
+            "norm": "avoid harming innocents",
+            "relation": "SATISFIES",
+            "proposed_relation": "SATISFIES",
+            "duty_bearer": "mira",
+            "protected_party": "nearby staff",
+            "competing_norm": "imperfect duty of rescue",
+            "competing_norm_kind": "DUTY",
+            "competing_relation": "CONFLICTS",
+            "competing_protected_party": "technician",
+            "competing_reason": "rescue duty less stringent",
+            "duty_type": "PERFECT_NEGATIVE",
+            "harm_relation": "ALLOWING_HARM",
+            "special_obligation_status": "NOT_REQUIRED",
+            "special_obligation_basis": "no special obligation established",
+            "means_relation": "NO_INSTRUMENTALIZATION",
+            "candidate_maxim": {
+              "circumstance": "experiment running, technician trapped",
+              "policy": "stop experiment and wait",
+              "end": "reach technician safely",
+              "means": "halt hazardous process",
+              "person_role": "NOT_USED",
+              "consent_constraint": "NONE",
+              "universalization": "consistent with universal safety adherence",
+              "action_permissibility": "PERMISSIBLE",
+              "maxim_assessment": "DEFENSIBLE",
+              "instrumental_belief": "DOES_NOT_RELY",
+              "instrumental_use": "DOES_NOT_USE",
+              "practical_reasoning": "Protect others while preparing safe rescue.",
+              "means_effect_ids": [
+                "E3"
+              ],
+              "end_effect_ids": []
+            },
+            "maxim_origin": "CANDIDATE_INTERPRETATION",
+            "governing_norm": "PRIMARY",
+            "priority_basis": "RESPECT_PERSONS",
+            "priority_rule": "avoid doing harm prevails over preventing harm",
+            "protected_standing": "BODILY_INTEGRITY",
+            "competing_protected_standing": "BODILY_INTEGRITY",
+            "coercion_kind": "NONE",
+            "coercive_actor": "NONE",
+            "coerced_party": "NONE",
+            "public_justification": "universal law to wait when opening would endanger others",
+            "reciprocity_status": "SATISFIED",
+            "necessity_status": "UNKNOWN",
+            "authorization_status": "NOT_APPLICABLE",
+            "derivation": "RESPECT_PERSONS",
+            "resolution_status": "RESOLVED",
+            "calibration_errors": [],
+            "calibration_issues": [],
+            "calibration_support_node_ids": [],
+            "evidence_basis": "FRAMEWORK_ONLY",
+            "epistemic_status": "UNRESOLVED_PARTY",
+            "reason": "stops experiment first, respecting others' safety."
+          }
+        ]
+      },
+      "response_origin": "OFFLINE_PROJECTION_OF_SAVED_FULL_REPLY_NOT_NEW_LOCAL_MODEL_RESPONSE",
+      "trusted_card": {
+        "card_id": "REPAIR:1ab47cbf2be15eef84c44b48",
+        "version": "derivation-repair/0.1",
+        "family": "PERSON_ROLE_CONSISTENCY",
+        "action_id": "A0",
+        "record_id": "DEON_ASSESSMENT:deontological:A0",
+        "world_sha256": "8d5c5c310487309d959a5813921dd80640a24ee592ea167922dde7eb6e7a2947",
+        "record_sha256": "8eeefdaf0f4557b2914b21722e7833b481c434bd6f1cede0686139a6428f27e6",
+        "issue_records": [
+          {
+            "kind": "CALIBRATION",
+            "message": "candidate maxim denies intended use while proposing instrumental belief and purposive use",
+            "status": "ACTIVE"
+          }
+        ],
+        "target_paths": [
+          "means_relation",
+          "candidate_maxim.person_role",
+          "candidate_maxim.instrumental_belief",
+          "candidate_maxim.instrumental_use",
+          "candidate_maxim.practical_reasoning",
+          "candidate_maxim.means_effect_ids",
+          "candidate_maxim.end_effect_ids"
+        ],
+        "current_values": {
+          "means_relation": "FORESEEN_SIDE_EFFECT",
+          "candidate_maxim.person_role": "FORESEEN_AFFECTED",
+          "candidate_maxim.instrumental_belief": "RELIES_ON_PERSON",
+          "candidate_maxim.instrumental_use": "USES_PERSON",
+          "candidate_maxim.practical_reasoning": "Staff exposure is accepted to reach technician sooner.",
+          "candidate_maxim.means_effect_ids": [
+            "E1"
+          ],
+          "candidate_maxim.end_effect_ids": []
+        },
+        "evidence": [
+          {
+            "ref": "E1",
+            "path": "/effects/0",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "effect_id": "E1",
+              "action_id": "A0",
+              "party_id": "P2",
+              "outcome": "open the door now",
+              "relation": "OPEN",
+              "polarity": "NEUTRAL",
+              "directness": "DIRECT",
+              "modality": "CERTAIN",
+              "effect_kind": "INTERVENTION",
+              "condition_ids": [],
+              "quantities": [],
+              "provenance": [
+                {
+                  "clause_id": "C3",
+                  "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                }
+              ],
+              "likelihood_qualifiers": [],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "overall_likelihood_qualifiers": [],
+              "source_proposition": "open the door now",
+              "source_effect_ids": [],
+              "derivation_operation": "DIRECT_COPY",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED"
+            }
+          },
+          {
+            "ref": "E2",
+            "path": "/effects/1",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "effect_id": "E2",
+              "action_id": "A0",
+              "party_id": "P3",
+              "outcome": "doing so may expose nearby staff to hazardous fumes",
+              "relation": "EXPOSE",
+              "polarity": "ADVERSE",
+              "directness": "DOWNSTREAM",
+              "modality": "POSSIBLE",
+              "effect_kind": "OTHER",
+              "condition_ids": [],
+              "quantities": [],
+              "provenance": [
+                {
+                  "clause_id": "C3",
+                  "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                }
+              ],
+              "likelihood_qualifiers": [
+                "may"
+              ],
+              "scope_qualifiers": [],
+              "temporal_qualifiers": [],
+              "condition_join": "AND",
+              "overall_likelihood_qualifiers": [],
+              "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+              "source_effect_ids": [
+                "E1"
+              ],
+              "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+              "derivation_explanation": "The blank was filled with this copy of the scenario.",
+              "derivation_assumptions": [],
+              "outcome_type_transformation": "PRESERVED"
+            }
+          },
+          {
+            "ref": "LINK:0",
+            "path": "/causal_links/0",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "source_id": "E1",
+              "relation": "ENABLES",
+              "target_id": "E2",
+              "modality": "CERTAIN",
+              "condition_ids": [],
+              "provenance": [
+                {
+                  "clause_id": "C3",
+                  "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                }
+              ],
+              "action_id": "A0"
+            }
+          },
+          {
+            "ref": "ARGUMENT:means_relation",
+            "path": "DEON_ASSESSMENT:deontological:A0/means_relation",
+            "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+            "value": "FORESEEN_SIDE_EFFECT"
+          },
+          {
+            "ref": "ARGUMENT:candidate_maxim.person_role",
+            "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.person_role",
+            "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+            "value": "FORESEEN_AFFECTED"
+          },
+          {
+            "ref": "ARGUMENT:candidate_maxim.instrumental_belief",
+            "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_belief",
+            "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+            "value": "RELIES_ON_PERSON"
+          },
+          {
+            "ref": "ARGUMENT:candidate_maxim.instrumental_use",
+            "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_use",
+            "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+            "value": "USES_PERSON"
+          },
+          {
+            "ref": "ARGUMENT:candidate_maxim.practical_reasoning",
+            "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.practical_reasoning",
+            "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+            "value": "Staff exposure is accepted to reach technician sooner."
+          },
+          {
+            "ref": "ARGUMENT:candidate_maxim.means_effect_ids",
+            "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.means_effect_ids",
+            "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+            "value": [
+              "E1"
+            ]
+          },
+          {
+            "ref": "ARGUMENT:candidate_maxim.end_effect_ids",
+            "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.end_effect_ids",
+            "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+            "value": []
+          }
+        ],
+        "violated_invariant": "Means relation, person role, instrumental belief/use and same-action means/end references must be mutually consistent; physical necessity is not proof of intention.",
+        "required_repair": "Repair the person-role bundle atomically, or leave it unresolved. Do not infer actual intentions, consent or a moral verdict.",
+        "invalidate_if_changed": [
+          "verdict",
+          "governing_norm",
+          "priority_basis",
+          "resolution_status",
+          "priority_rule",
+          "reason",
+          "candidate_maxim.action_permissibility",
+          "candidate_maxim.maxim_assessment",
+          "candidate_maxim.universalization"
+        ],
+        "authority": "VALIDATOR_DERIVED_REPAIR_SCOPE_NOT_MORAL_VERDICT"
+      }
+    }
+  ],
+  "staged_ledger": {
+    "ledger_kind": "DEONTOLOGICAL_DUTY_LEDGER",
+    "transaction_status": "STAGED_NONVOTING",
+    "records": [
+      {
+        "assessment_node_id": "DEON_ASSESSMENT:deontological:A0",
+        "framework": "DEONTOLOGICAL",
+        "specialist": "deontological",
+        "assessment_role": "PRIMARY",
+        "cycle": 1,
+        "canonical_action_id": "A0",
+        "verdict": "CONFLICTED",
+        "proposed_verdict": "CONFLICTED",
+        "relation": "VIOLATES",
+        "proposed_relation": "VIOLATES",
+        "norm_kind": "DUTY",
+        "norm_node_id": "DEON_NORM:c2aab59aa6d2266d",
+        "party_node_id": "DEON_PARTY:0e52a2bb22e60d0f",
+        "bearer_node_id": "DEON_BEARER:3c38aafb0579dafe",
+        "competing_norm": "imperfect duty of rescue",
+        "competing_norm_kind": "DUTY",
+        "competing_relation": "CONFLICTS",
+        "competing_protected_party": "technician",
+        "competing_reason": "rescue duty conflicts but is weaker",
+        "duty_type": "PERFECT_NEGATIVE",
+        "harm_relation": "MIXED",
+        "special_obligation_status": "NOT_REQUIRED",
+        "special_obligation_basis": "no special relation to staff needed",
+        "means_relation": "FORESEEN_SIDE_EFFECT",
+        "candidate_maxim": {
+          "circumstance": "experiment running, technician trapped",
+          "policy": "open containment door immediately",
+          "end": "reach technician quickly",
+          "means": "opening door during run",
+          "person_role": "FORESEEN_AFFECTED",
+          "consent_constraint": "NONE",
+          "universalization": "Prior assessment is superseded; universalization requires renewed adjudication.",
+          "action_permissibility": "UNRESOLVED",
+          "maxim_assessment": "UNRESOLVED",
+          "instrumental_belief": "DOES_NOT_RELY",
+          "instrumental_use": "DOES_NOT_USE",
+          "practical_reasoning": "Door is opened to save technician; staff risk is accepted but not pursued as a means.",
+          "means_effect_ids": [
+            "E1"
+          ],
+          "end_effect_ids": []
+        },
+        "maxim_origin": "CANDIDATE_INTERPRETATION",
+        "governing_norm": "UNRESOLVED",
+        "priority_basis": "UNRESOLVED",
+        "priority_rule": "Priority requires renewed adjudication after an upstream repair.",
+        "protected_standing": "BODILY_INTEGRITY",
+        "competing_protected_standing": "BODILY_INTEGRITY",
+        "coercion_kind": "NONE",
+        "coercive_actor": "NONE",
+        "coerced_party": "NONE",
+        "public_justification": "cannot will universal permission to harm bystanders",
+        "reciprocity_status": "FAILED",
+        "necessity_status": "UNKNOWN",
+        "authorization_status": "NOT_APPLICABLE",
+        "derivation": "RESPECT_PERSONS",
+        "resolution_status": "CONTESTED",
+        "calibration_errors": [],
+        "calibration_issues": [],
+        "calibration_support_node_ids": [],
+        "evidence_basis": "FRAMEWORK_ONLY",
+        "epistemic_status": "FRAMEWORK_INTERPRETATION",
+        "reason": "Prior adjudication is superseded; the repaired classification does not settle permissibility.",
+        "protected_party": "nearby staff",
+        "norm": "do not harm innocents",
+        "duty_bearer": "mira",
+        "provenance": [
+          "delegate:deontological",
+          "cycle:1"
+        ]
+      },
+      {
+        "assessment_node_id": "DEON_ASSESSMENT:deontological:A1",
+        "framework": "DEONTOLOGICAL",
+        "specialist": "deontological",
+        "assessment_role": "PRIMARY",
+        "cycle": 1,
+        "canonical_action_id": "A1",
+        "verdict": "REQUIRED",
+        "proposed_verdict": "REQUIRED",
+        "relation": "SATISFIES",
+        "proposed_relation": "SATISFIES",
+        "norm_kind": "DUTY",
+        "norm_node_id": "DEON_NORM:aba7ed44a287da25",
+        "party_node_id": "DEON_PARTY:0e52a2bb22e60d0f",
+        "bearer_node_id": "DEON_BEARER:3c38aafb0579dafe",
+        "competing_norm": "imperfect duty of rescue",
+        "competing_norm_kind": "DUTY",
+        "competing_relation": "CONFLICTS",
+        "competing_protected_party": "technician",
+        "competing_reason": "rescue duty less stringent",
+        "duty_type": "PERFECT_NEGATIVE",
+        "harm_relation": "ALLOWING_HARM",
+        "special_obligation_status": "NOT_REQUIRED",
+        "special_obligation_basis": "no special obligation established",
+        "means_relation": "NO_INSTRUMENTALIZATION",
+        "candidate_maxim": {
+          "circumstance": "experiment running, technician trapped",
+          "policy": "stop experiment and wait",
+          "end": "reach technician safely",
+          "means": "halt hazardous process",
+          "person_role": "NOT_USED",
+          "consent_constraint": "NONE",
+          "universalization": "consistent with universal safety adherence",
+          "action_permissibility": "PERMISSIBLE",
+          "maxim_assessment": "DEFENSIBLE",
+          "instrumental_belief": "DOES_NOT_RELY",
+          "instrumental_use": "DOES_NOT_USE",
+          "practical_reasoning": "Protect others while preparing safe rescue.",
+          "means_effect_ids": [
+            "E3"
+          ],
+          "end_effect_ids": []
+        },
+        "maxim_origin": "CANDIDATE_INTERPRETATION",
+        "governing_norm": "PRIMARY",
+        "priority_basis": "RESPECT_PERSONS",
+        "priority_rule": "avoid doing harm prevails over preventing harm",
+        "protected_standing": "BODILY_INTEGRITY",
+        "competing_protected_standing": "BODILY_INTEGRITY",
+        "coercion_kind": "NONE",
+        "coercive_actor": "NONE",
+        "coerced_party": "NONE",
+        "public_justification": "universal law to wait when opening would endanger others",
+        "reciprocity_status": "SATISFIED",
+        "necessity_status": "UNKNOWN",
+        "authorization_status": "NOT_APPLICABLE",
+        "derivation": "RESPECT_PERSONS",
+        "resolution_status": "RESOLVED",
+        "calibration_errors": [],
+        "calibration_issues": [],
+        "calibration_support_node_ids": [],
+        "evidence_basis": "FRAMEWORK_ONLY",
+        "epistemic_status": "UNRESOLVED_PARTY",
+        "reason": "stops experiment first, respecting others' safety.",
+        "protected_party": "nearby staff",
+        "norm": "avoid harming innocents",
+        "duty_bearer": "mira",
+        "provenance": [
+          "delegate:deontological",
+          "cycle:1"
+        ]
+      }
+    ],
+    "native_validation_status": "COMMITTED_WITH_UNCERTAINTY",
+    "preference_status": "REQUIRES_REDELIBERATION"
+  },
+  "excluded_full_reply": {
+    "scores": {
+      "A0": 0.2,
+      "A1": 0.8
+    },
+    "r": "A1",
+    "c": "DUTY",
+    "u": "NORMATIVE_ADJUDICATION",
+    "w": "Avoid risking innocent staff",
+    "j": "Revised A0 maxim: staff exposure now treated as foreseen side-effect, not a chosen means; removed \"merely-as-means\" claim. Doing-harm premise left contested because only a risk, not settled injury, is established.",
+    "e": "STATED_FACTS",
+    "x": "NONE",
+    "l": {
+      "A0": "PROHIBITED: opens door while experiment runs, foreseeably endangering uninvolved staff and violating the perfect negative duty not to impose serious risk without consent.",
+      "A1": "REQUIRED: halts experiment first, respects duty to avoid endangering uninvolved staff despite imperfect rescue duty toward technician."
+    },
+    "da": "perfect-duty versus imperfect-duty",
+    "t": "perfect negative duties outweigh conflicting imperfect duties when the former are engaged",
+    "tf": "harm status of staff risk remains contested but precautionary priority applies",
+    "dr": "Prefer the action that avoids violating the perfect non-maleficence duty toward uninvolved persons.",
+    "ft": "If door opening posed no significant risk to staff, preference could reverse.",
+    "nt": "If imperfect rescue duty were shown to override perfect non-maleficence in emergencies, ranking could reverse.",
+    "z": 0.75,
+    "gu": {
+      "operation": "NONE",
+      "from_action": "NONE",
+      "to_action": "NONE",
+      "clauses": []
+    },
+    "ev": {
+      "A0": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      },
+      "A1": {
+        "value": 0,
+        "unit": "NONE",
+        "direction": "HARM",
+        "grounded": false,
+        "method": "NOT_COMPUTED",
+        "source_effect_ids": [],
+        "calculation": "not computed",
+        "assumptions": []
+      }
+    },
+    "ss": "SELECTED",
+    "am": {
+      "A0": "REJECTED",
+      "A1": "REQUIRED"
+    },
+    "cc": true,
+    "esa": true,
+    "ia": "A1",
+    "wp": "NOT_APPLICABLE",
+    "we": "NONE",
+    "fa": "NONE",
+    "fr": true,
+    "bd": "NONE",
+    "fic": [
+      "doing-harm classification still lacks settled harm; priority inference remains contested"
+    ],
+    "foq": [],
+    "qa": {
+      "issue_id": "CHALLENGE:a6778848a347c065",
+      "disposition": "RESOLVED",
+      "effect": "NO_CHANGE",
+      "current_position_effect": "NO_CHANGE",
+      "boundary_effect": "MAY_SWITCH",
+      "answer": "A0 no longer claims the staff are used as a means; exposure is a foreseen side effect. Harm-relation premise remains contested because only a risk, not certain harm, is stated, but precautionary reading of perfect non-maleficence still governs.",
+      "follow_up_question": "NONE"
+    },
+    "sps": [
+      "PROP:WORLD:E2"
+    ],
+    "dcp": [
+      "PROP:WORLD:E2"
+    ],
+    "ep": [
+      {
+        "c": "doing so may expose nearby staff to hazardous fumes; affected subject: nearby staff; modality: POSSIBLE",
+        "p": "PROP:WORLD:E2",
+        "dc": true,
+        "a": "A0",
+        "se": [
+          "E2"
+        ],
+        "op": "DIRECT_COPY",
+        "calc": "direct scenario proposition",
+        "asm": [],
+        "ot": "PRESERVED"
+      }
+    ],
+    "fm": {
+      "A0": "PROHIBITED: violates perfect non-maleficence by imposing serious risk on uninvolved staff.",
+      "A1": "REQUIRED: satisfies perfect non-maleficence; only imperfect rescue duty conflicts."
+    },
+    "nr": "IRRELEVANT",
+    "np": "No numerical magnitudes determine duty ranking.",
+    "dp": {
+      "A0": {
+        "v": "PROHIBITED",
+        "k": "DUTY",
+        "n": "do not endanger innocents",
+        "rel": "VIOLATES",
+        "b": "Mira",
+        "p": "nearby staff",
+        "cn": "imperfect duty of rescue",
+        "ck": "DUTY",
+        "crel": "CONFLICTS",
+        "cp": "technician",
+        "crs": "Rescue is imperfect, thus weaker.",
+        "dt": "PERFECT_NEGATIVE",
+        "hr": "MIXED",
+        "so": "NOT_REQUIRED",
+        "sob": "no special relation to staff needed",
+        "mr": "FORESEEN_SIDE_EFFECT",
+        "gv": "PRIMARY",
+        "pb": "PERFECT_DUTY",
+        "pr": "perfect negative duties override imperfect positives",
+        "ps": "BODILY_INTEGRITY",
+        "cps": "BODILY_INTEGRITY",
+        "ki": "NONE",
+        "coa": "NONE",
+        "cop": "NONE",
+        "pj": "Cannot justify exposing uninvolved staff without their consent.",
+        "rec": "FAILED",
+        "nec": "UNKNOWN",
+        "auth": "NOT_APPLICABLE",
+        "dv": "RESPECT_PERSONS",
+        "res": "CONTESTED",
+        "g": "FRAMEWORK_ONLY",
+        "rs": "risking staff violates non-maleficence",
+        "mx": {
+          "circumstance": "experiment running, technician trapped",
+          "policy": "open containment door immediately",
+          "end": "reach technician quickly",
+          "means": "opening door during run",
+          "person_role": "FORESEEN_AFFECTED",
+          "consent_constraint": "NONE",
+          "universalization": "If universalized, anyone could endanger bystanders whenever a quicker rescue is desired.",
+          "action_permissibility": "IMPERMISSIBLE",
+          "maxim_assessment": "INDEFENSIBLE",
+          "instrumental_belief": "DOES_NOT_RELY",
+          "instrumental_use": "DOES_NOT_USE",
+          "practical_reasoning": "Door is opened to save technician; staff risk is accepted but not pursued as a means.",
+          "means_effect_ids": [
+            "E1"
+          ],
+          "end_effect_ids": []
+        }
+      },
+      "A1": {
+        "v": "REQUIRED",
+        "k": "DUTY",
+        "n": "do not endanger innocents",
+        "rel": "SATISFIES",
+        "b": "Mira",
+        "p": "nearby staff",
+        "cn": "imperfect duty of rescue",
+        "ck": "DUTY",
+        "crel": "CONFLICTS",
+        "cp": "technician",
+        "crs": "Rescue duty remains but is weaker.",
+        "dt": "PERFECT_NEGATIVE",
+        "hr": "ALLOWING_HARM",
+        "so": "NOT_REQUIRED",
+        "sob": "no special relation to technician established",
+        "mr": "NO_INSTRUMENTALIZATION",
+        "gv": "PRIMARY",
+        "pb": "PERFECT_DUTY",
+        "pr": "perfect non-maleficence governs",
+        "ps": "BODILY_INTEGRITY",
+        "cps": "BODILY_INTEGRITY",
+        "ki": "NONE",
+        "coa": "NONE",
+        "cop": "NONE",
+        "pj": "Maintains universal safety rule respecting persons.",
+        "rec": "SATISFIED",
+        "nec": "UNKNOWN",
+        "auth": "NOT_APPLICABLE",
+        "dv": "RESPECT_PERSONS",
+        "res": "RESOLVED",
+        "g": "FRAMEWORK_ONLY",
+        "rs": "halts hazard before rescue",
+        "mx": {
+          "circumstance": "experiment running, technician trapped",
+          "policy": "stop experiment and wait",
+          "end": "reach technician safely",
+          "means": "halt hazardous process",
+          "person_role": "NOT_USED",
+          "consent_constraint": "NONE",
+          "universalization": "All agents could will the policy to avoid endangering others before rescue.",
+          "action_permissibility": "PERMISSIBLE",
+          "maxim_assessment": "DEFENSIBLE",
+          "instrumental_belief": "DOES_NOT_RELY",
+          "instrumental_use": "DOES_NOT_USE",
+          "practical_reasoning": "Rescue pursued without exposing bystanders.",
+          "means_effect_ids": [
+            "E3"
+          ],
+          "end_effect_ids": []
+        }
+      }
+    },
+    "pr": {
+      "proposal_id": "NONE",
+      "framework_status": "UNDERDETERMINED",
+      "framework_reason": "no active proposal under review",
+      "predicted_consequences": [],
+      "feasibility_concerns": [],
+      "required_conditions": []
+    }
+  },
+  "projection_policy": "Only card-targeted classification fields copied. Norms, verdicts, priority, rankings and other actions excluded.",
+  "world_unchanged": true,
+  "unrelated_action_unchanged": true
+}

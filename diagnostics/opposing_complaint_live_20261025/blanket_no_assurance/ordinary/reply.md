@@ -1,0 +1,44 @@
+# Response to opposing complaint
+
+Sasha objects that principle PR1 ("give the blanket to the person with the higher survival probability") condemns her to certain death for only a 20-percentage-point gain for Rowan.  She claims that moving a person from a live (60 %) chance to no chance at all is a qualitatively weightier burden than reducing another’s chance from 80 % to 0 %, so PR1 is not justifiable to her.
+
+## Conceded points
+
+- The original metric NP1 treated burdens solely as the size of the lost probability and did not register the step from a positive prospect to certainty of death as a separate moral dimension.
+- Contractualism requires that we ask whether each person could reasonably reject the governing rule, not merely total the size of probability shortfalls.
+
+## Priority premise
+
+Revised NP1*:  A complaint is stronger the more it worsens a person’s ex-ante prospect of survival, with a lexical priority for avoiding being made certain to die over merely facing an increased risk, unless the alternative rule would impose an equally ultimate burden on another person.
+
+## Answer
+
+Under any feasible rule exactly one hiker is left without the blanket and thus faces certain death.  Therefore both PR1 (blanket to Rowan) and the alternative principle that favors Sasha impose the very same qualitative burden—certainty of death—on someone.  Because that ultimate burden cannot be simultaneously avoided for both, the remaining question is: which allocation rule can each person less reasonably reject once that shared fact is acknowledged?
+
+Consider the ex-ante perspective of any unidentified stranded hiker.  If we adopt PR1 (higher surviving probability), your chance of being the survivor is 80 %.  If we adopt Sasha’s preferred rule (blanket to the one with lower but >50 % chance), your chance is 60 %.  Because the risk of ending up the one who is certain to die is the complementary probability (20 % vs 40 %), a generic hiker has less to reasonably reject in PR1.  
+
+Sasha may reply that now, identified as the 60 % hiker, she bears the whole certainty.  Rowan, however, could make the mirror complaint under the alternative rule.  Since the ultimate burden is symmetric, we must look to the comparative ex-ante justification of the allocation rule itself.  A rule that leaves the blanket with the person who can make the best use of it secures a higher probability that at least one life is saved for whoever ends up occupying that position.  That incremental assurance is a benefit any hiker could reasonably want others to honor, and no one is made worse off by the rule compared with the only real-world alternative (one of them must die).  Consequently, Sasha’s complaint, though serious, is not stronger than Rowan’s would be under her preferred rule, once we move past identity-relative stakes and assess justifiability to each person viewed as a possible occupant of either role.
+
+## Countercomplaint to the alternative
+
+Rowan can say of the alternative rule: “I am condemned to certain death so that someone else can enjoy a 60 % (not 80 %) chance of survival.  If the rule were ‘higher probability gets the blanket,’ I would still face a 20 % ex-ante chance of dying rather than 100 %.”
+
+## Comparative justification
+
+Because both principles impose the same qualitative burden (certainty of death) on someone, we must evaluate which principle gives any generic hiker the stronger assurance of survival before knowing who is who.  PR1 offers an 80 % chance; the alternative only 60 %.  A rational person who could be either hiker cannot reasonably reject the former over the latter.  Hence Sasha’s objection, while weighty, is matched and outweighed by the symmetrical but numerically larger complaint Rowan would have if we adopted Sasha’s rule.
+
+## Revised conclusion
+
+A / PROVISIONAL_PREFERENCE
+
+Given the unavoidable certainty-of-death burden on one party, the principle that minimizes each person’s ex-ante risk of being that party (PR1) cannot be reasonably rejected; therefore Action A remains provisionally preferred.
+
+## Remaining objection
+
+Sasha might still press that personal identification with the doomed party is morally salient in a way that the ex-ante view obscures.
+
+## Reversal condition
+
+If a future case allows avoiding certainty of death for both (e.g., by splitting or rotating resources) or if the lower-probability hiker’s chance exceeded the higher-probability hiker’s by making both survive, then the lexical priority could tip against PR1.
+
+Model self-report: ANSWERED (not independently accepted).

@@ -1,0 +1,68 @@
+{
+  "projection_version": "complaint-comparison/0.2",
+  "source_response": "blanket_no_assurance/contractualist/response.json",
+  "source_response_sha256": "38c2051cb09629e2c4192e350c82303e69d00b93aabc8e8b22f1f2e5d38eebe9",
+  "provider_calls": 0,
+  "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+  "model_recommendation_unchanged": "A",
+  "frames": [
+    {
+      "comparison_id": "C1",
+      "from_action_id": "B",
+      "to_action_id": "A",
+      "positions": [
+        {
+          "burden_id": "B1",
+          "person_id": "Rowan",
+          "description": "Risk of death from hypothermia",
+          "from": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              1
+            ],
+            "descriptions": [
+              "Rowan faces certain death (0% survival) if blanket goes to Sasha."
+            ]
+          },
+          "to": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              0
+            ],
+            "descriptions": [
+              "Rowan faces a 20% chance of death (80% survival) if blanket goes to Rowan."
+            ]
+          },
+          "change": "REMAINS_WITH_POSSIBLY_DIFFERENT_EXTENT"
+        },
+        {
+          "burden_id": "B2",
+          "person_id": "Sasha",
+          "description": "Risk of death from hypothermia",
+          "from": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              3
+            ],
+            "descriptions": [
+              "Sasha faces a 40% chance of death (60% survival) if blanket goes to Sasha."
+            ]
+          },
+          "to": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              2
+            ],
+            "descriptions": [
+              "Sasha faces certain death (0% survival) if blanket goes to Rowan."
+            ]
+          },
+          "change": "REMAINS_WITH_POSSIBLY_DIFFERENT_EXTENT"
+        }
+      ],
+      "authority": "DERIVED_FROM_MODEL_MATRIX_NOT_SOURCE_VERIFIED",
+      "proposed_comparison_status": "FAVORS_TO",
+      "moral_ranking_computed": false
+    }
+  ]
+}

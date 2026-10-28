@@ -1,0 +1,89 @@
+{
+  "api_calls": 0,
+  "operative": false,
+  "source_probe_sha256": "da9aaaf71e62a8fb0d1c5eb3637a6953a54c70a6598a3c73b72d86071bc3dc07",
+  "content_review_sha256": "853e9417a895f9d7a9f843830b0feff30d3652e8a3fca442f8f47c1a67720e79",
+  "followup": {
+    "status": "AVAILABLE",
+    "rounds_remaining": 1,
+    "remaining_gap": "Explain whether the side-effect classification is a candidate interpretation conditional on a rescue maxim, rather than an established description of actual intention. Distinguish a conditional ethical argument from a factual claim about instrumental belief; do not infer absence of intention from an absent graph edge.",
+    "review_outcome": "PARTIAL"
+  },
+  "argument_dependencies": [
+    {
+      "id": "CLAIM:89fe126748e9299b2d695a74",
+      "text": "The exposure of staff (E2) occurs downstream of the door-opening (E1) and is not necessary for, nor contributory to, achieving the goal of reaching the technician. Therefore the agent neither relies on staff as instruments nor uses them as means, preserving the side-effect interpretation while keeping the action itself (E1) as the intended means.",
+      "status": "UNKNOWN",
+      "depends_on": [],
+      "evidence_refs": [],
+      "origin": "CHALLENGED_ARGUMENT",
+      "effective_status": "UNKNOWN"
+    },
+    {
+      "id": "instrumental-negative",
+      "text": "Mira does not rely on or use staff instrumentally.",
+      "status": "UNKNOWN",
+      "depends_on": [
+        "CLAIM:89fe126748e9299b2d695a74"
+      ],
+      "evidence_refs": [],
+      "origin": "SAVED_MODEL_ARGUMENT",
+      "effective_status": "UNKNOWN"
+    },
+    {
+      "id": "side-effect",
+      "text": "Staff exposure is a foreseen side effect.",
+      "status": "CONDITIONAL",
+      "depends_on": [
+        "rescue-maxim-hypothesis"
+      ],
+      "evidence_refs": [
+        "E1",
+        "E2"
+      ],
+      "origin": "SAVED_MODEL_ARGUMENT",
+      "effective_status": "CONDITIONAL"
+    },
+    {
+      "id": "permissibility",
+      "text": "Any permissibility conclusion relying on the repaired classifications.",
+      "status": "SUPPORTED",
+      "depends_on": [
+        "instrumental-negative",
+        "side-effect"
+      ],
+      "evidence_refs": [],
+      "origin": "REVIEWER_IDENTIFIED_DEPENDENCY_NOT_OPERATIVE_VERDICT",
+      "effective_status": "REQUIRES_REASSESSMENT"
+    },
+    {
+      "id": "staff-risk",
+      "text": "Opening the door may expose staff to fumes.",
+      "status": "SUPPORTED",
+      "depends_on": [],
+      "evidence_refs": [
+        "E2"
+      ],
+      "origin": "SOURCE_COPY_IN_ARGUMENT_REVIEW",
+      "effective_status": "SUPPORTED"
+    },
+    {
+      "id": "rescue-maxim-hypothesis",
+      "text": "Suppose Mira follows a rescue policy that does not rely on staff exposure as a means.",
+      "status": "CONDITIONAL",
+      "depends_on": [],
+      "evidence_refs": [],
+      "origin": "EXPLICIT_INTERPRETIVE_HYPOTHESIS_NOT_WORLD_FACT",
+      "effective_status": "CONDITIONAL"
+    },
+    {
+      "id": "safest-reading",
+      "text": "The side-effect reading is the safest interpretation.",
+      "status": "UNKNOWN",
+      "depends_on": [],
+      "evidence_refs": [],
+      "origin": "NEW_MODEL_ARGUMENT_UNSUPPORTED_BY_CONTENT_REVIEW",
+      "effective_status": "UNKNOWN"
+    }
+  ]
+}

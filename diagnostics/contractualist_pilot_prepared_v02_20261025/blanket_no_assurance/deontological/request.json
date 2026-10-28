@@ -1,0 +1,493 @@
+{
+  "model": "o3",
+  "reasoning_effort": "low",
+  "max_completion_tokens": 8192,
+  "messages": [
+    {
+      "role": "system",
+      "content": "Construct small framework-grounded arguments from the exact source and the supplied framework instruction. Identify factual grounds, interpretive assumptions, evaluative warrants, inferential support and the strongest relevant objection. Give a substantive response or identify the precise unresolved premise and a relevant reversal condition. Preserve polarity, uncertainty and the distinction between possible and certain outcomes. Do not invent facts or treat a framework commitment as source evidence. Use exact source quotations and explicit support routes; Python assigns canonical IDs. Use FACTUAL_PREMISE for descriptive evidence, PRINCIPLE for a proposed general norm, INTERPRETIVE_PREMISE for a defeasible reading, and NORMATIVE_PREMISE for an evaluative assumption. MAXIM is available when the framework calls for it, never mandatory. Declare assumption roots before statements referring to them. Assumptions remain conditional; citations establish traceability, not semantic entailment. SOURCE support routes require citations and have inputs=[]; ASSUMPTION routes declare explicit assumption roots and also have inputs=[]. Never use a statement as its own support input. Derived evaluative judgments use NORM_APPLICATION or NORM_PRIORITY with an explicit NORMATIVE_PREMISE among their inputs. Return one compact argument record covering EVERY supplied option, not a new world. Use the common format in the way appropriate to your framework: principles and personal reasons are available to all frameworks but are not mandatory methods for noncontractualists. Use null when a reason is not individual or principle-specific; do not misdescribe an aggregate reason as one person's reason. source_quotes must be exact substrings of SCENE. citations use evidence_id SCENE and value_path \"\". Declare EVERY referenced statement handle in statements, including every reason, comparison, challenge and final assessment conclusion. Annotation IDs (person IDs, principle IDs, reason IDs) are not statement handles. Use only declared statement handles in supports and hypothesis_ids. SOURCE means inputs=[] and output=a cited factual statement; NEVER put that statement in its own inputs. ASSUMPTION means inputs=[] and output=an explicit principle or interpretive/normative assumption root. Do not use ASSUMPTION for a derived judgment. NORM_APPLICATION connects factual grounds plus an explicit NORMATIVE_PREMISE to an evaluative conclusion. NORM_PRIORITY connects compared reasons plus an explicit NORMATIVE_PREMISE to a comparison. PRACTICAL_REASONING is reserved for claims about an actor's intention/instrumental use, not a generic name for ethical inference. Do not use SOURCE to derive magnitude comparisons or normative priorities. Quote contiguous exact text; no ellipses or altered apostrophes. Reference a support by its output handle when specifying an UNDERCUTTING challenge; this denotes the support bundle for that conclusion, not a guessed canonical ID. UNDERMINING challenges a premise; REBUTTING challenges a conclusion; UNDERCUTTING challenges an inference application. These annotations and ANSWERED labels are proposed model judgments, not established defeats. Reason ground_handles and warrant_handles must also be inputs or ancestors of the reason conclusion in supports. Comparative judgments must explicitly link the reasons compared. Action-assessment conclusions are terminal: do not feed a permissibility verdict back into premises. A claim that an option is permissible is not a fact that it occurred. Reasons, comparisons and challenges reference the same immutable statement handles, rather than detached prose. Explain the final preference or uncertainty in conclusion. Do not assert missing subjective preferences as facts. Keep reasons short enough to fit the common response budget. "
+    },
+    {
+      "role": "user",
+      "content": "{\"framework_id\": \"deontological\", \"framework_instruction\": \"Evaluate candidate maxims, applicable duties, consent and competing obligations. Distinguish a stated rule from its moral authority. Defend any priority among duties or retain the conflict. For instrumental-use claims distinguish causal contribution from an end, instrumental belief and purposeful employment; using someone as a means does not alone establish merely-as-means treatment or prohibition. A stated source purpose is not necessarily the sole purpose.\", \"source\": {\"id\": \"blanket_no_assurance\", \"scenario\": \"A mountain rescue shelter has one thermal blanket. Rescuer Ellis can give the blanket to Rowan or Sasha, but not both. Both hikers are stranded in the cold, and no other rescue or warming equipment will arrive in time. If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival. If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival. The hiker who does not get the blanket will die. Ellis has made no promise or assurance to either hiker about receiving the blanket. Whom should Ellis give the blanket to?\", \"actions\": [{\"id\": \"A\", \"label\": \"Give the blanket to Rowan\"}, {\"id\": \"B\", \"label\": \"Give the blanket to Sasha\"}], \"source_text_sha256\": \"e1a856a6df3cf57fa227cd016a4a0d3c6b3c95278ab433c7db2828b0c9d9c74f\", \"source_status\": \"FROZEN_TEXT_NOT_ADMITTED_WORLD\", \"evidence\": [{\"ref\": \"SCENE\", \"kind\": \"EXACT_SCENARIO\", \"value\": \"A mountain rescue shelter has one thermal blanket. Rescuer Ellis can give the blanket to Rowan or Sasha, but not both. Both hikers are stranded in the cold, and no other rescue or warming equipment will arrive in time. If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival. If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival. The hiker who does not get the blanket will die. Ellis has made no promise or assurance to either hiker about receiving the blanket. Whom should Ellis give the blanket to?\"}]}}"
+    }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "neutral_framework_argument",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "persons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "source_quotes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "source_quotes"
+              ]
+            },
+            "maxItems": 12
+          },
+          "principles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "statement_handle": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "action_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "statement_handle",
+                "action_ids"
+              ]
+            },
+            "maxItems": 8
+          },
+          "statements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "PHYSICAL_CONTRIBUTION",
+                    "PURPOSE",
+                    "BELIEF",
+                    "PURPOSIVE_USE",
+                    "INTENDED_USE",
+                    "MAXIM",
+                    "SOURCE_RULE",
+                    "NORMATIVE_PREMISE",
+                    "NORMATIVE_JUDGMENT",
+                    "FACTUAL_PREMISE",
+                    "INTERPRETIVE_PREMISE",
+                    "PRINCIPLE",
+                    "PERSONAL_REASON",
+                    "EVALUATIVE_COMPARISON"
+                  ]
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "polarity": {
+                  "type": "string",
+                  "enum": [
+                    "AFFIRMED",
+                    "DENIED",
+                    "UNKNOWN"
+                  ]
+                },
+                "modality": {
+                  "type": "string",
+                  "enum": [
+                    "ASSERTED",
+                    "POSSIBLE",
+                    "UNKNOWN"
+                  ]
+                },
+                "hypothesis_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "citations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "evidence_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "value_path": {
+                        "type": "string"
+                      },
+                      "quote": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "evidence_id",
+                      "value_path",
+                      "quote"
+                    ]
+                  }
+                },
+                "handle": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "kind",
+                "text",
+                "polarity",
+                "modality",
+                "hypothesis_ids",
+                "citations",
+                "handle"
+              ]
+            },
+            "maxItems": 32
+          },
+          "supports": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "type": "string",
+                  "enum": [
+                    "SOURCE",
+                    "ASSUMPTION",
+                    "PARAPHRASE",
+                    "CALCULATION",
+                    "PHYSICAL_CAUSATION",
+                    "PRACTICAL_REASONING",
+                    "NORM_APPLICATION",
+                    "NORM_PRIORITY"
+                  ]
+                },
+                "inputs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "output": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "explanation": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "operation",
+                "inputs",
+                "output",
+                "explanation"
+              ]
+            },
+            "maxItems": 40
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "person_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "principle_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "action_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "stance": {
+                  "type": "string",
+                  "enum": [
+                    "FOR",
+                    "AGAINST",
+                    "UNRESOLVED"
+                  ]
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "conclusion_handle": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "ground_handles": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "warrant_handles": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "generic_basis": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "id",
+                "person_id",
+                "principle_id",
+                "action_id",
+                "stance",
+                "value",
+                "conclusion_handle",
+                "ground_handles",
+                "warrant_handles",
+                "generic_basis"
+              ]
+            },
+            "maxItems": 16
+          },
+          "comparisons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "reason_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "judgment_handle": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "explanation": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "id",
+                "reason_ids",
+                "judgment_handle",
+                "explanation"
+              ]
+            },
+            "maxItems": 12
+          },
+          "challenges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "UNDERMINING",
+                    "REBUTTING",
+                    "UNDERCUTTING"
+                  ]
+                },
+                "target_kind": {
+                  "type": "string",
+                  "enum": [
+                    "STATEMENT",
+                    "SUPPORT"
+                  ]
+                },
+                "target_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "challenge_handle": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "response_handle": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "OPEN",
+                    "ANSWERED",
+                    "UNRESOLVED"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "target_kind",
+                "target_id",
+                "challenge_handle",
+                "response_handle",
+                "status"
+              ]
+            },
+            "maxItems": 8
+          },
+          "action_assessments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "action_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "conclusion_handle": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "assessment": {
+                  "type": "string",
+                  "enum": [
+                    "DEFENSIBLE",
+                    "REJECTED",
+                    "UNRESOLVED"
+                  ]
+                }
+              },
+              "required": [
+                "action_id",
+                "conclusion_handle",
+                "assessment"
+              ]
+            },
+            "maxItems": 3
+          },
+          "recommendation_action_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "conclusion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "strongest_objection": {
+            "type": "string",
+            "minLength": 1
+          },
+          "answer_to_objection": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reversal_condition": {
+            "type": "string",
+            "minLength": 1
+          },
+          "residual_disagreement": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "required": [
+          "persons",
+          "principles",
+          "statements",
+          "supports",
+          "reasons",
+          "comparisons",
+          "challenges",
+          "action_assessments",
+          "recommendation_action_id",
+          "conclusion",
+          "strongest_objection",
+          "answer_to_objection",
+          "reversal_condition",
+          "residual_disagreement"
+        ]
+      }
+    }
+  }
+}

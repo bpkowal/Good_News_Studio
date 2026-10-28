@@ -1,0 +1,150 @@
+{
+  "verification": "PASS",
+  "calls": [
+    {
+      "case": "cooling_contributor_consents",
+      "arm": "focused_baseline",
+      "model": "o3-2025-04-16",
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 2486,
+        "prompt_tokens": 6354,
+        "total_tokens": 8840,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 640,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      }
+    },
+    {
+      "case": "cooling_contributor_consents",
+      "arm": "consequences_first",
+      "model": "o3-2025-04-16",
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 2408,
+        "prompt_tokens": 11387,
+        "total_tokens": 13795,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 768,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      }
+    },
+    {
+      "case": "blanket_prior_assurance",
+      "arm": "focused_baseline",
+      "model": "o3-2025-04-16",
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 1829,
+        "prompt_tokens": 4790,
+        "total_tokens": 6619,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 320,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      }
+    },
+    {
+      "case": "blanket_prior_assurance",
+      "arm": "consequences_first",
+      "model": "o3-2025-04-16",
+      "finish_reason": "stop",
+      "usage": {
+        "completion_tokens": 2259,
+        "prompt_tokens": 7953,
+        "total_tokens": 10212,
+        "completion_tokens_details": {
+          "accepted_prediction_tokens": 0,
+          "audio_tokens": 0,
+          "reasoning_tokens": 640,
+          "rejected_prediction_tokens": 0,
+          "text_tokens": null
+        },
+        "prompt_tokens_details": {
+          "audio_tokens": 0,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "image_tokens": null,
+          "text_tokens": null
+        }
+      }
+    }
+  ],
+  "inputs_frozen_before_all_calls": true,
+  "original_arguments_assignments_and_source_unchanged": true,
+  "same_source_prior_assignment_schema_model_effort_and_reply_ceiling": true,
+  "treatment_difference": "Additional consequence projection and fact-first instruction together.",
+  "no_previous_arm_replies_assistant_review_or_peer_arguments_in_requests": true,
+  "valid_source_span_offsets_do_not_establish_entailment": true,
+  "binding_findings_by_reply": [
+    {
+      "case": "cooling_contributor_consents",
+      "arm": "focused_baseline",
+      "findings": [
+        "REVIEW_TARGET_PATH_MISMATCH:0",
+        "REVIEW_TARGET_PATH_MISMATCH:1",
+        "REVIEW_TARGET_PATH_MISMATCH:2"
+      ]
+    },
+    {
+      "case": "cooling_contributor_consents",
+      "arm": "consequences_first",
+      "findings": [
+        "REVIEW_TARGET_QUOTE_MISMATCH:0",
+        "REVIEW_SOURCE_QUOTE_MISMATCH:0",
+        "REVIEW_TARGET_QUOTE_MISMATCH:1"
+      ]
+    },
+    {
+      "case": "blanket_prior_assurance",
+      "arm": "focused_baseline",
+      "findings": []
+    },
+    {
+      "case": "blanket_prior_assurance",
+      "arm": "consequences_first",
+      "findings": [
+        "REVIEW_TARGET_PATH_MISMATCH:0"
+      ]
+    }
+  ],
+  "self_report_is_resolution": false,
+  "semantic_support": "NOT_CERTIFIED_BY_THIS_VERIFIER",
+  "operative": false,
+  "regression_tests": {
+    "passed": 113,
+    "note": "Completed before live calls; not rerun by this verifier."
+  }
+}

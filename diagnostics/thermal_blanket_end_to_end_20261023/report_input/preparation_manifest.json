@@ -1,0 +1,501 @@
+{
+  "run_provenance": {
+    "schema_version": "parliament-run/1",
+    "run_id": "run_829bd784673f4a89947429f152463e14",
+    "parent_run_id": "run_75121107db5b47baae1a65ee36aacdb9",
+    "execution_path": "world_preparation",
+    "mode": "LIVE",
+    "started_at": "2026-10-23T15:38:15.937104+00:00",
+    "configuration": {
+      "chooser_model": "o3",
+      "openai_model": "o3",
+      "prepare_only": true,
+      "parliament_root": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament",
+      "parliament_python": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/venv/bin/python",
+      "runtime_profile": "compact_frameworks",
+      "agents": null,
+      "max_cycles": null,
+      "use_rag": null,
+      "time_budget": null,
+      "agent_timeout": null,
+      "prototype_deliberation": false
+    },
+    "pipeline_lock_sha256": "915b54bd4b4208c955f70dfb9276af2ae80e5efec4540c6b0dec10c572ef50dc",
+    "inputs": {
+      "scenario-file": {
+        "sha256": "21ed5e94b4e2e5ad60e86e0fc95b71e8f2798d16a7c557a81843c233d0aff067"
+      }
+    },
+    "manifest_file": "run_manifest.json",
+    "checkpoint_tags": [
+      "thermal-blanket-o3-fixed-end-to-end"
+    ],
+    "checkpoints": [
+      {
+        "schema_version": "parliament-checkpoint/1",
+        "id": "run_829bd784673f4a89947429f152463e14:cp:1",
+        "run_id": "run_829bd784673f4a89947429f152463e14",
+        "stage": "execution_started",
+        "status": "recorded",
+        "at": "2026-10-23T15:38:15.979004+00:00",
+        "tags": [
+          "thermal-blanket-o3-fixed-end-to-end"
+        ],
+        "artifacts": []
+      },
+      {
+        "schema_version": "parliament-checkpoint/1",
+        "id": "run_829bd784673f4a89947429f152463e14:cp:2",
+        "run_id": "run_829bd784673f4a89947429f152463e14",
+        "stage": "runtime_checked",
+        "status": "ready",
+        "at": "2026-10-23T15:38:16.931357+00:00",
+        "tags": [
+          "thermal-blanket-o3-fixed-end-to-end"
+        ],
+        "artifacts": []
+      }
+    ],
+    "application": {
+      "commit": "a1a79d242b2ef4ffb8e4a2e7a6256075b0232cdf",
+      "branch": "Parliament_Frontend",
+      "dirty": true,
+      "source_sha256": "5ac66b759596e46fed8d9bb7ef23bf1ce5bb97b842b13a7bf4579a47f7b9d877",
+      "archive_sha256": "03453712f99864ca5805e75431c4b1ccc0d2322421d4bdc7aa925add87c28643"
+    }
+  },
+  "scenario": "A mountain rescue shelter has one thermal blanket. Rescuer Ellis can give the blanket to Rowan or Sasha, but not both. Both hikers are stranded in the cold, and no other rescue or warming equipment will arrive in time. If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival. If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival. The hiker who does not get the blanket will die. Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket. Whom should Ellis give the blanket to?",
+  "semantic_coverage": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_demo_o3_fixed_live_20261023/pipeline/semantic_coverage.json",
+  "question_assessment": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_demo_o3_fixed_live_20261023/pipeline/question_assessment.json",
+  "chooser_model": "o3",
+  "chosen_blueprint_id": "exclusive_allocation",
+  "blueprint_status": "FILLED",
+  "candidate_graphs_markdown": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_demo_o3_fixed_live_20261023/pipeline/candidate_graphs.md",
+  "candidate_attempts_json": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_demo_o3_fixed_live_20261023/pipeline/candidate_attempts.json",
+  "z10_blueprint_comparison": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_demo_o3_fixed_live_20261023/pipeline/z10_blueprint_comparison.json",
+  "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_demo_o3_fixed_live_20261023/pipeline/blueprint_candidate.json",
+  "scenario_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_demo_o3_fixed_live_20261023/pipeline/scenario.json",
+  "actions": [
+    "gives the blanket to Rowan",
+    "gives the blanket to Sasha"
+  ],
+  "deliberation": {
+    "trace": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/review/targeted_review.json",
+    "mode": "LIVE_INDEPENDENT_FRAMEWORKS_PLUS_BOUNDED_REVIEW"
+  },
+  "parliament_version": {
+    "root": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament",
+    "commit": "614af0c1601dd7169842f130f1c26a5dd0b30564",
+    "branch": "relent-framework",
+    "modified_files": [
+      "global_workspace/care_ledger.py",
+      "global_workspace/deontology_ledger.py",
+      "global_workspace/epistemic_ledger.py",
+      "global_workspace/expected_value.py",
+      "global_workspace/frozen_world_replay.py",
+      "global_workspace/local_specialists.py",
+      "global_workspace/models.py",
+      "global_workspace/scenario_semantics.py",
+      "global_workspace/semantic_graph.py",
+      "global_workspace/specialist_authority.py",
+      "global_workspace/utilitarian_ledger.py",
+      "global_workspace/world_state.py",
+      "global_workspace_pipeline.py"
+    ],
+    "integration_patch_sha256": "c878f1c6f463219f72bc4f42e5cd11fb177e5f33d62fa39b0334f44deb277d57",
+    "discourse_workspace_patch_sha256": "8741c60141b59062de79102eb0bebcaccadbba8a2111e9dcebebaf92ac4d193e",
+    "recognition_bridge_sha256": "7abcf97cacbef2ec7c176a5c2a355bcd29cd2e6cd14037b4a15d5718e1b245fe"
+  },
+  "runtime_check": {
+    "check_version": "parliament-runtime-check/1",
+    "ready": true,
+    "profile": "compact_frameworks",
+    "parliament_root": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament",
+    "python": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/venv/bin/python",
+    "errors": [],
+    "lock_sha256": "915b54bd4b4208c955f70dfb9276af2ae80e5efec4540c6b0dec10c572ef50dc",
+    "capability": "compact_frameworks",
+    "commit": "614af0c1601dd7169842f130f1c26a5dd0b30564",
+    "source_tree_sha256": "45e8451584de716b8c4e814f8b4bafbfdc3795ff2780cff805b66b2b68bfcc94",
+    "source_status": "LOCKED_PATCH_SET",
+    "environment": {},
+    "python_version": "3.11.11",
+    "remediation": "Run: .venv/bin/python parliament_runtime.py setup --profile compact_frameworks --python python3.11"
+  },
+  "admission_attempts": [
+    {
+      "blueprint_id": "exclusive_allocation",
+      "rank": -0.1,
+      "variant": "amended",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/00_exclusive_allocation/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/00_exclusive_allocation/hypothesis_overlay.json",
+      "status": "REJECTED",
+      "returncode": 1,
+      "error": "Parliament rejected the blueprint candidate: {\"status\": \"REJECTED\", \"actions\": {}, \"world_model\": {}, \"world_model_status\": \"COMMITTED\", \"world_contradictions\": [], \"errors\": [\"A0 has no distinguishing source clause; its grounding ['C3'] is covered entirely by the other actions\", \"A1 has no distinguishing source clause; its grounding ['C4'] is covered entirely by the other actions\", \"A2 has no distinguishing source clause; its grounding ['C3'] is covered entirely by the other actions\", \"A3 has no distinguishing source clause; its grounding ['C4'] is covered entirely by the other actions\"], \"warnings\": [], \"validation_issues\": [{\"code\": \"WORLD_VALIDATION_ERROR\", \"message\": \"A0 has no distinguishing source clause; its grounding ['C3'] is covered entirely by the other actions\", \"entity_kind\": \"action\", \"entity_id\": \"A0\", \"field\": \"\", \"related_ids\": [], \"repair_class\": \"SEMANTIC_PATCH\", \"permits_removal\": false}, {\"code\": \"WORLD_VALIDATION_ERROR\", \"message\": \"A1 has no distinguishing source clause; its grounding ['C4'] is covered entirely by the other actions\", \"entity_kind\": \"action\", \"entity_id\": \"A1\", \"field\": \"\", \"related_ids\": [], \"repair_class\": \"SEMANTIC_PATCH\", \"permits_removal\": false}, {\"code\": \"WORLD_VALIDATION_ERROR\", \"message\": \"A2 has no distinguishing source clause; its grounding ['C3'] is covered entirely by the other actions\", \"entity_kind\": \"action\", \"entity_id\": \"A2\", \"field\": \"\", \"related_ids\": [], \"repair_class\": \"SEMANTIC_PATCH\", \"permits_removal\": false}, {\"code\": \"WORLD_VALIDATION_ERROR\", \"message\": \"A3 has no distinguishing source clause; its grounding ['C4'] is covered entirely by the other actions\", \"entity_kind\": \"action\", \"entity_id\": \"A3\", \"field\": \"\", \"related_ids\": [], \"repair_class\": \"SEMANTIC_PATCH\", \"permits_removal\": false}], \"compiler_loss_telemetry\": {}, \"clauses\": [{\"clause_id\": \"C0\", \"text\": \"A mountain rescue shelter has one thermal blanket.\"}, {\"clause_id\": \"C1\", \"text\": \"Rescuer Ellis can give the blanket to Rowan or Sasha, but not both.\"}, {\"clause_id\": \"C2\", \"text\": \"Both hikers are stranded in the cold, and no other rescue or warming equipment will arrive in time.\"}, {\"clause_id\": \"C3\", \"text\": \"If Ellis gives the blanket to Rowan, Rowan has an 80% chance of survival.\"}, {\"clause_id\": \"C4\", \"text\": \"If Ellis gives the blanket to Sasha, Sasha has a 60% chance of survival.\"}, {\"clause_id\": \"C5\", \"text\": \"The hiker who does not get the blanket will die.\"}, {\"clause_id\": \"C6\", \"text\": \"Before learning about Rowan, Ellis promised Sasha that Sasha would get the blanket.\"}, {\"clause_id\": \"C7\", \"text\": \"Whom should Ellis give the blanket to?\"}]}\n"
+    },
+    {
+      "blueprint_id": "exclusive_allocation",
+      "rank": 0,
+      "variant": "baseline",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/01_exclusive_allocation/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/01_exclusive_allocation/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 8,
+        "causal_links": 6,
+        "frozen_trace_valid": true,
+        "discourse_committed": false,
+        "relent_workspace": {
+          "established": [
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E1",
+              "outcome": "gives the blanket to Rowan",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E2",
+              "outcome": "Rowan has an 80% chance of survival",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E3",
+              "outcome": "gives the blanket to Sasha",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E4",
+              "outcome": "Sasha has a 60% chance of survival",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E5",
+              "outcome": "does not receive one thermal blanket",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E6",
+              "outcome": "does not receive one thermal blanket",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E7",
+              "outcome": "does not get the blanket",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E8",
+              "outcome": "does not get the blanket",
+              "predicate": null,
+              "status": "established"
+            }
+          ],
+          "not_established": [
+            {
+              "kind": "proposition",
+              "proposition_id": "PR1",
+              "predication": "would get the blanket",
+              "status": "COMMITTED_CONTENT"
+            },
+            {
+              "kind": "commitment",
+              "commitment_id": "K0",
+              "content_proposition_id": "PR1",
+              "status": "committed"
+            }
+          ],
+          "duty_ledger_citations": [
+            {
+              "kind": "commitment",
+              "commitment_id": "K0"
+            }
+          ],
+          "ev_forbidden_proposition_ids": [
+            "PR1"
+          ],
+          "factual_status_sources": [
+            "occurrence_effects"
+          ]
+        },
+        "fingerprint_sha256": "a8162f3aaf80c2fae48cf742ff30d59d1eff422cacfc8a2268fd49ed97048a96"
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/01_exclusive_allocation/frozen_world_trace.json"
+    },
+    {
+      "blueprint_id": "rescue_contrast",
+      "status": "NOT_RUN",
+      "reason": "construction_withheld"
+    },
+    {
+      "blueprint_id": "promise_reliance",
+      "rank": 1.9,
+      "variant": "amended",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/03_promise_reliance/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/03_promise_reliance/hypothesis_overlay.json",
+      "status": "REJECTED",
+      "returncode": 1,
+      "error": "Traceback (most recent call last):\n  File \"/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpvq8eiwgf/admit_blueprint.py\", line 148, in <module>\n    parse_world_model(\n  File \"/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament/global_workspace/world_state.py\", line 3123, in parse_world_model\n    raise WorldModelValidationError(\nglobal_workspace.world_validation.WorldModelValidationError: A0 recipient P2 lacks an atomic DIRECT INTERVENTION, RESOURCE_TRANSFER, or INSTITUTIONAL_OUTCOME effect\n"
+    },
+    {
+      "blueprint_id": "promise_reliance",
+      "rank": 2,
+      "variant": "baseline",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/04_promise_reliance/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/04_promise_reliance/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 0,
+        "causal_links": 0,
+        "frozen_trace_valid": false,
+        "discourse_committed": true,
+        "relent_workspace": {
+          "established": [],
+          "not_established": [
+            {
+              "kind": "proposition",
+              "proposition_id": "PR1",
+              "predication": "Sasha would get the blanket",
+              "status": "COMMITTED_CONTENT"
+            },
+            {
+              "kind": "commitment",
+              "commitment_id": "K0",
+              "content_proposition_id": "PR1",
+              "status": "committed"
+            }
+          ],
+          "duty_ledger_citations": [
+            {
+              "kind": "commitment",
+              "commitment_id": "K0"
+            }
+          ],
+          "ev_forbidden_proposition_ids": [
+            "PR1"
+          ],
+          "factual_status_sources": [
+            "occurrence_effects"
+          ]
+        },
+        "fingerprint_sha256": null
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/04_promise_reliance/frozen_world_trace.json"
+    },
+    {
+      "blueprint_id": "flexible_graph",
+      "rank": 3,
+      "variant": "flexible",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/05_flexible_graph/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/05_flexible_graph/hypothesis_overlay.json",
+      "status": "ADMITTED",
+      "admission": {
+        "status": "COMMITTED",
+        "world_model_status": "COMMITTED",
+        "effects": 2,
+        "causal_links": 0,
+        "frozen_trace_valid": true,
+        "discourse_committed": false,
+        "relent_workspace": {
+          "established": [
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E1",
+              "outcome": "gives the blanket to Rowan",
+              "predicate": null,
+              "status": "established"
+            },
+            {
+              "kind": "occurrence_effect",
+              "effect_id": "E3",
+              "outcome": "gives the blanket to Sasha",
+              "predicate": null,
+              "status": "established"
+            }
+          ],
+          "not_established": [],
+          "duty_ledger_citations": [],
+          "ev_forbidden_proposition_ids": [],
+          "factual_status_sources": [
+            "occurrence_effects"
+          ]
+        },
+        "fingerprint_sha256": "ba282a7ce0c2902cb661731999c78d18d6d4603de301c9e3a508fa70a25ef5b0"
+      },
+      "trace_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/05_flexible_graph/frozen_world_trace.json"
+    },
+    {
+      "blueprint_id": "primitive_composition",
+      "rank": 4,
+      "variant": "composition",
+      "candidate_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/06_primitive_composition/candidate.json",
+      "overlay_path": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admission_attempts/06_primitive_composition/hypothesis_overlay.json",
+      "status": "REJECTED",
+      "returncode": 1,
+      "error": "Traceback (most recent call last):\n  File \"/var/folders/n8/ljhm3wm554j1rvxbx9vdvw600000gn/T/tmpvq8eiwgf/admit_blueprint.py\", line 148, in <module>\n    parse_world_model(\n  File \"/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.runtime/parliament/global_workspace/world_state.py\", line 3123, in parse_world_model\n    raise WorldModelValidationError(\nglobal_workspace.world_validation.WorldModelValidationError: causal_link[0] is conditional but has no condition; causal_link[1] is conditional but has no condition\n"
+    }
+  ],
+  "collapse_status": "SEPARATED",
+  "world_beam": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/world_beam.json",
+  "admitted_graph_comparison": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/admitted_graph_comparison.json",
+  "selection_review": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/selection_review.json",
+  "pipeline_status": "ADMITTED",
+  "parliament_admission": {
+    "status": "COMMITTED",
+    "world_model_status": "COMMITTED",
+    "effects": 8,
+    "causal_links": 6,
+    "frozen_trace_valid": true,
+    "discourse_committed": false,
+    "relent_workspace": {
+      "established": [
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E1",
+          "outcome": "gives the blanket to Rowan",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E2",
+          "outcome": "Rowan has an 80% chance of survival",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E3",
+          "outcome": "gives the blanket to Sasha",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E4",
+          "outcome": "Sasha has a 60% chance of survival",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E5",
+          "outcome": "does not receive one thermal blanket",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E6",
+          "outcome": "does not receive one thermal blanket",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E7",
+          "outcome": "does not get the blanket",
+          "predicate": null,
+          "status": "established"
+        },
+        {
+          "kind": "occurrence_effect",
+          "effect_id": "E8",
+          "outcome": "does not get the blanket",
+          "predicate": null,
+          "status": "established"
+        }
+      ],
+      "not_established": [
+        {
+          "kind": "proposition",
+          "proposition_id": "PR1",
+          "predication": "would get the blanket",
+          "status": "COMMITTED_CONTENT"
+        },
+        {
+          "kind": "commitment",
+          "commitment_id": "K0",
+          "content_proposition_id": "PR1",
+          "status": "committed"
+        }
+      ],
+      "duty_ledger_citations": [
+        {
+          "kind": "commitment",
+          "commitment_id": "K0"
+        }
+      ],
+      "ev_forbidden_proposition_ids": [
+        "PR1"
+      ],
+      "factual_status_sources": [
+        "occurrence_effects"
+      ]
+    },
+    "fingerprint_sha256": "a8162f3aaf80c2fae48cf742ff30d59d1eff422cacfc8a2268fd49ed97048a96"
+  },
+  "frozen_world_trace": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/frozen_world_trace.json",
+  "world_state_topology_markdown": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/world_state_topology.md",
+  "world_state_topology_json": "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/diagnostics/thermal_blanket_end_to_end_20261023/pipeline/world_state_topology.json",
+  "selection_replay_provenance": {
+    "schema_version": "parliament-run/1",
+    "run_id": "run_722eb91dae6d4ea19233982fd5474aa4",
+    "parent_run_id": null,
+    "execution_path": "report_postprocessing",
+    "mode": "LIVE",
+    "started_at": "2026-10-23T15:42:29.726526+00:00",
+    "configuration": {
+      "runtime_profile": "compact_frameworks",
+      "selection_mode": "EXACT_SAVED_MODEL_RESPONSE_REPLAY",
+      "new_chooser_calls": 0,
+      "original_input_sha256": {
+        "diagnostics/thermal_blanket_demo_o3_fixed_live_20261023/pipeline/blueprint_candidate.json": "e9a0c7740c00cf45d1acf9da30157c4e1aa1550aa0f98f49afaa3a22692c31eb",
+        "diagnostics/thermal_blanket_demo_o3_fixed_live_20261023/pipeline/selection_review.json": "37edf5a64ca140b7ea639f42f9345c8c8fcc51ae81128774ef24fcd1a5645210"
+      }
+    },
+    "pipeline_lock_sha256": "915b54bd4b4208c955f70dfb9276af2ae80e5efec4540c6b0dec10c572ef50dc",
+    "inputs": {},
+    "manifest_file": "run_manifest.json",
+    "checkpoint_tags": [],
+    "checkpoints": [],
+    "application": {
+      "commit": "a1a79d242b2ef4ffb8e4a2e7a6256075b0232cdf",
+      "branch": "Parliament_Frontend",
+      "dirty": true,
+      "source_sha256": "af1d0aa3406c90d09538104f622af0f0fe652927bafca379b2325e3640dd45aa",
+      "archive_sha256": "44d70d03c81404128b558c851947aed8b7c076f36d5c819f4839529bd2086279"
+    }
+  },
+  "original_input_sha256": {
+    "diagnostics/thermal_blanket_demo_o3_fixed_live_20261023/pipeline/blueprint_candidate.json": "e9a0c7740c00cf45d1acf9da30157c4e1aa1550aa0f98f49afaa3a22692c31eb",
+    "diagnostics/thermal_blanket_demo_o3_fixed_live_20261023/pipeline/selection_review.json": "37edf5a64ca140b7ea639f42f9345c8c8fcc51ae81128774ef24fcd1a5645210"
+  },
+  "continuation_mode": "EXACT_SAVED_SELECTION_REPLAY_NO_NEW_CHOOSER_CALLS",
+  "report_input_assembly": {
+    "source_sha256": "a0dba794ea1ec36c622f1dcf75f9aac5ca44cffd63e4154f5e491dee463daec7",
+    "immutable_inputs": {
+      "diagnostics/thermal_blanket_end_to_end_20261023/pipeline/frozen_world_trace.json": "b45cc9764da08c3a3a3d5036dc262bda8c4ba67a968dadb3e46f99ad123b0405",
+      "diagnostics/thermal_blanket_end_to_end_20261023/review/targeted_review.json": "b28c761be74bfecb329f36b4052ed3b5a7a7c0c31f4eaaf13fdecf26b7ad9c16",
+      "diagnostics/thermal_blanket_end_to_end_20261023/frameworks/framework_generation.json": "8b511063f70d6bbc2e82d42924063497f4bf1fc22ac2cdfed2a1e61af0ba0cdd"
+    },
+    "new_model_calls": 0
+  }
+}

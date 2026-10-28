@@ -66,6 +66,16 @@ def source_ledger_layer(world, claims):
     return nodes, '\n'.join(lines)
 
 
+def public_provenance(value):
+    """Keep run identity and hashes while omitting machine-specific absolute paths."""
+    if isinstance(value,dict):return {k:public_provenance(v) for k,v in value.items()}
+    if isinstance(value,list):return [public_provenance(v) for v in value]
+    if isinstance(value,str) and Path(value).is_absolute():
+        try:return str(Path(value).relative_to(ROOT))
+        except ValueError:return 'external-path:'+Path(value).name
+    return value
+
+
 def presentation(report, ident, title):
     if report.get('version') != 'parliament-demo/1':
         raise ValueError('Unknown demo report version')
@@ -113,13 +123,14 @@ def presentation(report, ident, title):
         'status':report['status'], 'stop':report['stop'], 'judgment_status':report.get('judgment_status'),
         'mode':report.get('execution',{}).get('mode','SAVED_RECORD'), 'diagrams':diagrams,
         'frameworks':views, 'hinges':report.get('hinges',[]),
+        'agent_roster':copy.deepcopy(report.get('agent_roster')),
         'unknowns':report.get('unknowns',[]), 'disagreements':report.get('disagreements',[]),
         'agreement':report.get('agreement'), 'not_decided':report.get('not_decided',[]),
         'stipulated_claims':report.get('stipulated_claims',[]), 'missing_slots':report.get('missing_slots',[]),
         'diagram_notices':report.get('diagram_notices',[]), 'topography': topography,
-        'run_provenance':report.get('run_provenance') or {'status':'UNKNOWN_HISTORICAL','reason':'No original execution manifest was recorded.'},
-        'generation_provenance':report.get('generation_provenance') or {'status':'UNKNOWN_HISTORICAL'},
-        'presentation_revisions':report.get('presentation_revisions', []),
+        'run_provenance':public_provenance(report.get('run_provenance') or {'status':'UNKNOWN_HISTORICAL','reason':'No original execution manifest was recorded.'}),
+        'generation_provenance':public_provenance(report.get('generation_provenance') or {'status':'UNKNOWN_HISTORICAL'}),
+        'presentation_revisions':public_provenance(report.get('presentation_revisions', [])),
         'viewer_provenance':viewer_provenance(),
         'provenance':{'origin':'SAVED_DEMO_REPORT', 'new_model_calls':0,
             'report_sha256':hashlib.sha256(json.dumps(report,sort_keys=True).encode()).hexdigest()}}
@@ -129,7 +140,7 @@ def presentation(report, ident, title):
 def viewer_provenance():
     from parliament_run_provenance import current_provenance
     files=['export_parliament_viewer.py','blueprint_reader_projection.py','frontend/dist/app.js','frontend/dist/provenance-receipts.mjs','frontend/dist/index.html','frontend/dist/styles.css','frontend/dist/vendor/mermaid-10.9.3.min.js','frontend/reviewed_explanations.json','frontend/saved_runs.json']
-    execution=current_provenance()
+    execution=public_provenance(current_provenance())
     run_id=execution.get('run_id')
     return {'execution':execution, 'manifest_file':execution.get('manifest_file') if run_id else None,
             'presentation_files':{name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in files if (ROOT/name).is_file()}}
@@ -235,6 +246,11 @@ def _export(reports=None, output=DEFAULT_OUTPUT, trolley_report=None, catalog=No
     index = []
     titles = {'medicine':'One dose · unequal survival', 'promise':'One dose · competing promise',
               'trolley':'Trolley · competing interpretations'}
+    # Keep the original display names while allowing new saved demos through
+    # the same catalog and presentation contract.
+    for ident in pinned:
+        if ident not in titles:
+            titles[ident] = ident.replace('_', ' ').replace('-', ' ').capitalize()
     for ident, title in titles.items():
         path = (trolley_report if ident == 'trolley' and trolley_report else
                 pinned_report_path(pinned, ident) if ident in pinned else reports/ident/'DEMO_REPORT.json')
@@ -247,7 +263,7 @@ def _export(reports=None, output=DEFAULT_OUTPUT, trolley_report=None, catalog=No
         from parliament_framework_presentation import argument_markdown
         for view in payload['frameworks']:
             name = view['framework']
-            if name not in {'utilitarian','deontological','care','virtue','rawlsian'}:
+            if name not in {'utilitarian','deontological','care','virtue','rawlsian','contractualist'}:
                 continue
             filename = ident+'_'+name+'_argument.md'
             (output/filename).write_text(argument_markdown(view), encoding='utf-8')

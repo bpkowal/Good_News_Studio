@@ -1,0 +1,59 @@
+{
+  "version": "neutral-framework-pilot/0.1",
+  "instruction_version": "argument-framework-instructions/0.1",
+  "prepared_at": "2026-10-24T17:22:14.149029+00:00",
+  "model": "o3",
+  "reasoning_effort": "low",
+  "max_completion_tokens": 8192,
+  "maximum_provider_calls": 4,
+  "sdk_retries": 0,
+  "tools": false,
+  "peer_input": false,
+  "repairs": false,
+  "world_admission": false,
+  "case_ids": [
+    "cooling_three_options"
+  ],
+  "frameworks": [
+    "utilitarian",
+    "deontological",
+    "care",
+    "contractualist"
+  ],
+  "framework_instructions": {
+    "utilitarian": "Evaluate consequences for everyone affected and defend the welfare comparison. Distinguish restricted endpoints such as expected survivors or beneficiary counts from total welfare. State assumptions about unprovided effects or comparability as assumptions. Address the strongest objection to aggregation or priority.",
+    "deontological": "Evaluate candidate maxims, applicable duties, consent and competing obligations. Distinguish a stated rule from its moral authority. Defend any priority among duties or retain the conflict. For instrumental-use claims distinguish causal contribution from an end, instrumental belief and purposeful employment; using someone as a means does not alone establish merely-as-means treatment or prohibition. A stated source purpose is not necessarily the sole purpose.",
+    "care": "Evaluate concrete needs, vulnerability, relationships, responsiveness and the competence of care. Do not invent special relationships or turn a sequence of care phases into an automatic priority rule. Explain how excluded people are considered and defend any priority among their claims.",
+    "contractualist": "Evaluate general principles by their justifiability to affected individuals. A principle may permit multiple actions and an action may be permitted by multiple principles. Form individual, personal reasons expressed in terms available to anyone in a relevantly similar position. Include excluded recipients and involuntary contributors. Tie each personal reason to one individual or generic individual position, one relevant value and the principle/action challenged or supported. These are reconstructed arguments, not reported preferences or speech. Compare objections to alternative principles with explicit grounds and warrants. Neither count reasons nor maximize a minimum welfare score. Do not invent strength weights or assume actual unanimity or that any objection is a veto. Defend which rejections are reasonable or preserve the comparison as unresolved. For risk distinguish ex ante prospects from ex post burdens. An unfulfilled assurance does not by itself establish wrongful betrayal or actual reliance."
+  },
+  "paper_attribution": {
+    "authors": [
+      "Luis Marcos-Vidal",
+      "Giulio Antonio Abbo",
+      "Tony Belpaeme"
+    ],
+    "title": "A Contractualist Argumentation Framework for Moral Decision-Making",
+    "version": "arXiv:2608.01937v1",
+    "url": "https://arxiv.org/html/2608.01937v1",
+    "used_sections": [
+      "5.1",
+      "5.2",
+      "5.3"
+    ],
+    "formal_semantics_implemented": false
+  },
+  "fixture_file_sha256": "345d888e1abfbbdd7c02621143e83f49992ef5c72b5533dea1c2c464824c0713",
+  "code_sha256": {
+    "argument_frameworks.py": "de2007b2be6b33e58e1f6b436894e903a6f8369c0596c5b5cf28c23bf668c8bf",
+    "argument_support.py": "4efd91e8b33607a5285e4126039393798c0587723d7beceb81f8c9313839f5bd",
+    "argument_construction.py": "053942f616e14467b42f9df0ab37db05a846142171be53e49bc08148f4bebd93",
+    "contractualist_pilot.py": "03e747dc8e23d813d29bac94eec7d41730ddc89cf5d2106c0ad86f5b60ccf9e2",
+    "run_contractualist_pilot.py": "bcdffc5521c9042d805c7187d72f4716ca91519cf1410de6f08491bd82c2dc07"
+  },
+  "limits": [
+    "One sample per cell; exploratory reasoning comparison.",
+    "Text fixtures are not admitted worlds. No operative framework roster change.",
+    "Binding checks and model-authored comparisons do not establish moral correctness.",
+    "Common envelope and budgets match; framework instructions intentionally differ."
+  ]
+}

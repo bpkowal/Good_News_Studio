@@ -1,0 +1,759 @@
+{
+  "case_id": "rule_not_automatically_priority",
+  "arm": "typed",
+  "prompt": "Review the quoted argument against the exact supplied evidence. The reviewer may be mistaken. Defend, qualify, withdraw or leave the inference unresolved. Separate source evidence, interpretive assumptions, normative assumptions and unknowns. Preserve defensible claims and useful conditional analysis; do not equate caution with correctness or agreement with the reviewer. Do not manufacture facts or a moral verdict. Cite exact support, distinguish physical contribution from belief and purposive use, and state the strongest justified conclusion. The argument annotations can themselves be wrong. If your schema requests reasoning_revision, revise those annotations while retaining claim IDs and exact evidence locations.\n{\"challenge\": {\"version\": \"inference-review/0.1\", \"prior_reply_sha256\": \"7e51b95a56a494e14a1f9934dd665d12c7420ee9737f897b093e697950caee19\", \"claim_path\": \"explanation\", \"quote\": \"The rule necessarily overrides emergency rescue.\", \"defect_kind\": \"MISSING_BRIDGE\", \"missing_premise\": \"Why does the posted requirement necessarily override the emergency rescue claim?\", \"evidence\": [{\"ref\": \"E1\", \"path\": \"/effects/0\", \"kind\": \"FROZEN_WORLD_COPY\", \"value\": {\"outcome\": \"operate the gate\", \"provenance\": [{\"excerpt\": \"A laboratory rule requires keeping the door closed. A trapped technician needs urgent help.\"}]}}], \"affected_paths\": [\"classification\"], \"reviewer\": \"EXPERIMENT_REVIEWER_MAY_BE_MISTAKEN\", \"authority\": \"REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT\", \"status\": \"OPEN\", \"challenge_id\": \"INFERENCE:e99d93064efce83bc58eed7f\"}, \"prior_reply\": {\"explanation\": \"The rule necessarily overrides emergency rescue.\"}, \"argument_annotation\": {\"claims\": [{\"id\": \"rule\", \"kind\": \"SOURCE_RULE\", \"interpretation_mode\": \"SOURCE_STATED\", \"text\": \"The rule requires keeping the door closed.\", \"supports\": [{\"evidence_ref\": \"E1\", \"value_path\": \"/provenance/0/excerpt\", \"quote\": \"A laboratory rule requires keeping the door closed. A trapped technician needs urgent help.\"}], \"condition_ids\": []}, {\"id\": \"priority\", \"kind\": \"NORMATIVE_JUDGMENT\", \"interpretation_mode\": \"ATTRIBUTED_INFERENCE\", \"text\": \"The rule necessarily overrides emergency rescue.\", \"supports\": [], \"condition_ids\": []}], \"bridges\": [{\"id\": \"b0\", \"rule_id\": \"SOURCE_RULE_TO_NORMATIVE_PRIORITY\", \"premise_ids\": [\"rule\"], \"assumption_ids\": [], \"conclusion_id\": \"priority\", \"explanation\": \"Reviewer-identified bridge to examine; not certified by these type annotations.\"}]}}",
+  "challenge": {
+    "version": "inference-review/0.1",
+    "prior_reply_sha256": "7e51b95a56a494e14a1f9934dd665d12c7420ee9737f897b093e697950caee19",
+    "claim_path": "explanation",
+    "quote": "The rule necessarily overrides emergency rescue.",
+    "defect_kind": "MISSING_BRIDGE",
+    "missing_premise": "Why does the posted requirement necessarily override the emergency rescue claim?",
+    "evidence": [
+      {
+        "ref": "E1",
+        "path": "/effects/0",
+        "kind": "FROZEN_WORLD_COPY",
+        "value": {
+          "outcome": "operate the gate",
+          "provenance": [
+            {
+              "excerpt": "A laboratory rule requires keeping the door closed. A trapped technician needs urgent help."
+            }
+          ]
+        }
+      }
+    ],
+    "affected_paths": [
+      "classification"
+    ],
+    "reviewer": "EXPERIMENT_REVIEWER_MAY_BE_MISTAKEN",
+    "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+    "status": "OPEN",
+    "challenge_id": "INFERENCE:e99d93064efce83bc58eed7f"
+  },
+  "schema": {
+    "type": "object",
+    "properties": {
+      "challenge_id": {
+        "type": "string",
+        "minLength": 1
+      },
+      "disposition": {
+        "type": "string",
+        "enum": [
+          "DEFENDED",
+          "QUALIFIED",
+          "WITHDRAWN",
+          "UNRESOLVED"
+        ]
+      },
+      "premises": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "claim": {
+              "type": "string",
+              "minLength": 1
+            },
+            "basis": {
+              "type": "string",
+              "enum": [
+                "SOURCE_EVIDENCE",
+                "INTERPRETIVE_ASSUMPTION",
+                "NORMATIVE_ASSUMPTION",
+                "UNKNOWN"
+              ]
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "required": [
+            "claim",
+            "basis",
+            "evidence_refs"
+          ]
+        },
+        "minItems": 1
+      },
+      "bridge": {
+        "type": "string",
+        "minLength": 1
+      },
+      "withdrawn_claims": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "qualifications": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "strongest_conclusion": {
+        "type": "string",
+        "minLength": 1
+      },
+      "remaining_questions": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "local_response": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "classification": {
+            "type": "string",
+            "enum": [
+              "SUPPORTED",
+              "CONDITIONAL",
+              "UNRESOLVED",
+              "WITHDRAWN"
+            ]
+          }
+        },
+        "required": [
+          "classification"
+        ]
+      },
+      "reasoning_revision": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "claims": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "PHYSICAL_CONTRIBUTION",
+                    "PURPOSE",
+                    "BELIEF",
+                    "PURPOSIVE_USE",
+                    "INTENDED_USE",
+                    "MAXIM",
+                    "SOURCE_RULE",
+                    "NORMATIVE_PREMISE",
+                    "NORMATIVE_JUDGMENT"
+                  ]
+                },
+                "interpretation_mode": {
+                  "type": "string",
+                  "enum": [
+                    "SOURCE_STATED",
+                    "ATTRIBUTED_INFERENCE",
+                    "CONDITIONAL",
+                    "UNKNOWN"
+                  ]
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "supports": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "evidence_ref": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "value_path": {
+                        "type": "string"
+                      },
+                      "quote": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "evidence_ref",
+                      "value_path",
+                      "quote"
+                    ]
+                  }
+                },
+                "condition_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "interpretation_mode",
+                "text",
+                "supports",
+                "condition_ids"
+              ]
+            }
+          },
+          "bridges": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "rule_id": {
+                  "type": "string",
+                  "enum": [
+                    "SOURCE_TO_INTERPRETATION",
+                    "CAUSAL_ROLE_TO_INTENDED_USE",
+                    "INTENDED_USE_TO_PROHIBITION",
+                    "SOURCE_RULE_TO_NORMATIVE_PRIORITY"
+                  ]
+                },
+                "premise_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "assumption_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "conclusion_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "explanation": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "id",
+                "rule_id",
+                "premise_ids",
+                "assumption_ids",
+                "conclusion_id",
+                "explanation"
+              ]
+            }
+          }
+        },
+        "required": [
+          "claims",
+          "bridges"
+        ]
+      }
+    },
+    "required": [
+      "challenge_id",
+      "disposition",
+      "premises",
+      "bridge",
+      "withdrawn_claims",
+      "qualifications",
+      "strongest_conclusion",
+      "remaining_questions",
+      "local_response",
+      "reasoning_revision"
+    ],
+    "additionalProperties": false
+  },
+  "provider_attempts": 1,
+  "operative": false,
+  "status": "ASSESSED",
+  "request": {
+    "model": "o3",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Review the quoted argument against the exact supplied evidence. The reviewer may be mistaken. Defend, qualify, withdraw or leave the inference unresolved. Separate source evidence, interpretive assumptions, normative assumptions and unknowns. Preserve defensible claims and useful conditional analysis; do not equate caution with correctness or agreement with the reviewer. Do not manufacture facts or a moral verdict. Cite exact support, distinguish physical contribution from belief and purposive use, and state the strongest justified conclusion. The argument annotations can themselves be wrong. If your schema requests reasoning_revision, revise those annotations while retaining claim IDs and exact evidence locations.\n{\"challenge\": {\"version\": \"inference-review/0.1\", \"prior_reply_sha256\": \"7e51b95a56a494e14a1f9934dd665d12c7420ee9737f897b093e697950caee19\", \"claim_path\": \"explanation\", \"quote\": \"The rule necessarily overrides emergency rescue.\", \"defect_kind\": \"MISSING_BRIDGE\", \"missing_premise\": \"Why does the posted requirement necessarily override the emergency rescue claim?\", \"evidence\": [{\"ref\": \"E1\", \"path\": \"/effects/0\", \"kind\": \"FROZEN_WORLD_COPY\", \"value\": {\"outcome\": \"operate the gate\", \"provenance\": [{\"excerpt\": \"A laboratory rule requires keeping the door closed. A trapped technician needs urgent help.\"}]}}], \"affected_paths\": [\"classification\"], \"reviewer\": \"EXPERIMENT_REVIEWER_MAY_BE_MISTAKEN\", \"authority\": \"REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT\", \"status\": \"OPEN\", \"challenge_id\": \"INFERENCE:e99d93064efce83bc58eed7f\"}, \"prior_reply\": {\"explanation\": \"The rule necessarily overrides emergency rescue.\"}, \"argument_annotation\": {\"claims\": [{\"id\": \"rule\", \"kind\": \"SOURCE_RULE\", \"interpretation_mode\": \"SOURCE_STATED\", \"text\": \"The rule requires keeping the door closed.\", \"supports\": [{\"evidence_ref\": \"E1\", \"value_path\": \"/provenance/0/excerpt\", \"quote\": \"A laboratory rule requires keeping the door closed. A trapped technician needs urgent help.\"}], \"condition_ids\": []}, {\"id\": \"priority\", \"kind\": \"NORMATIVE_JUDGMENT\", \"interpretation_mode\": \"ATTRIBUTED_INFERENCE\", \"text\": \"The rule necessarily overrides emergency rescue.\", \"supports\": [], \"condition_ids\": []}], \"bridges\": [{\"id\": \"b0\", \"rule_id\": \"SOURCE_RULE_TO_NORMATIVE_PRIORITY\", \"premise_ids\": [\"rule\"], \"assumption_ids\": [], \"conclusion_id\": \"priority\", \"explanation\": \"Reviewer-identified bridge to examine; not certified by these type annotations.\"}]}}"
+      }
+    ],
+    "max_completion_tokens": 4096,
+    "timeout": 90,
+    "response_format": {
+      "type": "json_schema",
+      "json_schema": {
+        "name": "workspace_response",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "challenge_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "disposition": {
+              "type": "string",
+              "enum": [
+                "DEFENDED",
+                "QUALIFIED",
+                "WITHDRAWN",
+                "UNRESOLVED"
+              ]
+            },
+            "premises": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "claim": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "basis": {
+                    "type": "string",
+                    "enum": [
+                      "SOURCE_EVIDENCE",
+                      "INTERPRETIVE_ASSUMPTION",
+                      "NORMATIVE_ASSUMPTION",
+                      "UNKNOWN"
+                    ]
+                  },
+                  "evidence_refs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                },
+                "required": [
+                  "claim",
+                  "basis",
+                  "evidence_refs"
+                ]
+              },
+              "minItems": 1
+            },
+            "bridge": {
+              "type": "string",
+              "minLength": 1
+            },
+            "withdrawn_claims": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "qualifications": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "strongest_conclusion": {
+              "type": "string",
+              "minLength": 1
+            },
+            "remaining_questions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "local_response": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "classification": {
+                  "type": "string",
+                  "enum": [
+                    "SUPPORTED",
+                    "CONDITIONAL",
+                    "UNRESOLVED",
+                    "WITHDRAWN"
+                  ]
+                }
+              },
+              "required": [
+                "classification"
+              ]
+            },
+            "reasoning_revision": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "claims": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "PHYSICAL_CONTRIBUTION",
+                          "PURPOSE",
+                          "BELIEF",
+                          "PURPOSIVE_USE",
+                          "INTENDED_USE",
+                          "MAXIM",
+                          "SOURCE_RULE",
+                          "NORMATIVE_PREMISE",
+                          "NORMATIVE_JUDGMENT"
+                        ]
+                      },
+                      "interpretation_mode": {
+                        "type": "string",
+                        "enum": [
+                          "SOURCE_STATED",
+                          "ATTRIBUTED_INFERENCE",
+                          "CONDITIONAL",
+                          "UNKNOWN"
+                        ]
+                      },
+                      "text": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "supports": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "evidence_ref": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "value_path": {
+                              "type": "string"
+                            },
+                            "quote": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "required": [
+                            "evidence_ref",
+                            "value_path",
+                            "quote"
+                          ]
+                        }
+                      },
+                      "condition_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "kind",
+                      "interpretation_mode",
+                      "text",
+                      "supports",
+                      "condition_ids"
+                    ]
+                  }
+                },
+                "bridges": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "rule_id": {
+                        "type": "string",
+                        "enum": [
+                          "SOURCE_TO_INTERPRETATION",
+                          "CAUSAL_ROLE_TO_INTENDED_USE",
+                          "INTENDED_USE_TO_PROHIBITION",
+                          "SOURCE_RULE_TO_NORMATIVE_PRIORITY"
+                        ]
+                      },
+                      "premise_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "assumption_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "conclusion_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "explanation": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "rule_id",
+                      "premise_ids",
+                      "assumption_ids",
+                      "conclusion_id",
+                      "explanation"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "claims",
+                "bridges"
+              ]
+            }
+          },
+          "required": [
+            "challenge_id",
+            "disposition",
+            "premises",
+            "bridge",
+            "withdrawn_claims",
+            "qualifications",
+            "strongest_conclusion",
+            "remaining_questions",
+            "local_response",
+            "reasoning_revision"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    "reasoning_effort": "low"
+  },
+  "provider_response": {
+    "id": "chatcmpl-Ec9ClVXjEbZcvJEKLSHLajKEdERfo",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "logprobs": null,
+        "message": {
+          "content": "{\"challenge_id\":\"INFERENCE:e99d93064efce83bc58eed7f\",\"disposition\":\"WITHDRAWN\",\"premises\":[{\"claim\":\"A laboratory rule requires keeping the door closed.\",\"basis\":\"SOURCE_EVIDENCE\",\"evidence_refs\":[\"E1\"]},{\"claim\":\"A trapped technician needs urgent help (implied situation).\",\"basis\":\"SOURCE_EVIDENCE\",\"evidence_refs\":[\"E1\"]}],\"bridge\":\"No warrant is supplied showing that the existence of the rule establishes an absolute normative priority over emergency rescue. Without an explicit hierarchy of norms, the leap from \u201cthere is a rule\u201d to \u201cit necessarily overrides rescue\u201d is unsupported.\",\"withdrawn_claims\":[\"The rule necessarily overrides emergency rescue.\"],\"qualifications\":[],\"strongest_conclusion\":\"It is established only that the laboratory has a keep-door-closed rule; no conclusion can be drawn from the given evidence about whether that rule overrides an emergency rescue obligation.\",\"remaining_questions\":[\"Is there any higher-level safety policy or legal standard specifying the priority of human life over procedural rules?\",\"Are there circumstances in which the rule itself contains an emergency exception?\"],\"local_response\":{\"classification\":\"WITHDRAWN\"},\"reasoning_revision\":{\"claims\":[{\"id\":\"rule\",\"kind\":\"SOURCE_RULE\",\"interpretation_mode\":\"SOURCE_STATED\",\"text\":\"The rule requires keeping the door closed.\",\"supports\":[{\"evidence_ref\":\"E1\",\"value_path\":\"/provenance/0/excerpt\",\"quote\":\"A laboratory rule requires keeping the door closed. A trapped technician needs urgent help.\"}],\"condition_ids\":[]},{\"id\":\"priority\",\"kind\":\"NORMATIVE_JUDGMENT\",\"interpretation_mode\":\"ATTRIBUTED_INFERENCE\",\"text\":\"The rule necessarily overrides emergency rescue.\",\"supports\":[],\"condition_ids\":[]}],\"bridges\":[{\"id\":\"b0\",\"rule_id\":\"SOURCE_RULE_TO_NORMATIVE_PRIORITY\",\"premise_ids\":[\"rule\"],\"assumption_ids\":[],\"conclusion_id\":\"priority\",\"explanation\":\"This bridge is unsupported; no rule hierarchy or authority establishing such priority is provided.\"}]}}",
+          "refusal": null,
+          "role": "assistant",
+          "annotations": [],
+          "audio": null,
+          "function_call": null,
+          "tool_calls": null
+        }
+      }
+    ],
+    "created": 1792760555,
+    "model": "o3-2025-04-16",
+    "object": "chat.completion",
+    "metadata": null,
+    "moderation": null,
+    "service_tier": "default",
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 699,
+      "prompt_tokens": 1103,
+      "total_tokens": 1802,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 256,
+        "rejected_prediction_tokens": 0,
+        "text_tokens": null
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "image_tokens": null,
+        "text_tokens": null
+      }
+    }
+  },
+  "response": {
+    "challenge_id": "INFERENCE:e99d93064efce83bc58eed7f",
+    "disposition": "WITHDRAWN",
+    "premises": [
+      {
+        "claim": "A laboratory rule requires keeping the door closed.",
+        "basis": "SOURCE_EVIDENCE",
+        "evidence_refs": [
+          "E1"
+        ]
+      },
+      {
+        "claim": "A trapped technician needs urgent help (implied situation).",
+        "basis": "SOURCE_EVIDENCE",
+        "evidence_refs": [
+          "E1"
+        ]
+      }
+    ],
+    "bridge": "No warrant is supplied showing that the existence of the rule establishes an absolute normative priority over emergency rescue. Without an explicit hierarchy of norms, the leap from \u201cthere is a rule\u201d to \u201cit necessarily overrides rescue\u201d is unsupported.",
+    "withdrawn_claims": [
+      "The rule necessarily overrides emergency rescue."
+    ],
+    "qualifications": [],
+    "strongest_conclusion": "It is established only that the laboratory has a keep-door-closed rule; no conclusion can be drawn from the given evidence about whether that rule overrides an emergency rescue obligation.",
+    "remaining_questions": [
+      "Is there any higher-level safety policy or legal standard specifying the priority of human life over procedural rules?",
+      "Are there circumstances in which the rule itself contains an emergency exception?"
+    ],
+    "local_response": {
+      "classification": "WITHDRAWN"
+    },
+    "reasoning_revision": {
+      "claims": [
+        {
+          "id": "rule",
+          "kind": "SOURCE_RULE",
+          "interpretation_mode": "SOURCE_STATED",
+          "text": "The rule requires keeping the door closed.",
+          "supports": [
+            {
+              "evidence_ref": "E1",
+              "value_path": "/provenance/0/excerpt",
+              "quote": "A laboratory rule requires keeping the door closed. A trapped technician needs urgent help."
+            }
+          ],
+          "condition_ids": []
+        },
+        {
+          "id": "priority",
+          "kind": "NORMATIVE_JUDGMENT",
+          "interpretation_mode": "ATTRIBUTED_INFERENCE",
+          "text": "The rule necessarily overrides emergency rescue.",
+          "supports": [],
+          "condition_ids": []
+        }
+      ],
+      "bridges": [
+        {
+          "id": "b0",
+          "rule_id": "SOURCE_RULE_TO_NORMATIVE_PRIORITY",
+          "premise_ids": [
+            "rule"
+          ],
+          "assumption_ids": [],
+          "conclusion_id": "priority",
+          "explanation": "This bridge is unsupported; no rule hierarchy or authority establishing such priority is provided."
+        }
+      ]
+    }
+  },
+  "assessment": {
+    "ordinary_contract": {
+      "contract_valid": true,
+      "errors": [],
+      "boundary_review": null,
+      "reported_disposition": "WITHDRAWN",
+      "effective_status": "OPEN_PENDING_CONTENT_REVIEW",
+      "semantic_support": "NOT_INDEPENDENTLY_VERIFIED",
+      "world_state_authority": "NONE"
+    },
+    "native_admission": "NOT_ASSESSED_ARGUMENT_ONLY",
+    "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+    "typed_boundary": {
+      "version": "inference-boundary/0.1",
+      "authority": "INVESTIGATIVE_ARGUMENT_ANNOTATION",
+      "operative": false,
+      "reasoning": {
+        "claims": [
+          {
+            "id": "rule",
+            "kind": "SOURCE_RULE",
+            "interpretation_mode": "SOURCE_STATED",
+            "text": "The rule requires keeping the door closed.",
+            "supports": [
+              {
+                "evidence_ref": "E1",
+                "value_path": "/provenance/0/excerpt",
+                "quote": "A laboratory rule requires keeping the door closed. A trapped technician needs urgent help."
+              }
+            ],
+            "condition_ids": []
+          },
+          {
+            "id": "priority",
+            "kind": "NORMATIVE_JUDGMENT",
+            "interpretation_mode": "ATTRIBUTED_INFERENCE",
+            "text": "The rule necessarily overrides emergency rescue.",
+            "supports": [],
+            "condition_ids": []
+          }
+        ],
+        "bridges": [
+          {
+            "id": "b0",
+            "rule_id": "SOURCE_RULE_TO_NORMATIVE_PRIORITY",
+            "premise_ids": [
+              "rule"
+            ],
+            "assumption_ids": [],
+            "conclusion_id": "priority",
+            "explanation": "This bridge is unsupported; no rule hierarchy or authority establishing such priority is provided."
+          }
+        ]
+      },
+      "findings": [
+        {
+          "code": "NORMATIVE_BRIDGE_INCOMPLETE",
+          "bridge_id": "b0",
+          "conclusion_id": "priority",
+          "status": "REVIEW_REQUESTED"
+        }
+      ],
+      "questions": [
+        "A source rule states a requirement; it does not alone establish its moral priority. Identify the applicable normative premise or retain a conditional argument."
+      ],
+      "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+      "physical_path_required_for_belief": false,
+      "citation_policy": "Quote matching verifies location, not entailment or exclusivity."
+    },
+    "claim_ids_preserved": true
+  },
+  "elapsed_seconds": 4.927
+}

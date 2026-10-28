@@ -1,0 +1,65 @@
+# Factual review (model-proposed, not certified)
+
+- SUPPORTED: ASSIGNED_COMPLAINT /complaint
+  - Target: Plan B on the ground that it leaves the single household facing the most intense heat risk entirely unprotected
+  - Response: Plan B does not cool Jo’s home, which the scenario identifies as having the greatest heat exposure.
+- SUPPORTED: ASSIGNED_COMPLAINT /complaint
+  - Target: while the only person asked to bear a direct cost under Plan C, Sal, has already freely accepted that temporary cost
+  - Response: Under Plan C the only new direct cost is Sal’s eight-week income interruption, which he has freely accepted.
+- SUPPORTED: ASSIGNED_COMPLAINT /complaint
+  - Target: Plan C … would eliminate her severe burden at the cost of … leaving the same twenty households uncooled who, under Plan B, would mostly be cooled.
+  - Response: Plan C cools Jo but none of the twenty other households; Plan B cools twelve of those twenty.
+
+## Normative warrant
+
+Moderate, life-quality-relevant protections that many individuals would otherwise receive may not be removed in order to provide a more urgent protection to one individual when the severity gap is not of a kind that those many could not reasonably accept for themselves under symmetry.
+
+Each of the twelve households cooled only under Plan B can reasonably reject the principle "Your protection may be lifted whenever someone else would be left with a somewhat worse burden," because that principle would allow others to withdraw similar heat protection from them whenever they happened to be in the majority with merely moderate but still health-related needs.  A principle allowing that trade-off is not one they, or anyone who might occupy their position, could accept ex ante.
+
+Limits: The justification fails if the single person’s risk is life-threatening or if the many face only trivial inconvenience.  The text gives no ground for either extreme, so the symmetric-reasonableness test applies.
+
+# Response to opposing complaint
+
+Jo objects that Plan B leaves her alone to endure the most intense heat exposure when Plan C could instead cool her at the cost of (i) cancelling the cooling that twelve other households would otherwise receive and (ii) imposing a time-limited, consented income loss on Sal.  She claims that, from each affected person’s standpoint, the principle "always alleviate the gravest individual risk when this can be done without imposing uncompensated, non-consensual basic-needs loss on anyone else" is more justifiable than the principle the council relied on in choosing Plan B.
+
+## Conceded points
+
+- Jo faces the severest single heat burden under Plan B.
+- Sal’s burden under Plan C is time-limited and consented.
+- Plan C would withdraw cooling from twelve households now scheduled to receive it under Plan B.
+
+## Priority premise
+
+A plan may be rejected if some other affected individuals could reasonably reject the underlying principle with at least as much force as the complainant, even though their burdens are individually less severe.
+
+## Answer
+
+Why should Jo accept this priority?  Under contractualism each person asks whether a principle is one that no one similarly placed could reasonably reject.  Consider the twelve households who receive cooling only under Plan B.  Each already faces significant heat exposure—serious enough that the council judged it worth spending public funds to mitigate.  They can say to Jo: “Under your favored principle our protection disappears whenever someone else is worse off by one step.  If tomorrow we, not you, happen to occupy the top spot of severity we would want a rule that still grants us protection and does not simply trade us away for yet another person.  So we reasonably reject your principle, because in our position we could not rely on it for the protections we now have.”  Jo, reasoning behind a veil of ignorance about whether she will be the single worst-off person or one of many moderately at risk, cannot claim that her proposed principle is more secure for her either.  By accepting the council’s principle she safeguards herself against being one of many whose important, though not decisive, needs are dismissed.
+
+Sal’s consent does weaken his complaint, but it does not cancel the twelve households’ symmetrical, non-consented complaint.  Because there is no decisive severity gap—nothing in the record says Jo’s exposure is life-threatening while the others’ is mild—each of the twelve has a complaint that is, in its own terms, comparable to Jo’s: a health-related protection is removed even though another feasible plan would keep it.  The fact that the complaints are many does not aggregate them, yet it matters that each complaint is independently as strong as Jo’s except for the degree of heat severity.  Since neither side’s complaint clearly dominates, a principle that preserves the protections already extended to the many, while leaving unresolved but not worsening the single gravest case, is not one that Jo can reasonably reject without facing symmetrical rejection from the twelve.
+
+Therefore the comparative premise stands: it is not yet reasonable to overturn Plan B in favour of Plan C.
+
+## Countercomplaint to the alternative
+
+Each of the twelve cooled households can reasonably reject Plan C because it removes a protection against potentially dangerous heat that Plan B would give them, doing so solely to benefit someone else, even though their own need was deemed significant.
+
+## Comparative justification
+
+Jo’s objection to Plan B and the twelve households’ objection to Plan C are of the same contractualist kind: "a feasible plan spares me a non-trivial heat risk but is not chosen."  The difference is severity, not kind.  Because severity comparisons across types of heat risk are uncertain and no decisive threshold (e.g. imminent fatality) is identified, the parties must appeal to a tie-breaking consideration.  Symmetry provides that consideration: a principle that protects a larger set when no one suffers uncompensated basic-needs loss is one that fewer can reject, because any individual could imagine herself in the protected majority.  That symmetry-based reason breaks the tie in favour of Plan B.
+
+## Revised conclusion
+
+B / PROVISIONAL_PREFERENCE
+
+Because the twelve households’ symmetrical complaint against Plan C is at least as strong as Jo’s complaint against Plan B, and Sal’s consent does not answer their objection, Plan B remains the only plan that no party can uniquely reasonably reject on the information supplied.  The comparison with Plan C therefore still supports a provisional preference for Plan B.
+
+## Remaining objection
+
+If future facts showed Jo’s risk to be gravely life-threatening, the symmetry would break and her complaint could justifiably override the twelve households’ complaint.
+
+## Reversal condition
+
+Credible evidence that Jo’s untreated exposure threatens imminent serious illness or death while the twelve households would face only mild, non-dangerous discomfort would make Plan C the uniquely defensible choice.
+
+Model self-report: ANSWERED (not independently accepted).

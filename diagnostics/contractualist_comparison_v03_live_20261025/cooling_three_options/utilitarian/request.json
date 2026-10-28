@@ -1,0 +1,637 @@
+{
+  "model": "o3",
+  "reasoning_effort": "low",
+  "max_completion_tokens": 8192,
+  "messages": [
+    {
+      "role": "system",
+      "content": "Construct small framework-grounded arguments from the exact source and the supplied framework instruction. Identify factual grounds, interpretive assumptions, evaluative warrants, inferential support and the strongest relevant objection. Give a substantive response or identify the precise unresolved premise and a relevant reversal condition. Preserve polarity, uncertainty and the distinction between possible and certain outcomes. Do not invent facts or treat a framework commitment as source evidence. Use exact source quotations and explicit support routes; Python assigns canonical IDs. Use FACTUAL_PREMISE for descriptive evidence, PRINCIPLE for a proposed general norm, INTERPRETIVE_PREMISE for a defeasible reading, and NORMATIVE_PREMISE for an evaluative assumption. MAXIM is available when the framework calls for it, never mandatory. Declare assumption roots before statements referring to them. Assumptions remain conditional; citations establish traceability, not semantic entailment. SOURCE support routes require citations and have inputs=[]; ASSUMPTION routes declare explicit assumption roots and also have inputs=[]. Never use a statement as its own support input. Derived evaluative judgments use NORM_APPLICATION or NORM_PRIORITY with an explicit NORMATIVE_PREMISE among their inputs. Build the comparison before deciding. First list relevant individual burdens, including loss of an available benefit, using stable burden IDs and person IDs. For each burden record its status under EVERY option as PRESENT, ABSENT or UNKNOWN with factual ground_handles and a short position description preserving quantities, risk and scope. PRESENT in both options does not mean equal magnitude: a death risk can remain while changing from certainty to a stated probability. These are counterfactual positions under the options, not claims that the actions occurred. Unknown severity or risk must stay unknown; missing information is not evidence that a burden is minor or absent. Keep consent and assurances distinct from physical outcomes: consent can change a complaint's warrant without removing an economic or physical burden. Then compare two explicit options at a time. from_action_id and to_action_id orient relieved_burden_ids (PRESENT to ABSENT), introduced_burden_ids (ABSENT to PRESENT) and retained_burden_ids (PRESENT in both). An UNKNOWN cell does not license a claim of established relief. Include every relevant retained burden in that pair even when it supports neither side. Compare the actual alternatives rather than an imaginary option that combines their benefits. Reasons for rejecting a third option do not by themselves settle this pair. Never count complaints or require a single scalar scale. A tied comparison differs from unresolved or incomparable claims. State the priority warrant or the precise premise left unresolved. Finally distinguish UNIQUE_DEFENSIBLE, PROVISIONAL_PREFERENCE, MULTIPLE_DEFENSIBLE and UNRESOLVED. A provisional recommendation may coexist with an open comparison. Unique defensibility needs a separately defended comparison against every alternative; unresolved comparisons cannot silently become favorable verdicts. Use recommendation_comparison_ids to identify that reasoning and remaining_complaint_ids to keep the strongest live objections in view. A person's burden can remain even if an argued answer limits their objection's moral force. Return one compact argument record covering EVERY supplied option, not a new world. Use the common format in the way appropriate to your framework: principles and personal reasons are available to all frameworks but are not mandatory methods for noncontractualists. Use null when a reason is not individual or principle-specific; do not misdescribe an aggregate reason as one person's reason. source_quotes must be exact substrings of SCENE. citations use evidence_id SCENE and value_path \"\". Declare EVERY referenced statement handle in statements, including every reason, comparison, challenge and final assessment conclusion. Annotation IDs (person IDs, principle IDs, reason IDs) are not statement handles. Use only declared statement handles in supports and hypothesis_ids. SOURCE means inputs=[] and output=a cited factual statement; NEVER put that statement in its own inputs. ASSUMPTION means inputs=[] and output=an explicit principle or interpretive/normative assumption root. Do not use ASSUMPTION for a derived judgment. NORM_APPLICATION connects factual grounds plus an explicit NORMATIVE_PREMISE to an evaluative conclusion. NORM_PRIORITY connects compared reasons plus an explicit NORMATIVE_PREMISE to a comparison. PRACTICAL_REASONING is reserved for claims about an actor's intention/instrumental use, not a generic name for ethical inference. Do not use SOURCE to derive magnitude comparisons or normative priorities. Quote contiguous exact text; no ellipses or altered apostrophes. Reference a support by its output handle when specifying an UNDERCUTTING challenge; this denotes the support bundle for that conclusion, not a guessed canonical ID. UNDERMINING challenges a premise; REBUTTING challenges a conclusion; UNDERCUTTING challenges an inference application. These annotations and ANSWERED labels are proposed model judgments, not established defeats. Reason ground_handles and warrant_handles must also be inputs or ancestors of the reason conclusion in supports. Comparative judgments must explicitly link the reasons compared. Action-assessment conclusions are terminal: do not feed a permissibility verdict back into premises. A claim that an option is permissible is not a fact that it occurred. Reasons, comparisons and challenges reference the same immutable statement handles, rather than detached prose. Explain the final preference or uncertainty in conclusion. Do not assert missing subjective preferences as facts. Keep reasons short enough to fit the common response budget. "
+    },
+    {
+      "role": "user",
+      "content": "{\"framework_id\": \"utilitarian\", \"framework_instruction\": \"Evaluate consequences for everyone affected and defend the welfare comparison. Distinguish restricted endpoints such as expected survivors or beneficiary counts from total welfare. State assumptions about unprovided effects or comparability as assumptions. Address the strongest objection to aggregation or priority.\", \"source\": {\"id\": \"cooling_three_options\", \"scenario\": \"During a heat wave, a council has funds for one of three technically feasible cooling plans. Plan A cools twenty households but requires demolishing Mira's occupied home, leaving her without housing; she refuses. Plan B cools twelve of those same households and displaces nobody. Plan C cools Jo's home, which has the greatest heat exposure of any home in this case, but requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period. Sal refuses. Jo's home is not cooled by A or B. Mira, Jo, and Sal are not members of the twenty households. No additional cooling, relocation, or compensation plan is available in this exercise. The text stipulates these effects, not total welfare scores or a ranking of whose overall position is worst. Which plan should the council adopt?\", \"actions\": [{\"id\": \"A\", \"label\": \"Adopt cooling plan A\"}, {\"id\": \"B\", \"label\": \"Adopt cooling plan B\"}, {\"id\": \"C\", \"label\": \"Adopt cooling plan C\"}], \"source_text_sha256\": \"3a7a1aa655c3a36135dec3188e12af3496923039c8f8707092370ecb704ec9d6\", \"source_status\": \"FROZEN_TEXT_NOT_ADMITTED_WORLD\", \"evidence\": [{\"ref\": \"SCENE\", \"kind\": \"EXACT_SCENARIO\", \"value\": \"During a heat wave, a council has funds for one of three technically feasible cooling plans. Plan A cools twenty households but requires demolishing Mira's occupied home, leaving her without housing; she refuses. Plan B cools twelve of those same households and displaces nobody. Plan C cools Jo's home, which has the greatest heat exposure of any home in this case, but requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income during that period. Sal refuses. Jo's home is not cooled by A or B. Mira, Jo, and Sal are not members of the twenty households. No additional cooling, relocation, or compensation plan is available in this exercise. The text stipulates these effects, not total welfare scores or a ranking of whose overall position is worst. Which plan should the council adopt?\"}]}}"
+    }
+  ],
+  "response_format": {
+    "type": "json_schema",
+    "json_schema": {
+      "name": "neutral_framework_argument",
+      "strict": true,
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "persons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "source_quotes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "source_quotes"
+              ]
+            },
+            "maxItems": 12
+          },
+          "burdens": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "person_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "id",
+                "person_id",
+                "description"
+              ]
+            },
+            "maxItems": 12
+          },
+          "burden_positions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "burden_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "action_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "PRESENT",
+                    "ABSENT",
+                    "UNKNOWN"
+                  ]
+                },
+                "position": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "ground_handles": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "burden_id",
+                "action_id",
+                "status",
+                "position",
+                "ground_handles"
+              ]
+            },
+            "maxItems": 36
+          },
+          "principles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "statement_handle": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "action_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "statement_handle",
+                "action_ids"
+              ]
+            },
+            "maxItems": 8
+          },
+          "statements": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "PHYSICAL_CONTRIBUTION",
+                    "PURPOSE",
+                    "BELIEF",
+                    "PURPOSIVE_USE",
+                    "INTENDED_USE",
+                    "MAXIM",
+                    "SOURCE_RULE",
+                    "NORMATIVE_PREMISE",
+                    "NORMATIVE_JUDGMENT",
+                    "FACTUAL_PREMISE",
+                    "INTERPRETIVE_PREMISE",
+                    "PRINCIPLE",
+                    "PERSONAL_REASON",
+                    "EVALUATIVE_COMPARISON"
+                  ]
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "polarity": {
+                  "type": "string",
+                  "enum": [
+                    "AFFIRMED",
+                    "DENIED",
+                    "UNKNOWN"
+                  ]
+                },
+                "modality": {
+                  "type": "string",
+                  "enum": [
+                    "ASSERTED",
+                    "POSSIBLE",
+                    "UNKNOWN"
+                  ]
+                },
+                "hypothesis_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "citations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "evidence_id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "value_path": {
+                        "type": "string"
+                      },
+                      "quote": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    },
+                    "required": [
+                      "evidence_id",
+                      "value_path",
+                      "quote"
+                    ]
+                  }
+                },
+                "handle": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "kind",
+                "text",
+                "polarity",
+                "modality",
+                "hypothesis_ids",
+                "citations",
+                "handle"
+              ]
+            },
+            "maxItems": 32
+          },
+          "supports": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "operation": {
+                  "type": "string",
+                  "enum": [
+                    "SOURCE",
+                    "ASSUMPTION",
+                    "PARAPHRASE",
+                    "CALCULATION",
+                    "PHYSICAL_CAUSATION",
+                    "PRACTICAL_REASONING",
+                    "NORM_APPLICATION",
+                    "NORM_PRIORITY"
+                  ]
+                },
+                "inputs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "output": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "explanation": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "operation",
+                "inputs",
+                "output",
+                "explanation"
+              ]
+            },
+            "maxItems": 40
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "person_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "principle_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "action_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "stance": {
+                  "type": "string",
+                  "enum": [
+                    "FOR",
+                    "AGAINST",
+                    "UNRESOLVED"
+                  ]
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "conclusion_handle": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "ground_handles": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "warrant_handles": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "generic_basis": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "id",
+                "person_id",
+                "principle_id",
+                "action_id",
+                "stance",
+                "value",
+                "conclusion_handle",
+                "ground_handles",
+                "warrant_handles",
+                "generic_basis"
+              ]
+            },
+            "maxItems": 16
+          },
+          "comparisons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "from_action_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "to_action_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "FAVORS_FROM",
+                    "FAVORS_TO",
+                    "TIED",
+                    "INCOMPARABLE",
+                    "UNRESOLVED"
+                  ]
+                },
+                "relieved_burden_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "introduced_burden_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "retained_burden_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "reason_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "judgment_handle": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "explanation": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "id",
+                "from_action_id",
+                "to_action_id",
+                "status",
+                "relieved_burden_ids",
+                "introduced_burden_ids",
+                "retained_burden_ids",
+                "reason_ids",
+                "judgment_handle",
+                "explanation"
+              ]
+            },
+            "maxItems": 12
+          },
+          "challenges": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "UNDERMINING",
+                    "REBUTTING",
+                    "UNDERCUTTING"
+                  ]
+                },
+                "target_kind": {
+                  "type": "string",
+                  "enum": [
+                    "STATEMENT",
+                    "SUPPORT"
+                  ]
+                },
+                "target_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "challenge_handle": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "response_handle": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "OPEN",
+                    "ANSWERED",
+                    "UNRESOLVED"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "kind",
+                "target_kind",
+                "target_id",
+                "challenge_handle",
+                "response_handle",
+                "status"
+              ]
+            },
+            "maxItems": 8
+          },
+          "action_assessments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "action_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "conclusion_handle": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "assessment": {
+                  "type": "string",
+                  "enum": [
+                    "DEFENSIBLE",
+                    "REJECTED",
+                    "UNRESOLVED"
+                  ]
+                }
+              },
+              "required": [
+                "action_id",
+                "conclusion_handle",
+                "assessment"
+              ]
+            },
+            "maxItems": 3
+          },
+          "recommendation_action_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recommendation_status": {
+            "type": "string",
+            "enum": [
+              "UNIQUE_DEFENSIBLE",
+              "PROVISIONAL_PREFERENCE",
+              "MULTIPLE_DEFENSIBLE",
+              "UNRESOLVED"
+            ]
+          },
+          "recommendation_comparison_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "remaining_complaint_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "conclusion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "strongest_objection": {
+            "type": "string",
+            "minLength": 1
+          },
+          "answer_to_objection": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reversal_condition": {
+            "type": "string",
+            "minLength": 1
+          },
+          "residual_disagreement": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "required": [
+          "persons",
+          "burdens",
+          "burden_positions",
+          "principles",
+          "statements",
+          "supports",
+          "reasons",
+          "comparisons",
+          "challenges",
+          "action_assessments",
+          "recommendation_action_id",
+          "recommendation_status",
+          "recommendation_comparison_ids",
+          "remaining_complaint_ids",
+          "conclusion",
+          "strongest_objection",
+          "answer_to_objection",
+          "reversal_condition",
+          "residual_disagreement"
+        ]
+      }
+    }
+  }
+}

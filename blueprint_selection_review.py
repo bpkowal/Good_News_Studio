@@ -128,14 +128,29 @@ INPUT:\n''' + json.dumps(request, ensure_ascii=False)
         if {r.get('difference_id') for r in rows} != needed or len(rows) != len(needed):
             raise ValueError('Selection must address each difference once.')
         sources = {c['clause_id']: c['text'] for c in clauses}
+        bindings=[]
         for row in rows:
             if not str(row.get('rationale') or '').strip() or not row.get('evidence'):
                 raise ValueError('Every difference needs rationale and source evidence.')
             for proof in row['evidence']:
                 excerpt = proof.get('excerpt')
-                if not isinstance(excerpt, str) or not excerpt.strip() or excerpt not in sources.get(proof.get('clause_id'), ''):
+                source=sources.get(proof.get('clause_id'), '')
+                bound=excerpt
+                method='EXACT_SUBSTRING'
+                if isinstance(excerpt,str) and excerpt not in source:
+                    # A terminal ellipsis is citation punctuation, not source
+                    # content. Never fill internal omissions or fuzzy-match words.
+                    for suffix in ('…','...'):
+                        if excerpt.endswith(suffix):
+                            prefix=excerpt[:-len(suffix)].rstrip()
+                            if prefix and prefix in source:
+                                bound=prefix;method='EXACT_PREFIX_WITH_TERMINAL_ELLIPSIS'
+                            break
+                if not isinstance(bound, str) or not bound.strip() or bound not in source:
                     raise ValueError('Review evidence must match the referenced original clause.')
-        result.update(status='SELECTED', selected_candidate_id=ident)
+                bindings.append({'difference_id':row['difference_id'],'clause_id':proof['clause_id'],
+                                 'raw_excerpt':excerpt,'bound_excerpt':bound,'method':method})
+        result.update(status='SELECTED', selected_candidate_id=ident,evidence_bindings=bindings)
         return result, admitted[index]
     except Exception as exc:
         result['errors'].append(type(exc).__name__ + ': ' + str(exc))

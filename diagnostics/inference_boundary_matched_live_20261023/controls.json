@@ -1,0 +1,204 @@
+{
+  "manifest": {
+    "version": "boundary-format-pilot/0.1",
+    "fixture_sha256": "1f4f0e9a8da6fcf830ae706b60545f9bf19008af54ff9923046f41a3a79b8650",
+    "arms": [
+      "ordinary",
+      "typed"
+    ],
+    "model": "o3",
+    "maximum_provider_calls": 16,
+    "calls_per_case_arm": 1,
+    "sdk_retries": 0,
+    "adapter_retries": 0,
+    "max_tokens_argument": 2048,
+    "reasoning_effort": "low",
+    "workers": 2,
+    "order_seed": 20261023,
+    "design": "Equal-information output-format ablation. Same prompt, evidence, prior reply, objection and annotations; only response schema differs. Not a test against an unassisted model.",
+    "rubric": "Non-blind assistant review, per-dimension 0/1/2: target addressed, bridge justified, evidence/scope accuracy, defensible original retained. No summed score or effect-size claim.",
+    "cases": [
+      {
+        "case_id": "contribution_without_awareness",
+        "objection": "The observed causal contribution alone does not establish the operator knowingly employs the worker.",
+        "held_out_content_criteria": [
+          "Reject inference from contribution to knowing employment.",
+          "Preserve the explicit lack of awareness."
+        ]
+      },
+      {
+        "case_id": "mistaken_means_belief",
+        "objection": "The sensor is broken, so the operator cannot be intentionally employing Jo as a means. Withdraw that classification.",
+        "held_out_content_criteria": [
+          "Preserve source-stated belief and purposeful employment despite failed mechanism.",
+          "Do not invent a working mechanism or force UNKNOWN."
+        ]
+      },
+      {
+        "case_id": "conditional_rescue_maxim",
+        "objection": "The actual complete policy is unknown, so even conditional maxim analysis should be discarded.",
+        "held_out_content_criteria": [
+          "Preserve useful conditional maxim analysis.",
+          "Do not promote it into actual psychology or reject all analysis."
+        ]
+      },
+      {
+        "case_id": "partial_graph_negative_inference",
+        "objection": "Does absence from this partial graph really establish the claimed negative intention?",
+        "held_out_content_criteria": [
+          "Withdraw definitive negative intention inferred from missing representation.",
+          "Do not invent causal or mental facts."
+        ]
+      },
+      {
+        "case_id": "mistaken_reviewer_positive_support",
+        "objection": "Actual intention can never be known; replace the source-stated intentional employment with UNKNOWN.",
+        "held_out_content_criteria": [
+          "Resist mistaken demand for UNKNOWN.",
+          "Treat explicit purpose and employment as scenario stipulations."
+        ]
+      },
+      {
+        "case_id": "means_not_automatically_prohibited",
+        "objection": "Jo consents, so the action is necessarily permissible. Replace the prohibition with unconditional permission.",
+        "held_out_content_criteria": [
+          "Reject automatic prohibition from means use.",
+          "Also reject automatic permission from consent alone."
+        ]
+      },
+      {
+        "case_id": "provenance_purpose_not_exclusivity",
+        "objection": "The source states a rescue purpose, but does it establish that this is the sole actual purpose?",
+        "held_out_content_criteria": [
+          "Retain the stated rescue purpose and remove unsupported exclusivity.",
+          "Use the provenance excerpt, not a fabricated source."
+        ]
+      },
+      {
+        "case_id": "rule_not_automatically_priority",
+        "objection": "Why does the posted requirement necessarily override the emergency rescue claim?",
+        "held_out_content_criteria": [
+          "Preserve the source rule without treating it as automatically decisive.",
+          "Expose a normative priority premise or qualified conclusion."
+        ]
+      }
+    ]
+  },
+  "controls": [
+    {
+      "case_id": "contribution_without_awareness",
+      "prompt_sha256": "0cba74dfc52f578f1ef8826109668fac283d8eccb29bdf3720d73df117eb104a",
+      "input_sha256": "671a3aa57ab839c090c1e2d9f6d3f16b7d70b89635970050075952e99cae497e",
+      "same_prompt_both_arms": true
+    },
+    {
+      "case_id": "mistaken_means_belief",
+      "prompt_sha256": "e77378ca27290c7be08a9335fc9ca741494ebf050a5ddea7d0619dd8ce6dbf14",
+      "input_sha256": "35a68ab3237aa59683ea12beeddb47ac3140f6a12f717eda36408da1337e9719",
+      "same_prompt_both_arms": true
+    },
+    {
+      "case_id": "conditional_rescue_maxim",
+      "prompt_sha256": "f3ece14f4e4c0fb4e03b11d7f873fde8c3ca1ed8621120c3fa313afc873bd6d0",
+      "input_sha256": "562a48881dc3b55de1b992ac8995a6a0270cc21fbff95795660a6f817c6de467",
+      "same_prompt_both_arms": true
+    },
+    {
+      "case_id": "partial_graph_negative_inference",
+      "prompt_sha256": "0be9f27deb43bdefaa5cd1a4c45d60e11a9e96a4148ed06d6407f0ab9dfc3384",
+      "input_sha256": "1e800795994244e6a160074985216ac53423a3352eb0e7dd13bc3c33763abc36",
+      "same_prompt_both_arms": true
+    },
+    {
+      "case_id": "mistaken_reviewer_positive_support",
+      "prompt_sha256": "33e6a58362c673d941ddcad115e008e64378023c4d80d7cb3c04268f67f5e19d",
+      "input_sha256": "101afca18e2d310d6ae2dd6854674bad0d9f646b81e3db57aad71ddb6e57de38",
+      "same_prompt_both_arms": true
+    },
+    {
+      "case_id": "means_not_automatically_prohibited",
+      "prompt_sha256": "56043a9dbe8d04b0e56762ca3dfebdbe6f3bec57762cd8970a88f97343e1a40f",
+      "input_sha256": "07ea07cd7b46c44fd05f0d4e624f1e7a6766922c66ccd04b6fc46564cafe9c74",
+      "same_prompt_both_arms": true
+    },
+    {
+      "case_id": "provenance_purpose_not_exclusivity",
+      "prompt_sha256": "40b697366f77e670600da8e2d0b257f3ee89e25363ec5119c8ce890a879b3db9",
+      "input_sha256": "218dfd69b2e3e52fddbe4504e4e11c12717433d5b617c7bb98e19b74b369f1b1",
+      "same_prompt_both_arms": true
+    },
+    {
+      "case_id": "rule_not_automatically_priority",
+      "prompt_sha256": "7441f13481f78dec71ab54329893bc6642826139c4d3567f491d24cde265b9de",
+      "input_sha256": "23532146f33f88e568d6c0f554cd8e93f30654a3810358078ccce45fb4978144",
+      "same_prompt_both_arms": true
+    }
+  ],
+  "frozen_before_calls": true,
+  "order": [
+    [
+      "means_not_automatically_prohibited",
+      "typed"
+    ],
+    [
+      "mistaken_means_belief",
+      "ordinary"
+    ],
+    [
+      "rule_not_automatically_priority",
+      "ordinary"
+    ],
+    [
+      "contribution_without_awareness",
+      "typed"
+    ],
+    [
+      "partial_graph_negative_inference",
+      "ordinary"
+    ],
+    [
+      "partial_graph_negative_inference",
+      "typed"
+    ],
+    [
+      "mistaken_reviewer_positive_support",
+      "typed"
+    ],
+    [
+      "contribution_without_awareness",
+      "ordinary"
+    ],
+    [
+      "means_not_automatically_prohibited",
+      "ordinary"
+    ],
+    [
+      "provenance_purpose_not_exclusivity",
+      "typed"
+    ],
+    [
+      "conditional_rescue_maxim",
+      "typed"
+    ],
+    [
+      "rule_not_automatically_priority",
+      "typed"
+    ],
+    [
+      "mistaken_means_belief",
+      "typed"
+    ],
+    [
+      "provenance_purpose_not_exclusivity",
+      "ordinary"
+    ],
+    [
+      "conditional_rescue_maxim",
+      "ordinary"
+    ],
+    [
+      "mistaken_reviewer_positive_support",
+      "ordinary"
+    ]
+  ]
+}

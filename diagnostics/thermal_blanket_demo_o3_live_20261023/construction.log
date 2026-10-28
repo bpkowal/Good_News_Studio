@@ -1,0 +1,23 @@
+/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+Traceback (most recent call last):
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/run_blueprint_parliament.py", line 1543, in <module>
+    raise SystemExit(main())
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/run_blueprint_parliament.py", line 1539, in main
+    return record_execution(_main, arguments, entrypoint='run_blueprint_parliament.py', output_flag='--output-dir', defaults={'chooser_model': 'gpt-4o-mini', 'openai_model': 'o3'})
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/parliament_run_provenance.py", line 227, in record_execution
+    code=function(argv)
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/run_blueprint_parliament.py", line 1218, in _main
+    blueprint = choose_by_cloze(
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/blueprint_cloze_chooser.py", line 390, in choose_by_cloze
+    rank_raw = complete(_messages(_rank_prompt(text)))
+  File "/Users/benjaminkowal/Documents/Python/Python Coding/RL_Algorithms/blueprint_cloze_chooser.py", line 788, in complete
+    raise RuntimeError(f"OpenAI request failed ({error.code}): {detail[:500]}") from None
+RuntimeError: OpenAI request failed (400): {
+  "error": {
+    "message": "Unsupported value: 'temperature' does not support 0 with this model. Only the default (1) value is supported.",
+    "type": "invalid_request_error",
+    "param": "temperature",
+    "code": "unsupported_value"
+  }
+}

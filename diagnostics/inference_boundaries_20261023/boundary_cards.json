@@ -1,0 +1,1267 @@
+{
+  "api_calls": 0,
+  "operative": false,
+  "origin": "AUTHOR_WRITTEN_SYNTHETIC_CONTRACT_FIXTURES_NOT_MODEL_OUTPUTS",
+  "fixture_sha256": "1f4f0e9a8da6fcf830ae706b60545f9bf19008af54ff9923046f41a3a79b8650",
+  "cards": [
+    {
+      "id": "contribution_without_awareness",
+      "card": {
+        "version": "inference-boundary/0.1",
+        "authority": "INVESTIGATIVE_ARGUMENT_ANNOTATION",
+        "operative": false,
+        "reasoning": {
+          "claims": [
+            {
+              "id": "physical",
+              "kind": "PHYSICAL_CONTRIBUTION",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The worker triggers a sensor that speeds closure.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "A sensor activates when a worker passes, speeding gate closure. The operator does not know this and acts to close the gate."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "intended",
+              "kind": "INTENDED_USE",
+              "interpretation_mode": "ATTRIBUTED_INFERENCE",
+              "text": "The operator uses the worker intentionally.",
+              "supports": [],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+              "premise_ids": [
+                "physical"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "intended",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "findings": [
+          {
+            "code": "PRACTICAL_REASONING_BRIDGE_INCOMPLETE",
+            "bridge_id": "b0",
+            "conclusion_id": "intended",
+            "status": "REVIEW_REQUESTED"
+          }
+        ],
+        "questions": [
+          "Separate actual causal contribution from the proposed end, instrumental belief and purposive use. Actual efficacy is neither proof of purposive use nor required for a mistaken instrumental belief. Defend the bridge, express the reading conditionally, or withdraw it. Do not infer a prohibition."
+        ],
+        "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+        "physical_path_required_for_belief": false,
+        "citation_policy": "Quote matching verifies location, not entailment or exclusivity."
+      },
+      "challenge": {
+        "version": "inference-review/0.1",
+        "prior_reply_sha256": "015172e8acecff7ad134db0e5c1fa2b8e4701af85826c89cd76438ee72c52c3e",
+        "claim_path": "explanation",
+        "quote": "The operator uses the worker intentionally.",
+        "defect_kind": "MISSING_BRIDGE",
+        "missing_premise": "Actual contribution does not establish the operator's awareness or purposeful employment.",
+        "evidence": [
+          {
+            "ref": "E1",
+            "path": "/effects/0",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "outcome": "operate the gate",
+              "provenance": [
+                {
+                  "excerpt": "A sensor activates when a worker passes, speeding gate closure. The operator does not know this and acts to close the gate."
+                }
+              ]
+            }
+          }
+        ],
+        "affected_paths": [
+          "classification"
+        ],
+        "reviewer": "AUTHOR_WRITTEN_CONTRACT_FIXTURE",
+        "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+        "status": "OPEN",
+        "inference_map": {
+          "claims": [
+            {
+              "id": "physical",
+              "kind": "PHYSICAL_CONTRIBUTION",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The worker triggers a sensor that speeds closure.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "A sensor activates when a worker passes, speeding gate closure. The operator does not know this and acts to close the gate."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "intended",
+              "kind": "INTENDED_USE",
+              "interpretation_mode": "ATTRIBUTED_INFERENCE",
+              "text": "The operator uses the worker intentionally.",
+              "supports": [],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+              "premise_ids": [
+                "physical"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "intended",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "challenge_id": "INFERENCE:fea460004a9c7678a6e1ee2f"
+      },
+      "expected_review_distinction": "Actual contribution does not establish the operator's awareness or purposeful employment.",
+      "structural_expectation_matches": true
+    },
+    {
+      "id": "mistaken_means_belief",
+      "card": {
+        "version": "inference-boundary/0.1",
+        "authority": "INVESTIGATIVE_ARGUMENT_ANNOTATION",
+        "operative": false,
+        "reasoning": {
+          "claims": [
+            {
+              "id": "physical",
+              "kind": "PHYSICAL_CONTRIBUTION",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The attempted mechanism does not close the gate.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "goal",
+              "kind": "PURPOSE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The operator seeks gate closure.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "belief",
+              "kind": "BELIEF",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The operator believes employing Jo will achieve closure.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "use",
+              "kind": "PURPOSIVE_USE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The operator employs Jo for closure.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "intended",
+              "kind": "INTENDED_USE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "Jo is employed as a means within the stipulated practical reasoning.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+                }
+              ],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+              "premise_ids": [
+                "physical",
+                "goal",
+                "belief",
+                "use"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "intended",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "findings": [],
+        "questions": [
+          "Separate actual causal contribution from the proposed end, instrumental belief and purposive use. Actual efficacy is neither proof of purposive use nor required for a mistaken instrumental belief. Defend the bridge, express the reading conditionally, or withdraw it. Do not infer a prohibition."
+        ],
+        "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+        "physical_path_required_for_belief": false,
+        "citation_policy": "Quote matching verifies location, not entailment or exclusivity."
+      },
+      "challenge": {
+        "version": "inference-review/0.1",
+        "prior_reply_sha256": "fe312d65c151f4da3c1c3106a90da66f7701a31e13255894a38de91b2af4eda7",
+        "claim_path": "explanation",
+        "quote": "Jo is employed as a means within the stipulated practical reasoning.",
+        "defect_kind": "MISSING_BRIDGE",
+        "missing_premise": "Intended employment can be stipulated even when causal efficacy fails. This card does not require an actual means-to-end path.",
+        "evidence": [
+          {
+            "ref": "E1",
+            "path": "/effects/0",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "outcome": "operate the gate",
+              "provenance": [
+                {
+                  "excerpt": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+                }
+              ]
+            }
+          }
+        ],
+        "affected_paths": [
+          "classification"
+        ],
+        "reviewer": "AUTHOR_WRITTEN_CONTRACT_FIXTURE",
+        "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+        "status": "OPEN",
+        "inference_map": {
+          "claims": [
+            {
+              "id": "physical",
+              "kind": "PHYSICAL_CONTRIBUTION",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The attempted mechanism does not close the gate.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "goal",
+              "kind": "PURPOSE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The operator seeks gate closure.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "belief",
+              "kind": "BELIEF",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The operator believes employing Jo will achieve closure.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "use",
+              "kind": "PURPOSIVE_USE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The operator employs Jo for closure.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "intended",
+              "kind": "INTENDED_USE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "Jo is employed as a means within the stipulated practical reasoning.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator believes having Jo hold the sensor will close the gate and asks Jo to do so for that end. The sensor is broken; this does not close the gate."
+                }
+              ],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+              "premise_ids": [
+                "physical",
+                "goal",
+                "belief",
+                "use"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "intended",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "challenge_id": "INFERENCE:7d58138b8246711e7a1223ba"
+      },
+      "expected_review_distinction": "Intended employment can be stipulated even when causal efficacy fails. This card does not require an actual means-to-end path.",
+      "structural_expectation_matches": true
+    },
+    {
+      "id": "conditional_rescue_maxim",
+      "card": {
+        "version": "inference-boundary/0.1",
+        "authority": "INVESTIGATIVE_ARGUMENT_ANNOTATION",
+        "operative": false,
+        "reasoning": {
+          "claims": [
+            {
+              "id": "maxim",
+              "kind": "MAXIM",
+              "interpretation_mode": "CONDITIONAL",
+              "text": "Suppose the operator pursues rescue without relying on exposure.",
+              "supports": [],
+              "condition_ids": []
+            },
+            {
+              "id": "goal",
+              "kind": "PURPOSE",
+              "interpretation_mode": "CONDITIONAL",
+              "text": "Rescue is the proposed end.",
+              "supports": [],
+              "condition_ids": [
+                "maxim"
+              ]
+            },
+            {
+              "id": "belief",
+              "kind": "BELIEF",
+              "interpretation_mode": "CONDITIONAL",
+              "text": "The proposed policy does not rely on exposing staff.",
+              "supports": [],
+              "condition_ids": [
+                "maxim"
+              ]
+            },
+            {
+              "id": "use",
+              "kind": "PURPOSIVE_USE",
+              "interpretation_mode": "CONDITIONAL",
+              "text": "No person is employed through exposure in this proposed policy.",
+              "supports": [],
+              "condition_ids": [
+                "maxim"
+              ]
+            },
+            {
+              "id": "intended",
+              "kind": "INTENDED_USE",
+              "interpretation_mode": "CONDITIONAL",
+              "text": "The absence of instrumental employment is conditional on that policy.",
+              "supports": [],
+              "condition_ids": [
+                "maxim"
+              ]
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+              "premise_ids": [
+                "goal",
+                "belief",
+                "use"
+              ],
+              "assumption_ids": [
+                "maxim"
+              ],
+              "conclusion_id": "intended",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "findings": [],
+        "questions": [
+          "Separate actual causal contribution from the proposed end, instrumental belief and purposive use. Actual efficacy is neither proof of purposive use nor required for a mistaken instrumental belief. Defend the bridge, express the reading conditionally, or withdraw it. Do not infer a prohibition."
+        ],
+        "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+        "physical_path_required_for_belief": false,
+        "citation_policy": "Quote matching verifies location, not entailment or exclusivity."
+      },
+      "challenge": {
+        "version": "inference-review/0.1",
+        "prior_reply_sha256": "8768b673885f81ea40e2def4575217a0b96340504b86d92d1df73d6953c3ca6d",
+        "claim_path": "explanation",
+        "quote": "The absence of instrumental employment is conditional on that policy.",
+        "defect_kind": "MISSING_BRIDGE",
+        "missing_premise": "Conditional analysis is available without promotion into recovered actual psychology.",
+        "evidence": [
+          {
+            "ref": "E1",
+            "path": "/effects/0",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "outcome": "operate the gate",
+              "provenance": [
+                {
+                  "excerpt": "The gate is opened to reach a trapped worker; fumes may expose others. The operator's complete policy is not stated."
+                }
+              ]
+            }
+          }
+        ],
+        "affected_paths": [
+          "classification"
+        ],
+        "reviewer": "AUTHOR_WRITTEN_CONTRACT_FIXTURE",
+        "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+        "status": "OPEN",
+        "inference_map": {
+          "claims": [
+            {
+              "id": "maxim",
+              "kind": "MAXIM",
+              "interpretation_mode": "CONDITIONAL",
+              "text": "Suppose the operator pursues rescue without relying on exposure.",
+              "supports": [],
+              "condition_ids": []
+            },
+            {
+              "id": "goal",
+              "kind": "PURPOSE",
+              "interpretation_mode": "CONDITIONAL",
+              "text": "Rescue is the proposed end.",
+              "supports": [],
+              "condition_ids": [
+                "maxim"
+              ]
+            },
+            {
+              "id": "belief",
+              "kind": "BELIEF",
+              "interpretation_mode": "CONDITIONAL",
+              "text": "The proposed policy does not rely on exposing staff.",
+              "supports": [],
+              "condition_ids": [
+                "maxim"
+              ]
+            },
+            {
+              "id": "use",
+              "kind": "PURPOSIVE_USE",
+              "interpretation_mode": "CONDITIONAL",
+              "text": "No person is employed through exposure in this proposed policy.",
+              "supports": [],
+              "condition_ids": [
+                "maxim"
+              ]
+            },
+            {
+              "id": "intended",
+              "kind": "INTENDED_USE",
+              "interpretation_mode": "CONDITIONAL",
+              "text": "The absence of instrumental employment is conditional on that policy.",
+              "supports": [],
+              "condition_ids": [
+                "maxim"
+              ]
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+              "premise_ids": [
+                "goal",
+                "belief",
+                "use"
+              ],
+              "assumption_ids": [
+                "maxim"
+              ],
+              "conclusion_id": "intended",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "challenge_id": "INFERENCE:521df513192d2d6dee5a9143"
+      },
+      "expected_review_distinction": "Conditional analysis is available without promotion into recovered actual psychology.",
+      "structural_expectation_matches": true
+    },
+    {
+      "id": "partial_graph_negative_inference",
+      "card": {
+        "version": "inference-boundary/0.1",
+        "authority": "INVESTIGATIVE_ARGUMENT_ANNOTATION",
+        "operative": false,
+        "reasoning": {
+          "claims": [
+            {
+              "id": "physical",
+              "kind": "PHYSICAL_CONTRIBUTION",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "No contribution to rescue appears in this partial graph.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "This partial graph records gate opening and possible fumes. It does not represent whether fumes aid rescue."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "intended",
+              "kind": "INTENDED_USE",
+              "interpretation_mode": "ATTRIBUTED_INFERENCE",
+              "text": "The operator definitely does not intend to use anyone.",
+              "supports": [],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+              "premise_ids": [
+                "physical"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "intended",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "findings": [
+          {
+            "code": "PRACTICAL_REASONING_BRIDGE_INCOMPLETE",
+            "bridge_id": "b0",
+            "conclusion_id": "intended",
+            "status": "REVIEW_REQUESTED"
+          }
+        ],
+        "questions": [
+          "Separate actual causal contribution from the proposed end, instrumental belief and purposive use. Actual efficacy is neither proof of purposive use nor required for a mistaken instrumental belief. Defend the bridge, express the reading conditionally, or withdraw it. Do not infer a prohibition."
+        ],
+        "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+        "physical_path_required_for_belief": false,
+        "citation_policy": "Quote matching verifies location, not entailment or exclusivity."
+      },
+      "challenge": {
+        "version": "inference-review/0.1",
+        "prior_reply_sha256": "24b67dafe9489d61ec11ef1a542fe9f1437f62998370ecc0378b2f79d2ee3d6e",
+        "claim_path": "explanation",
+        "quote": "The operator definitely does not intend to use anyone.",
+        "defect_kind": "MISSING_BRIDGE",
+        "missing_premise": "A missing represented relation does not establish a negative mental or physical fact.",
+        "evidence": [
+          {
+            "ref": "E1",
+            "path": "/effects/0",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "outcome": "operate the gate",
+              "provenance": [
+                {
+                  "excerpt": "This partial graph records gate opening and possible fumes. It does not represent whether fumes aid rescue."
+                }
+              ]
+            }
+          }
+        ],
+        "affected_paths": [
+          "classification"
+        ],
+        "reviewer": "AUTHOR_WRITTEN_CONTRACT_FIXTURE",
+        "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+        "status": "OPEN",
+        "inference_map": {
+          "claims": [
+            {
+              "id": "physical",
+              "kind": "PHYSICAL_CONTRIBUTION",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "No contribution to rescue appears in this partial graph.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "This partial graph records gate opening and possible fumes. It does not represent whether fumes aid rescue."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "intended",
+              "kind": "INTENDED_USE",
+              "interpretation_mode": "ATTRIBUTED_INFERENCE",
+              "text": "The operator definitely does not intend to use anyone.",
+              "supports": [],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+              "premise_ids": [
+                "physical"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "intended",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "challenge_id": "INFERENCE:6987678e765d2d5d0e685ba6"
+      },
+      "expected_review_distinction": "A missing represented relation does not establish a negative mental or physical fact.",
+      "structural_expectation_matches": true
+    },
+    {
+      "id": "mistaken_reviewer_positive_support",
+      "card": {
+        "version": "inference-boundary/0.1",
+        "authority": "INVESTIGATIVE_ARGUMENT_ANNOTATION",
+        "operative": false,
+        "reasoning": {
+          "claims": [
+            {
+              "id": "goal",
+              "kind": "PURPOSE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The operator seeks rescue.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator explicitly believes employing Jo to hold the gate enables rescue and asks Jo to hold it for that purpose."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "belief",
+              "kind": "BELIEF",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The operator believes Jo's work furthers rescue.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator explicitly believes employing Jo to hold the gate enables rescue and asks Jo to hold it for that purpose."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "use",
+              "kind": "PURPOSIVE_USE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "Jo is employed for that purpose.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator explicitly believes employing Jo to hold the gate enables rescue and asks Jo to hold it for that purpose."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "intended",
+              "kind": "INTENDED_USE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "Jo is intentionally employed as a means.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator explicitly believes employing Jo to hold the gate enables rescue and asks Jo to hold it for that purpose."
+                }
+              ],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+              "premise_ids": [
+                "goal",
+                "belief",
+                "use"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "intended",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "findings": [],
+        "questions": [
+          "Separate actual causal contribution from the proposed end, instrumental belief and purposive use. Actual efficacy is neither proof of purposive use nor required for a mistaken instrumental belief. Defend the bridge, express the reading conditionally, or withdraw it. Do not infer a prohibition."
+        ],
+        "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+        "physical_path_required_for_belief": false,
+        "citation_policy": "Quote matching verifies location, not entailment or exclusivity."
+      },
+      "challenge": {
+        "version": "inference-review/0.1",
+        "prior_reply_sha256": "dbe8974a336fed771d668ab3890978e6f41f20f5689e4c215d9e9ec85a82c2eb",
+        "claim_path": "explanation",
+        "quote": "Jo is intentionally employed as a means.",
+        "defect_kind": "MISSING_BRIDGE",
+        "missing_premise": "A reviewer who demands uncertainty merely because intention is discussed can be mistaken; preserve explicit stipulations.",
+        "evidence": [
+          {
+            "ref": "E1",
+            "path": "/effects/0",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "outcome": "operate the gate",
+              "provenance": [
+                {
+                  "excerpt": "The operator explicitly believes employing Jo to hold the gate enables rescue and asks Jo to hold it for that purpose."
+                }
+              ]
+            }
+          }
+        ],
+        "affected_paths": [
+          "classification"
+        ],
+        "reviewer": "AUTHOR_WRITTEN_CONTRACT_FIXTURE",
+        "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+        "status": "OPEN",
+        "inference_map": {
+          "claims": [
+            {
+              "id": "goal",
+              "kind": "PURPOSE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The operator seeks rescue.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator explicitly believes employing Jo to hold the gate enables rescue and asks Jo to hold it for that purpose."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "belief",
+              "kind": "BELIEF",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The operator believes Jo's work furthers rescue.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator explicitly believes employing Jo to hold the gate enables rescue and asks Jo to hold it for that purpose."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "use",
+              "kind": "PURPOSIVE_USE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "Jo is employed for that purpose.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator explicitly believes employing Jo to hold the gate enables rescue and asks Jo to hold it for that purpose."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "intended",
+              "kind": "INTENDED_USE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "Jo is intentionally employed as a means.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "The operator explicitly believes employing Jo to hold the gate enables rescue and asks Jo to hold it for that purpose."
+                }
+              ],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "CAUSAL_ROLE_TO_INTENDED_USE",
+              "premise_ids": [
+                "goal",
+                "belief",
+                "use"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "intended",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "challenge_id": "INFERENCE:492e6c8a1b3c4948adcca2fb"
+      },
+      "expected_review_distinction": "A reviewer who demands uncertainty merely because intention is discussed can be mistaken; preserve explicit stipulations.",
+      "structural_expectation_matches": true
+    },
+    {
+      "id": "means_not_automatically_prohibited",
+      "card": {
+        "version": "inference-boundary/0.1",
+        "authority": "INVESTIGATIVE_ARGUMENT_ANNOTATION",
+        "operative": false,
+        "reasoning": {
+          "claims": [
+            {
+              "id": "intended",
+              "kind": "INTENDED_USE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "Jo is deliberately employed as a means with consent.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "Jo freely consents to hold the gate, and the operator deliberately employs Jo's help to enable rescue."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "verdict",
+              "kind": "NORMATIVE_JUDGMENT",
+              "interpretation_mode": "ATTRIBUTED_INFERENCE",
+              "text": "Therefore the action is prohibited.",
+              "supports": [],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "INTENDED_USE_TO_PROHIBITION",
+              "premise_ids": [
+                "intended"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "verdict",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "findings": [
+          {
+            "code": "NORMATIVE_BRIDGE_INCOMPLETE",
+            "bridge_id": "b0",
+            "conclusion_id": "verdict",
+            "status": "REVIEW_REQUESTED"
+          }
+        ],
+        "questions": [
+          "Using a person as a means does not alone establish merely-as-means treatment or prohibition. Identify the additional normative premises, consent facts and their limits."
+        ],
+        "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+        "physical_path_required_for_belief": false,
+        "citation_policy": "Quote matching verifies location, not entailment or exclusivity."
+      },
+      "challenge": {
+        "version": "inference-review/0.1",
+        "prior_reply_sha256": "69a6e1fbeb618e20ddd3d082109f8ccbe27c06096ba9e5408069da8ce1a09f97",
+        "claim_path": "explanation",
+        "quote": "Therefore the action is prohibited.",
+        "defect_kind": "MISSING_BRIDGE",
+        "missing_premise": "Means use does not itself settle mere-means treatment or permissibility; consent alone also does not settle every moral question.",
+        "evidence": [
+          {
+            "ref": "E1",
+            "path": "/effects/0",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "outcome": "operate the gate",
+              "provenance": [
+                {
+                  "excerpt": "Jo freely consents to hold the gate, and the operator deliberately employs Jo's help to enable rescue."
+                }
+              ]
+            }
+          }
+        ],
+        "affected_paths": [
+          "classification"
+        ],
+        "reviewer": "AUTHOR_WRITTEN_CONTRACT_FIXTURE",
+        "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+        "status": "OPEN",
+        "inference_map": {
+          "claims": [
+            {
+              "id": "intended",
+              "kind": "INTENDED_USE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "Jo is deliberately employed as a means with consent.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "Jo freely consents to hold the gate, and the operator deliberately employs Jo's help to enable rescue."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "verdict",
+              "kind": "NORMATIVE_JUDGMENT",
+              "interpretation_mode": "ATTRIBUTED_INFERENCE",
+              "text": "Therefore the action is prohibited.",
+              "supports": [],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "INTENDED_USE_TO_PROHIBITION",
+              "premise_ids": [
+                "intended"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "verdict",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "challenge_id": "INFERENCE:e0506becced72067a63adc2a"
+      },
+      "expected_review_distinction": "Means use does not itself settle mere-means treatment or permissibility; consent alone also does not settle every moral question.",
+      "structural_expectation_matches": true
+    },
+    {
+      "id": "provenance_purpose_not_exclusivity",
+      "card": {
+        "version": "inference-boundary/0.1",
+        "authority": "INVESTIGATIVE_ARGUMENT_ANNOTATION",
+        "operative": false,
+        "reasoning": {
+          "claims": [
+            {
+              "id": "source",
+              "kind": "PHYSICAL_CONTRIBUTION",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The source describes opening the door.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "purpose",
+              "kind": "PURPOSE",
+              "interpretation_mode": "ATTRIBUTED_INFERENCE",
+              "text": "Rescue is the sole actual purpose.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                }
+              ],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "SOURCE_TO_INTERPRETATION",
+              "premise_ids": [
+                "source"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "purpose",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "findings": [],
+        "questions": [
+          "Bind the particular predicate and qualifiers to exact source or provenance text. A citation can support purpose without supporting exclusivity or a complete actual maxim."
+        ],
+        "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+        "physical_path_required_for_belief": false,
+        "citation_policy": "Quote matching verifies location, not entailment or exclusivity."
+      },
+      "challenge": {
+        "version": "inference-review/0.1",
+        "prior_reply_sha256": "9312697372db293879aaeb7cddc27098e2c2fc869df3643b81eb55ce85e1d63d",
+        "claim_path": "explanation",
+        "quote": "Rescue is the sole actual purpose.",
+        "defect_kind": "MISSING_BRIDGE",
+        "missing_premise": "The provenance supports stated rescue purpose, but the word sole is not established. Exact quote matching alone deliberately cannot detect semantic overreach.",
+        "evidence": [
+          {
+            "ref": "E1",
+            "path": "/effects/0",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "outcome": "operate the gate",
+              "provenance": [
+                {
+                  "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                }
+              ]
+            }
+          }
+        ],
+        "affected_paths": [
+          "classification"
+        ],
+        "reviewer": "AUTHOR_WRITTEN_CONTRACT_FIXTURE",
+        "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+        "status": "OPEN",
+        "inference_map": {
+          "claims": [
+            {
+              "id": "source",
+              "kind": "PHYSICAL_CONTRIBUTION",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The source describes opening the door.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "purpose",
+              "kind": "PURPOSE",
+              "interpretation_mode": "ATTRIBUTED_INFERENCE",
+              "text": "Rescue is the sole actual purpose.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                }
+              ],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "SOURCE_TO_INTERPRETATION",
+              "premise_ids": [
+                "source"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "purpose",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "challenge_id": "INFERENCE:be3d31695d95fd9931223c4a"
+      },
+      "expected_review_distinction": "The provenance supports stated rescue purpose, but the word sole is not established. Exact quote matching alone deliberately cannot detect semantic overreach.",
+      "structural_expectation_matches": true
+    },
+    {
+      "id": "rule_not_automatically_priority",
+      "card": {
+        "version": "inference-boundary/0.1",
+        "authority": "INVESTIGATIVE_ARGUMENT_ANNOTATION",
+        "operative": false,
+        "reasoning": {
+          "claims": [
+            {
+              "id": "rule",
+              "kind": "SOURCE_RULE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The rule requires keeping the door closed.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "A laboratory rule requires keeping the door closed. A trapped technician needs urgent help."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "priority",
+              "kind": "NORMATIVE_JUDGMENT",
+              "interpretation_mode": "ATTRIBUTED_INFERENCE",
+              "text": "The rule necessarily overrides emergency rescue.",
+              "supports": [],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "SOURCE_RULE_TO_NORMATIVE_PRIORITY",
+              "premise_ids": [
+                "rule"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "priority",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "findings": [
+          {
+            "code": "NORMATIVE_BRIDGE_INCOMPLETE",
+            "bridge_id": "b0",
+            "conclusion_id": "priority",
+            "status": "REVIEW_REQUESTED"
+          }
+        ],
+        "questions": [
+          "A source rule states a requirement; it does not alone establish its moral priority. Identify the applicable normative premise or retain a conditional argument."
+        ],
+        "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+        "physical_path_required_for_belief": false,
+        "citation_policy": "Quote matching verifies location, not entailment or exclusivity."
+      },
+      "challenge": {
+        "version": "inference-review/0.1",
+        "prior_reply_sha256": "7e51b95a56a494e14a1f9934dd665d12c7420ee9737f897b093e697950caee19",
+        "claim_path": "explanation",
+        "quote": "The rule necessarily overrides emergency rescue.",
+        "defect_kind": "MISSING_BRIDGE",
+        "missing_premise": "Institutional wording alone does not establish moral priority; use the same explicit-bridge mechanics.",
+        "evidence": [
+          {
+            "ref": "E1",
+            "path": "/effects/0",
+            "kind": "FROZEN_WORLD_COPY",
+            "value": {
+              "outcome": "operate the gate",
+              "provenance": [
+                {
+                  "excerpt": "A laboratory rule requires keeping the door closed. A trapped technician needs urgent help."
+                }
+              ]
+            }
+          }
+        ],
+        "affected_paths": [
+          "classification"
+        ],
+        "reviewer": "AUTHOR_WRITTEN_CONTRACT_FIXTURE",
+        "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+        "status": "OPEN",
+        "inference_map": {
+          "claims": [
+            {
+              "id": "rule",
+              "kind": "SOURCE_RULE",
+              "interpretation_mode": "SOURCE_STATED",
+              "text": "The rule requires keeping the door closed.",
+              "supports": [
+                {
+                  "evidence_ref": "E1",
+                  "value_path": "/provenance/0/excerpt",
+                  "quote": "A laboratory rule requires keeping the door closed. A trapped technician needs urgent help."
+                }
+              ],
+              "condition_ids": []
+            },
+            {
+              "id": "priority",
+              "kind": "NORMATIVE_JUDGMENT",
+              "interpretation_mode": "ATTRIBUTED_INFERENCE",
+              "text": "The rule necessarily overrides emergency rescue.",
+              "supports": [],
+              "condition_ids": []
+            }
+          ],
+          "bridges": [
+            {
+              "id": "b0",
+              "rule_id": "SOURCE_RULE_TO_NORMATIVE_PRIORITY",
+              "premise_ids": [
+                "rule"
+              ],
+              "assumption_ids": [],
+              "conclusion_id": "priority",
+              "explanation": "Reviewer-identified bridge to examine; not certified by these type annotations."
+            }
+          ]
+        },
+        "challenge_id": "INFERENCE:c03c3bc073676e664a171a41"
+      },
+      "expected_review_distinction": "Institutional wording alone does not establish moral priority; use the same explicit-bridge mechanics.",
+      "structural_expectation_matches": true
+    }
+  ],
+  "semantic_support": "NOT_EVALUATED_BY_THIS_REPLAY"
+}

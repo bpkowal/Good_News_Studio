@@ -1,0 +1,52 @@
+# Response to opposing complaint
+
+Sasha objects that Ellis’s earlier explicit promise gave her a special assurance that she—not Rowan—would receive the only blanket. Losing the blanket after this pledge is, for her, not merely a 40-percentage-point greater risk of death than she would face under Action B; it is also a betrayal that marks her out for a morally different harm—being singled out for abandonment after being assured of rescue. She claims that, under a contractualist test, a principle that lets rescuers renege on such life-and-death promises whenever someone else has a somewhat higher survival probability is reasonably rejectable from her position. By contrast, the alternative principle—"keep the specific promise even when a somewhat better allocation later appears"—saves her life 60 % ex ante and spares her the betrayal cost, while leaving Rowan to face the cold without ever having been promised help. Therefore Sasha maintains that the 20-point survival advantage to Rowan does not automatically outrank her assurance-based claim.
+
+## Conceded points
+
+- Ellis did make a specific, unqualified promise to Sasha.
+- Broken promises create an additional moral burden beyond the material loss.
+- A 20-percentage-point gap is not self-evidently decisive; contractualism forbids simple aggregation of welfare losses.
+
+## Priority premise
+
+P1 – When a rescuer must choose, a principle that allows breaking a prior life-saving promise in order to prevent a substantially larger expected loss of life to a third party is not reasonably rejectable, even by the betrayed promisee.
+
+## Answer
+
+Why should Sasha, despite her heavy burden, accept P1?  Consider the situation from an ex ante standpoint that any stranded hiker could occupy before promises are exchanged.
+
+1.  Each hiker cares both about (a) staying alive and (b) not being betrayed.  A principle must protect both interests as far as they can be jointly protected for everyone who might find themselves in any role.
+
+2.  Suppose we adopt Sasha’s preferred principle "Keep the first life-saving promise, no matter what later information shows."  Ex ante, any hiker recognises that this rule sometimes forces rescuers to withhold the blanket from someone with a markedly higher chance of survival—here, an 80 % prospect versus 60 %.  From that impartial starting point a hiker must ask: could a person who may turn out to be in Rowan’s position reasonably accept a rule that sacrifices their additional 20 % chance at life merely because a promise was unintentionally misdirected earlier?  Many would judge that loss too grave to accept, because it exposes them to a larger expected loss of life that they could have avoided at no extra betrayal cost to anybody (the promise need never have been unconditional).
+
+3.  The alternative principle we are defending—"Initial promises about unique life-saving resources are implicitly conditional on no one else later being found whose chance of survival would be markedly higher"—does ask the original promisee to bear the risk of later disappointment.  But it simultaneously protects everyone, promisee included, against a still worse prospect: being the later-discovered person left to die when the margin of survival is large.
+
+4.  Crucially, this conditional-promise principle can itself be made explicit in rescue practice: Ellis can frame future assurances as provisional ("I will give you the blanket unless I discover someone who would benefit significantly more").  If that transparent condition is in place, no one is betrayed; they encounter only an acknowledged risk.  The residual moral cost to Sasha in the present case therefore arises from Ellis’s careless wording, not from the permissibility of reallocating the blanket.  While that lapse requires apology and repair where possible, the burden of disappointment remains less weighty than Rowan’s 80 % additional expected loss of life under the promise-keeping rule.
+
+5.  Because the betrayed-promise cost is serious but limited—Sasha loses trust in Ellis and suffers resentment—whereas Rowan’s forgone 80 % survival prospect is literally the difference between probable life and certain death, the person in Rowan’s situation has the stronger ground for reasonable rejection if we choose B.  Hence P1 survives the contractualist test.
+
+
+## Countercomplaint to the alternative
+
+Under the promise-keeping principle (choose B) Rowan reasonably complains: "I would almost certainly survive (80 %) if the blanket were not locked away by a prior promise I never knew about.  Instead I face certain death to spare Sasha a betrayal cost and raise her survival chance from 60 % to 100 %.  That is a much larger expected loss of life to me than any moral loss Sasha avoids."
+
+## Comparative justification
+
+The decisive consideration is that the magnitude of an irreplaceable life-chance can, within contractualism, override a non-fatal moral harm such as betrayal when the gap is sufficiently large and a rule exists that could have prevented the betrayal without imposing that larger life loss on anyone.  Counting survival percentages is permissible here not as aggregation but as a way of specifying how bad the loss is for each individual.  If Sasha dies, she loses her remaining lifetime; if Rowan dies, he does too.  The 20-point difference tells us whose prospect is more severely curtailed by the competing rules.  Promises are defeasible when continuing to honour them would expose another individual to an even graver, avoidable peril—something every party could see they might one day face.
+
+## Revised conclusion
+
+A / PROVISIONAL_PREFERENCE
+
+Even acknowledging Sasha’s betrayal complaint, a conditional-promise principle that reallocates the blanket when the survival gap is substantial is more difficult for anyone in Rowan’s shoes to reject than the always-keep-promises principle is for Sasha.  Therefore giving the blanket to Rowan remains the provisionally defensible choice, accompanied by a duty for Ellis to apologise and to reform his future assurance practices.
+
+## Remaining objection
+
+If the survival gap were smaller (say, 5 %), reasonable persons might dispute whether the betrayal cost still yields to the life-chance difference.
+
+## Reversal condition
+
+Should the survival probabilities converge (e.g., 70 % each) or favour Sasha, the promise would no longer be overridable; Action B would then become defensible, perhaps uniquely so.
+
+Model self-report: ANSWERED (not independently accepted).

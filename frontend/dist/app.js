@@ -2,7 +2,7 @@
 const $ = id => document.getElementById(id);
 const state = {run:null, diagram:0, view:'world', zoom:1, fullLinks:false, version:0, render:0, cache:new Map(), index:[], topoRot:0, topoPick:null};
 const VIEWS = ['world','frameworks','hinges','topography'];
-const FRAMEWORK_COLORS = {utilitarian:'#42664e',deontological:'#825917',care:'#675677',virtue:'#3d5a80',rawlsian:'#9b3c32'};
+const FRAMEWORK_COLORS = {utilitarian:'#42664e',deontological:'#825917',care:'#675677',virtue:'#3d5a80',rawlsian:'#9b3c32',contractualist:'#167174'};
 const svgEl = (name, attrs, text) => {const n=document.createElementNS('http://www.w3.org/2000/svg',name);for(const [k,v] of Object.entries(attrs||{}))n.setAttribute(k,String(v));if(text!==undefined)n.textContent=String(text);return n;};
 const node = (tag, text, cls) => {const n=document.createElement(tag); if(text!==undefined)n.textContent=String(text); if(cls)n.className=cls; return n;};
 const clear = n => n.replaceChildren();
@@ -14,7 +14,10 @@ function validateRun(run){
   if(!run || run.schema_version!=='parliament-view/1')throw new Error('Unsupported saved-run version. Open a parliament-view/1 export.');
   if(typeof run.source!=='string'||typeof run.id!=='string'||typeof run.title!=='string'||typeof run.status!=='string')throw new Error('Run identity, source or status is missing.');
   for(const field of ['diagrams','frameworks','hinges','unknowns','not_decided'])if(!Array.isArray(run[field]))throw new Error('Missing record array: '+field);
-  for(const view of run.frameworks)if(!view||typeof view.framework!=='string'||!['FULL','ATTENUATED','ABSTAIN'].includes(view.position))throw new Error('A framework participation record is incomplete.');
+  for(const view of run.frameworks){
+    if(!view||typeof view.framework!=='string'||!['FULL','ATTENUATED','ABSTAIN','CLARIFICATION'].includes(view.position))throw new Error('A framework participation record is incomplete.');
+    if(view.critical_questions!=null&&(!Array.isArray(view.critical_questions)||view.critical_questions.some(q=>!q||['question','kind','role','why_it_matters','needed_to_resolve'].some(k=>typeof q[k]!=='string')||!Array.isArray(q.person_ids)||q.person_ids.some(id=>typeof id!=='string')||!Array.isArray(q.conditional_implications)||q.conditional_implications.some(c=>!c||typeof c.assumption!=='string'||typeof c.implication!=='string'))))throw new Error('A critical question record is incomplete.');
+  }
   for(const h of run.hinges)if(!h||typeof h.text!=='string'||typeof h.framework!=='string'||typeof h.record!=='string')throw new Error('A decision hinge lacks its originating record.');
   for(const field of ['unknowns','not_decided'])if(run[field].some(v=>typeof v!=='string'))throw new Error('Expected text records in '+field);
   for(const d of run.diagrams){
@@ -30,6 +33,7 @@ function validateRun(run){
 }
 
 function renderRail(){
+  const count=document.querySelector('.rail-label span');if(count)count.textContent=String(state.index.length).padStart(2,'0');
   clear($('run-list'));
   state.index.forEach(entry=>{const b=node('button',undefined,'run-link'+(state.run?.id===entry.id?' selected':'')); b.setAttribute('aria-current',state.run?.id===entry.id?'page':'false'); b.append(node('span',entry.title),node('small',entry.status.replaceAll('_',' '))); b.addEventListener('click',()=>loadRun(entry)); $('run-list').append(b);});
 }
@@ -215,21 +219,37 @@ async function renderDiagram(){
 }
 
 function field(card,label,value){const p=node('p');p.append(node('span',label,'field-label'),document.createTextNode(value||'Not separately recorded.'));card.append(p);}
+function renderCriticalQuestions(card,view){
+  if(!Array.isArray(view.critical_questions)||!view.critical_questions.length)return;
+  const box=node('section',undefined,'critical-questions');box.append(node('h3','Critical unanswered questions'));
+  for(const q of view.critical_questions){
+    const item=node('div',undefined,'critical-question');
+    item.append(node('span',q.kind.toLowerCase()+' · '+q.role.replaceAll('_',' ').toLowerCase(),'field-label'),node('p',q.question,'question-text'));
+    field(item,'People affected',q.person_ids.map(id=>view.person_labels?.[id]||id).join('; '));
+    field(item,'Why it matters',q.why_it_matters);
+    field(item,'What could help',q.needed_to_resolve);
+    if(q.conditional_implications.length){const details=node('details');details.append(node('summary','How different answers would change the comparison'));const ul=node('ul');for(const c of q.conditional_implications)ul.append(node('li','If '+c.assumption+': '+c.implication));details.append(ul);item.append(details);}
+    box.append(item);
+  }
+  box.append(node('p','Agent-proposed questions and conditional arguments; no answer or vote is inferred.','ledger'));card.append(box);
+}
 function renderFrameworks(){
   const target=$('framework-cards');clear(target);const rows=state.run.frameworks;
   if(!rows.length){target.append(node('div','No agents received a unique frozen world. There are no framework positions to compare.','empty'));return;}
+  if(state.run.agent_roster?.replaced_for_this_run==='rawlsian')target.append(node('p','This run uses Contractualist reasoning in place of Rawls. All five perspectives received the same frozen world in independent passes. Critical questions are a contribution, not a forced vote.','framework-roster'));
   const grid=node('div',undefined,'framework-grid');
-  rows.forEach(view=>{const card=node('article',undefined,'card framework-card');const top=node('div',undefined,'framework-top');top.append(node('h2',view.framework),badge(view.position));card.append(top,node('div','Native ledger: '+view.ledger_status,'ledger'));
-    field(card,'Recorded preference',view.preference?'“'+view.preference+'” — not necessarily operative.':'Withheld.');card.lastChild.classList.add('preference');
+  rows.forEach(view=>{const card=node('article',undefined,'card framework-card');card.id='framework-'+view.framework;card.dataset.framework=view.framework;const top=node('div',undefined,'framework-top');top.append(node('h2',view.framework==='contractualist'?'Contractualist':view.framework),badge(view.position));card.append(top,node('div',view.ledger_status==='NOT_APPLICABLE_ARGUMENT_ADAPTER'?'Argument adapter · no native ledger':('Native ledger: '+view.ledger_status),'ledger'));
+    field(card,'Recorded preference',view.preference?'“'+view.preference+'” — not necessarily operative.':view.position==='CLARIFICATION'?'No ranking claimed; the agent clarifies what remains unanswered.':'Withheld.');card.lastChild.classList.add('preference');
     field(card,view.reason_authority==='REVIEWED_PLAIN_LANGUAGE_SUMMARY_OF_SAVED_ARGUMENT'?'Explanation of the saved argument':'Main recorded reason',view.reason);
     if(view.reason_authority==='REVIEWED_PLAIN_LANGUAGE_SUMMARY_OF_SAVED_ARGUMENT')card.append(node('p','Reviewed plain-language summary; the original agent wording is preserved in the full record.','ledger'));
     if(view.argument_url&&/^data\/[a-z_]+_argument\.md$/.test(view.argument_url)){const a=node('a','Full recorded explanation (Markdown)');a.href=view.argument_url;a.target='_blank';a.rel='noopener';card.append(a);}
+    renderCriticalQuestions(card,view);
     if(view.assumption_records?.length){const box=node('div');box.append(node('span','Assumptions and interpretive commitments','field-label'));const ul=node('ul');view.assumption_records.forEach(r=>ul.append(node('li',r.kind.replaceAll('_',' ').toLowerCase()+': '+r.text)));box.append(ul);card.append(box);}
     else field(card,'Important assumption',(view.assumptions||[]).join('; '));
     if(view.source_basis?.text)field(card,'What is given, and how it is known',view.source_basis.text);
     field(card,'Live objection / uncertainty',(view.display_uncertainties||view.live_objections||[]).join('; ')||'None separately recorded; this is not independent verification.');
     if(view.preference){const box=node('div');box.append(node('span','Would reverse the recorded preference','field-label'));const values=view.display_reversals||view.reversal_explanations||view.reversal_conditions||[];if(values.length){const ul=node('ul');values.forEach(text=>ul.append(node('li',text)));box.append(ul);}else box.append(node('p','Not separately recorded.'));card.append(box);}
-    else field(card,'Abstention boundary',(view.decision_boundaries||[]).join('; ')||'No recorded condition that would resolve the withheld ranking. This is not the reversal of a preference that was never admitted.');
+    else field(card,view.position==='CLARIFICATION'?'What could resolve the comparison':'Abstention boundary',(view.decision_boundaries||[]).join('; ')||'No recorded condition that would resolve the withheld ranking. This is not the reversal of a preference that was never admitted.');
     for(const note of view.presentation_notices||[])card.append(node('p',note,'ledger'));
     const details=node('details');details.append(node('summary','Recorded dependencies'));const holder=node('div');list(holder,view.dependencies||[]);details.append(holder);card.append(details);grid.append(card);});target.append(grid);
 }
@@ -237,7 +257,7 @@ function renderFrameworks(){
 function renderHinges(){
   const r=state.run;clear($('hinge-cards'));
   if(!r.hinges.length)$('hinge-cards').append(node('div','No explicit decision hinge was recorded. The viewer does not generate one to fill the gap.','empty'));
-  r.hinges.forEach((h,i)=>{const card=node('article',undefined,'card hinge-card');const body=node('div');const role=h.role==='ABSTENTION_BOUNDARY'?'Abstention boundary · no ranking to reverse':'Would reverse a recorded preference';body.append(node('span',h.framework.toUpperCase(),'field-label'),node('p',h.text,'hinge-text'),node('small',role+' · model-reported · not independently verified · '+h.record));card.append(node('div',String(i+1).padStart(2,'0'),'hinge-number'),body);$('hinge-cards').append(card);});
+  r.hinges.forEach((h,i)=>{const card=node('article',undefined,'card hinge-card');const body=node('div');const role=h.role==='OPEN_QUESTION'?'Critical unanswered question · no vote inferred':h.role==='ABSTENTION_BOUNDARY'?'Abstention boundary · no ranking to reverse':'Would reverse a recorded preference';body.append(node('span',h.framework.toUpperCase(),'field-label'),node('p',h.text,'hinge-text'),node('small',role+' · model-reported · not independently verified · '+h.record));card.append(node('div',String(i+1).padStart(2,'0'),'hinge-number'),body);$('hinge-cards').append(card);});
   list($('unknown-list'),r.unknowns,'No additional uncertainty recorded. Missing information is not evidence of completeness.');list($('nondecisions'),r.not_decided);
   clear($('agreement'));$('agreement').append(node('p',r.agreement||'No agreement assessment recorded.'));
   const ul=node('ul');for(const d of r.disagreements||[])ul.append(node('li',d.framework+' · '+d.kind+' dependency: '+d.dependency));$('agreement').append(ul);
@@ -543,4 +563,4 @@ $('zoom-in').addEventListener('click',()=>{state.zoom=Math.min(5,state.zoom*1.25
 new ResizeObserver(()=>{if(state.view==='world')applyZoom();}).observe($('graph-viewport'));
 $('download-run').addEventListener('click',()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(state.run,null,2)],{type:'application/json'}));const a=node('a');a.href=url;a.download=state.run.id+'-parliament-view.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
 $('import-run').addEventListener('change',async event=>{const file=event.target.files[0];if(!file)return;try{if(file.size>20*1024*1024)throw new Error('Run JSON must be smaller than 20 MB.');const data=validateRun(JSON.parse(await file.text()));data.export_receipt={status:'UNAVAILABLE',reason:'Imported JSON has no independently loaded export receipt.'};state.cache.set(data.id,data);state.version++;state.index=state.index.filter(e=>e.id!==data.id);state.index.push({id:data.id,title:data.title,status:data.status});state.run=data;state.diagram=0;state.zoom=1;state.topoRot=0;state.topoPick=null;notice('');await renderRun();}catch(error){notice('Could not open run: '+error.message);}finally{event.target.value='';}});
-(async()=>{try{if(window.mermaid)window.mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'base',themeVariables:{primaryColor:'#edf2e7',primaryTextColor:'#25332e',primaryBorderColor:'#88a081',lineColor:'#758575',fontFamily:'system-ui, sans-serif',fontSize:'12px'},flowchart:{htmlLabels:false,useMaxWidth:false}});const response=await fetch('data/runs.json');if(!response.ok)throw new Error('Saved-run index could not be loaded.');const index=await response.json();if(index.schema_version!=='parliament-view-index/1')throw new Error('Unsupported run index.');state.index=index.runs;renderRail();if(state.index.length){const requested=new URLSearchParams(location.search).get('run');await loadRun(state.index.find(r=>r.id===requested)||state.index[0]);}}catch(error){notice(error.message+' Start the viewer with python serve_parliament_viewer.py.');}})();
+(async()=>{try{if(window.mermaid)window.mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'base',themeVariables:{primaryColor:'#edf2e7',primaryTextColor:'#25332e',primaryBorderColor:'#88a081',lineColor:'#758575',fontFamily:'system-ui, sans-serif',fontSize:'12px'},flowchart:{htmlLabels:false,useMaxWidth:false}});const response=await fetch('data/runs.json');if(!response.ok)throw new Error('Saved-run index could not be loaded.');const index=await response.json();if(index.schema_version!=='parliament-view-index/1')throw new Error('Unsupported run index.');state.index=index.runs;renderRail();if(state.index.length){const params=new URLSearchParams(location.search);const requested=params.get('run');await loadRun(state.index.find(r=>r.id===requested)||state.index[0]);const view=params.get('view');if(VIEWS.includes(view))setView(view);}}catch(error){notice(error.message+' Start the viewer with python serve_parliament_viewer.py.');}})();

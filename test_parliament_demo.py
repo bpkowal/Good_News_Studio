@@ -25,6 +25,12 @@ class DecisionsReportTests(unittest.TestCase):
 
 
 class DemoTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        # Provenance probes platform metadata; warm it before mocking only the
+        # pipeline subprocesses in orchestration tests.
+        import platform
+        platform.platform()
     def test_failed_candidates_remain_inspectable_without_becoming_world(self):
         with tempfile.TemporaryDirectory() as temp:
             folder = Path(temp)
@@ -240,8 +246,10 @@ class DemoTests(unittest.TestCase):
                     (folder/'framework_generation.json').write_text(json.dumps(payload))
                 return SimpleNamespace(returncode=0)
             with patch('run_parliament_demo.check_runtime',return_value={'ready':True}), patch('subprocess.run', side_effect=process) as mocked:
-                self.assertEqual(main(['--scenario',str(source),'--output',str(out)]),0)
+                self.assertEqual(main(['--scenario',str(source),'--output',str(out),'--chooser-model','o3']),0)
             self.assertEqual(mocked.call_count,2)
+            construction=mocked.call_args_list[0][0][0]
+            self.assertEqual(construction[construction.index('--chooser-model')+1],'o3')
             self.assertEqual(json.loads((out/'DEMO_REPORT.json').read_text())['status'],'COMPLETED')
             self.assertEqual(json.loads((out/'pipeline/frozen_world_trace.json').read_text()),frozen)
 

@@ -1,0 +1,56 @@
+--- a/global_workspace/deontology_ledger.py
++++ b/global_workspace/deontology_ledger.py
+@@ -699,8 +699,8 @@
+ 
+     Sibling outcomes of one intervention (the act causes the burden and,
+     separately, the beneficial end) are not a means path. ENABLES may count
+-    here: using a party as the enabling condition of the chosen end is still
+-    instrumental. Prose-only graphs fall back to one-hop HAS_CONSEQUENCE edges.
++    here as physical support. It does not establish the actor's instrumental
++    belief or purposive use. Prose-only graphs fall back to HAS_CONSEQUENCE.
+     """
+     protected_words = _words(item.protected_party)
+     typed = _typed_action_consequences(graph, action)
+@@ -813,7 +813,20 @@
+     if item.means_relation == "INTENDED_AS_MEANS":
+         means_supported, means_support = _means_path_support(graph, action, item)
+         support.extend(means_support)
+-        if not means_supported:
++        maxim = item.candidate_maxim
++        candidate_account = bool(
++            maxim is not None
++            and maxim.person_role == "INTENDED_MEANS"
++            and maxim.instrumental_belief == "RELIES_ON_PERSON"
++            and maxim.instrumental_use == "USES_PERSON"
++            and maxim.practical_reasoning
++        )
++        # CandidateMaxim is already an attributed interpretation, never a
++        # recovered mental fact. Its belief can be mistaken about efficacy.
++        # Keep legacy physical support checks without a coherent candidate
++        # account. Below, explicit means/end effect citations still require
++        # actual same-action graph paths; no new physical effect is inferred.
++        if not means_supported and not candidate_account:
+             errors.append(
+                 "intended-as-means classification lacks an in-action causal path"
+             )
+@@ -998,7 +1011,7 @@
+     if any("means-versus-side-effect" in error or "merely-as-means" in error for error in errors):
+         unresolved.append("whether the burden is intended as a means or only foreseen as a side effect")
+     if any("intended-as-means classification" in error for error in errors):
+-        unresolved.append("whether an in-action causal path makes the burden instrumental to the chosen end")
++        unresolved.append("whether the proposed physical contribution is supported, separately from instrumental belief and purposive use")
+     if any("perfect positive duty" in error for error in errors):
+         unresolved.append("what makes the positive duty perfect rather than imperfect")
+     if any("perfect negative-duty" in error for error in errors):
+--- a/global_workspace/local_specialists.py
++++ b/global_workspace/local_specialists.py
+@@ -5566,6 +5566,9 @@
+ that connection without asserting an unknown actual intention. A physical causal
+ path alone does not establish instrumental belief or purposive use. Likewise,
+ causing a foreseen death does not establish that the death is the rescue mechanism.
++An attributed candidate belief can be mistaken about physical efficacy. Keep
++that practical-reasoning interpretation separate from assertions of actual
++physical success; do not invent a causal path to make a proposed maxim work.
+ Name the chosen operation or mechanism in means, not simply its harmful outcome.
+ Bind means_effect_ids and end_effect_ids to same-action admitted E identifiers.
+ For physical ends, each cited means must have a path to the end: sibling harm and

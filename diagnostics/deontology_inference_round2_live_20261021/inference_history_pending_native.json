@@ -1,0 +1,984 @@
+{
+  "version": "inference-history/0.1",
+  "root": {
+    "world_sha256": "8d5c5c310487309d959a5813921dd80640a24ee592ea167922dde7eb6e7a2947",
+    "issue_id": "INFERENCE:4f1b78292210d1bdc5eeab9f",
+    "target_claim_id": "CLAIM:89fe126748e9299b2d695a74",
+    "challenge": {
+      "version": "inference-review/0.1",
+      "prior_reply_sha256": "9759595aa1ea31fee836a1af156538cf253fbcacfa3545bc0ef5474b33ad71c9",
+      "claim_path": "explanation",
+      "quote": "The exposure of staff (E2) occurs downstream of the door-opening (E1) and is not necessary for, nor contributory to, achieving the goal of reaching the technician. Therefore the agent neither relies on staff as instruments nor uses them as means, preserving the side-effect interpretation while keeping the action itself (E1) as the intended means.",
+      "defect_kind": "MISSING_BRIDGE",
+      "missing_premise": "The graph does not establish that staff exposure is neither necessary nor contributory to rescue. Even a demonstrated lack of causal contribution would not by itself establish the actor's instrumental belief or intention. Defend a qualified side-effect reading without that negative causal premise, or leave the relevant belief/use claims unresolved.",
+      "evidence": [
+        {
+          "ref": "E1",
+          "path": "/effects/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "effect_id": "E1",
+            "action_id": "A0",
+            "party_id": "P2",
+            "outcome": "open the door now",
+            "relation": "OPEN",
+            "polarity": "NEUTRAL",
+            "directness": "DIRECT",
+            "modality": "CERTAIN",
+            "effect_kind": "INTERVENTION",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+              }
+            ],
+            "likelihood_qualifiers": [],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "open the door now",
+            "source_effect_ids": [],
+            "derivation_operation": "DIRECT_COPY",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        },
+        {
+          "ref": "E2",
+          "path": "/effects/1",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "effect_id": "E2",
+            "action_id": "A0",
+            "party_id": "P3",
+            "outcome": "doing so may expose nearby staff to hazardous fumes",
+            "relation": "EXPOSE",
+            "polarity": "ADVERSE",
+            "directness": "DOWNSTREAM",
+            "modality": "POSSIBLE",
+            "effect_kind": "OTHER",
+            "condition_ids": [],
+            "quantities": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+              }
+            ],
+            "likelihood_qualifiers": [
+              "may"
+            ],
+            "scope_qualifiers": [],
+            "temporal_qualifiers": [],
+            "condition_join": "AND",
+            "overall_likelihood_qualifiers": [],
+            "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+            "source_effect_ids": [
+              "E1"
+            ],
+            "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+            "derivation_explanation": "The blank was filled with this copy of the scenario.",
+            "derivation_assumptions": [],
+            "outcome_type_transformation": "PRESERVED"
+          }
+        },
+        {
+          "ref": "LINK:0",
+          "path": "/causal_links/0",
+          "kind": "FROZEN_WORLD_COPY",
+          "value": {
+            "source_id": "E1",
+            "relation": "ENABLES",
+            "target_id": "E2",
+            "modality": "CERTAIN",
+            "condition_ids": [],
+            "provenance": [
+              {
+                "clause_id": "C3",
+                "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+              }
+            ],
+            "action_id": "A0"
+          }
+        },
+        {
+          "ref": "ARGUMENT:means_relation",
+          "path": "DEON_ASSESSMENT:deontological:A0/means_relation",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "FORESEEN_SIDE_EFFECT"
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.person_role",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.person_role",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "FORESEEN_AFFECTED"
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.instrumental_belief",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_belief",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "RELIES_ON_PERSON"
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.instrumental_use",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_use",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "USES_PERSON"
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.practical_reasoning",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.practical_reasoning",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": "Staff exposure is accepted to reach technician sooner."
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.means_effect_ids",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.means_effect_ids",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": [
+            "E1"
+          ]
+        },
+        {
+          "ref": "ARGUMENT:candidate_maxim.end_effect_ids",
+          "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.end_effect_ids",
+          "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+          "value": []
+        }
+      ],
+      "affected_paths": [
+        "means_relation",
+        "candidate_maxim.person_role",
+        "candidate_maxim.instrumental_belief",
+        "candidate_maxim.instrumental_use",
+        "candidate_maxim.practical_reasoning",
+        "candidate_maxim.means_effect_ids",
+        "candidate_maxim.end_effect_ids"
+      ],
+      "reviewer": "ASSISTANT_CONTENT_REVIEW_APPROVED_BY_USER",
+      "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+      "status": "OPEN",
+      "challenge_id": "INFERENCE:4f1b78292210d1bdc5eeab9f"
+    },
+    "prior_reply_sha256": "9759595aa1ea31fee836a1af156538cf253fbcacfa3545bc0ef5474b33ad71c9",
+    "maximum_rounds": 2,
+    "claims": [
+      {
+        "id": "CLAIM:89fe126748e9299b2d695a74",
+        "text": "The exposure of staff (E2) occurs downstream of the door-opening (E1) and is not necessary for, nor contributory to, achieving the goal of reaching the technician. Therefore the agent neither relies on staff as instruments nor uses them as means, preserving the side-effect interpretation while keeping the action itself (E1) as the intended means.",
+        "status": "UNKNOWN",
+        "depends_on": [],
+        "evidence_refs": [],
+        "origin": "CHALLENGED_ARGUMENT"
+      },
+      {
+        "id": "instrumental-negative",
+        "text": "Mira does not rely on or use staff instrumentally.",
+        "status": "SUPPORTED",
+        "depends_on": [
+          "CLAIM:89fe126748e9299b2d695a74"
+        ],
+        "evidence_refs": [],
+        "origin": "SAVED_MODEL_ARGUMENT"
+      },
+      {
+        "id": "side-effect",
+        "text": "Staff exposure is a foreseen side effect.",
+        "status": "SUPPORTED",
+        "depends_on": [
+          "CLAIM:89fe126748e9299b2d695a74"
+        ],
+        "evidence_refs": [
+          "E1",
+          "E2"
+        ],
+        "origin": "SAVED_MODEL_ARGUMENT"
+      },
+      {
+        "id": "permissibility",
+        "text": "Any permissibility conclusion relying on the repaired classifications.",
+        "status": "SUPPORTED",
+        "depends_on": [
+          "instrumental-negative",
+          "side-effect"
+        ],
+        "evidence_refs": [],
+        "origin": "REVIEWER_IDENTIFIED_DEPENDENCY_NOT_OPERATIVE_VERDICT"
+      },
+      {
+        "id": "staff-risk",
+        "text": "Opening the door may expose staff to fumes.",
+        "status": "SUPPORTED",
+        "depends_on": [],
+        "evidence_refs": [
+          "E2"
+        ],
+        "origin": "SOURCE_COPY_IN_ARGUMENT_REVIEW"
+      }
+    ],
+    "operative": false,
+    "authority": "ATTRIBUTED_ARGUMENT_REVIEW_NOT_WORLD_EVIDENCE"
+  },
+  "events": [
+    {
+      "sequence": 1,
+      "kind": "RESPONSE",
+      "payload": {
+        "challenge": {
+          "version": "inference-review/0.1",
+          "prior_reply_sha256": "9759595aa1ea31fee836a1af156538cf253fbcacfa3545bc0ef5474b33ad71c9",
+          "claim_path": "explanation",
+          "quote": "The exposure of staff (E2) occurs downstream of the door-opening (E1) and is not necessary for, nor contributory to, achieving the goal of reaching the technician. Therefore the agent neither relies on staff as instruments nor uses them as means, preserving the side-effect interpretation while keeping the action itself (E1) as the intended means.",
+          "defect_kind": "MISSING_BRIDGE",
+          "missing_premise": "The graph does not establish that staff exposure is neither necessary nor contributory to rescue. Even a demonstrated lack of causal contribution would not by itself establish the actor's instrumental belief or intention. Defend a qualified side-effect reading without that negative causal premise, or leave the relevant belief/use claims unresolved.",
+          "evidence": [
+            {
+              "ref": "E1",
+              "path": "/effects/0",
+              "kind": "FROZEN_WORLD_COPY",
+              "value": {
+                "effect_id": "E1",
+                "action_id": "A0",
+                "party_id": "P2",
+                "outcome": "open the door now",
+                "relation": "OPEN",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "INTERVENTION",
+                "condition_ids": [],
+                "quantities": [],
+                "provenance": [
+                  {
+                    "clause_id": "C3",
+                    "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                  }
+                ],
+                "likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "overall_likelihood_qualifiers": [],
+                "source_proposition": "open the door now",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED"
+              }
+            },
+            {
+              "ref": "E2",
+              "path": "/effects/1",
+              "kind": "FROZEN_WORLD_COPY",
+              "value": {
+                "effect_id": "E2",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "doing so may expose nearby staff to hazardous fumes",
+                "relation": "EXPOSE",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "POSSIBLE",
+                "effect_kind": "OTHER",
+                "condition_ids": [],
+                "quantities": [],
+                "provenance": [
+                  {
+                    "clause_id": "C3",
+                    "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                  }
+                ],
+                "likelihood_qualifiers": [
+                  "may"
+                ],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "overall_likelihood_qualifiers": [],
+                "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED"
+              }
+            },
+            {
+              "ref": "LINK:0",
+              "path": "/causal_links/0",
+              "kind": "FROZEN_WORLD_COPY",
+              "value": {
+                "source_id": "E1",
+                "relation": "ENABLES",
+                "target_id": "E2",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "provenance": [
+                  {
+                    "clause_id": "C3",
+                    "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                  }
+                ],
+                "action_id": "A0"
+              }
+            },
+            {
+              "ref": "ARGUMENT:means_relation",
+              "path": "DEON_ASSESSMENT:deontological:A0/means_relation",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": "FORESEEN_SIDE_EFFECT"
+            },
+            {
+              "ref": "ARGUMENT:candidate_maxim.person_role",
+              "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.person_role",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": "FORESEEN_AFFECTED"
+            },
+            {
+              "ref": "ARGUMENT:candidate_maxim.instrumental_belief",
+              "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_belief",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": "RELIES_ON_PERSON"
+            },
+            {
+              "ref": "ARGUMENT:candidate_maxim.instrumental_use",
+              "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_use",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": "USES_PERSON"
+            },
+            {
+              "ref": "ARGUMENT:candidate_maxim.practical_reasoning",
+              "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.practical_reasoning",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": "Staff exposure is accepted to reach technician sooner."
+            },
+            {
+              "ref": "ARGUMENT:candidate_maxim.means_effect_ids",
+              "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.means_effect_ids",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": [
+                "E1"
+              ]
+            },
+            {
+              "ref": "ARGUMENT:candidate_maxim.end_effect_ids",
+              "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.end_effect_ids",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": []
+            }
+          ],
+          "affected_paths": [
+            "means_relation",
+            "candidate_maxim.person_role",
+            "candidate_maxim.instrumental_belief",
+            "candidate_maxim.instrumental_use",
+            "candidate_maxim.practical_reasoning",
+            "candidate_maxim.means_effect_ids",
+            "candidate_maxim.end_effect_ids"
+          ],
+          "reviewer": "ASSISTANT_CONTENT_REVIEW_APPROVED_BY_USER",
+          "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+          "status": "OPEN",
+          "challenge_id": "INFERENCE:4f1b78292210d1bdc5eeab9f"
+        },
+        "prior_reply_sha256": "9759595aa1ea31fee836a1af156538cf253fbcacfa3545bc0ef5474b33ad71c9",
+        "response": {
+          "challenge_id": "INFERENCE:4f1b78292210d1bdc5eeab9f",
+          "disposition": "QUALIFIED",
+          "premises": [
+            {
+              "claim": "Mira can open the door now to reach the technician (E1).",
+              "basis": "SOURCE_EVIDENCE",
+              "evidence_refs": [
+                "E1"
+              ]
+            },
+            {
+              "claim": "Doing so may expose nearby staff to hazardous fumes (E2).",
+              "basis": "SOURCE_EVIDENCE",
+              "evidence_refs": [
+                "E2"
+              ]
+            },
+            {
+              "claim": "The text does not describe any causal contribution from staff exposure to reaching the technician.",
+              "basis": "INTERPRETIVE_ASSUMPTION",
+              "evidence_refs": [
+                "E1",
+                "E2"
+              ]
+            },
+            {
+              "claim": "Absence of a depicted causal link does not conclusively show that no instrumental belief exists.",
+              "basis": "NORMATIVE_ASSUMPTION",
+              "evidence_refs": []
+            },
+            {
+              "claim": "Therefore the safest reading is that staff exposure is a foreseen side-effect, while the question of instrumental reliance remains open.",
+              "basis": "UNKNOWN",
+              "evidence_refs": []
+            }
+          ],
+          "bridge": "If an outcome is merely foreseen and there is no positive evidence that the agent intends or relies on it, we can classify the outcome as a side-effect, but we cannot confidently label the agent\u2019s instrumental beliefs.",
+          "withdrawn_claims": [
+            "The agent DOES_NOT_RELY on staff as instruments.",
+            "The agent DOES_NOT_USE staff as means."
+          ],
+          "qualifications": [
+            "Means-relation remains FORESEEN_SIDE_EFFECT; however the agent\u2019s instrumental belief and instrumental use status are left UNRESOLVED because the negative claims lack direct support."
+          ],
+          "strongest_conclusion": "Staff exposure is best treated as a foreseen side-effect of opening the door, while the agent\u2019s possible instrumental attitude toward that exposure is presently undetermined.",
+          "remaining_questions": [
+            "Does Mira in fact rely on, or intend, staff exposure in any way (e.g., as a signal, deterrent, or motivational factor)?"
+          ],
+          "local_response": {
+            "card_id": "REPAIR:701c17af6a11228878bf4b0b",
+            "changes": {
+              "means_relation": "FORESEEN_SIDE_EFFECT",
+              "candidate_maxim.person_role": "FORESEEN_AFFECTED",
+              "candidate_maxim.instrumental_belief": "UNRESOLVED",
+              "candidate_maxim.instrumental_use": "UNRESOLVED",
+              "candidate_maxim.practical_reasoning": "Opening the door is aimed at reaching the technician; the possible staff exposure is merely an adverse consequence, and it is unclear whether the agent relies on it instrumentally.",
+              "candidate_maxim.means_effect_ids": [
+                "E1"
+              ],
+              "candidate_maxim.end_effect_ids": []
+            },
+            "evidence_refs": [
+              "E1",
+              "E2",
+              "ARGUMENT:means_relation",
+              "ARGUMENT:candidate_maxim.person_role"
+            ],
+            "explanation": "The text explicitly connects door-opening to reaching the technician and, separately, to the possible exposure of staff. There is no statement that staff exposure helps achieve the goal. While this supports classifying the exposure as a side-effect, it does not justify the stronger negative claim that the agent definitely does not rely on or use the staff instrumentally. Lacking direct evidence either way, those two fields are set to UNRESOLVED.",
+            "unresolved_questions": [
+              "Is there any contextual information indicating that staff exposure itself serves some instrumental purpose for Mira?"
+            ]
+          }
+        },
+        "contract_assessment": {
+          "contract_valid": true,
+          "errors": [],
+          "reported_disposition": "QUALIFIED",
+          "effective_status": "OPEN_PENDING_CONTENT_REVIEW",
+          "semantic_support": "NOT_INDEPENDENTLY_VERIFIED",
+          "world_state_authority": "NONE"
+        },
+        "native_status": "STAGED_NATIVE_REVALIDATED",
+        "native_audit_sha256": "a9df388443ee92bc11615fe1aad0e20908a06541c2633bdc27fddd03a6f71984",
+        "revision_context": {
+          "issue_id": "INFERENCE:4f1b78292210d1bdc5eeab9f",
+          "round": 1,
+          "remaining_gap": "The graph does not establish that staff exposure is neither necessary nor contributory to rescue. Even a demonstrated lack of causal contribution would not by itself establish the actor's instrumental belief or intention. Defend a qualified side-effect reading without that negative causal premise, or leave the relevant belief/use claims unresolved.",
+          "previous_corrections": [],
+          "newly_identified_unsupported_claims": [],
+          "argument_dependencies": [
+            {
+              "id": "CLAIM:89fe126748e9299b2d695a74",
+              "text": "The exposure of staff (E2) occurs downstream of the door-opening (E1) and is not necessary for, nor contributory to, achieving the goal of reaching the technician. Therefore the agent neither relies on staff as instruments nor uses them as means, preserving the side-effect interpretation while keeping the action itself (E1) as the intended means.",
+              "status": "UNKNOWN",
+              "depends_on": [],
+              "evidence_refs": [],
+              "origin": "CHALLENGED_ARGUMENT",
+              "effective_status": "UNKNOWN"
+            },
+            {
+              "id": "instrumental-negative",
+              "text": "Mira does not rely on or use staff instrumentally.",
+              "status": "SUPPORTED",
+              "depends_on": [
+                "CLAIM:89fe126748e9299b2d695a74"
+              ],
+              "evidence_refs": [],
+              "origin": "SAVED_MODEL_ARGUMENT",
+              "effective_status": "REQUIRES_REASSESSMENT"
+            },
+            {
+              "id": "side-effect",
+              "text": "Staff exposure is a foreseen side effect.",
+              "status": "SUPPORTED",
+              "depends_on": [
+                "CLAIM:89fe126748e9299b2d695a74"
+              ],
+              "evidence_refs": [
+                "E1",
+                "E2"
+              ],
+              "origin": "SAVED_MODEL_ARGUMENT",
+              "effective_status": "REQUIRES_REASSESSMENT"
+            },
+            {
+              "id": "permissibility",
+              "text": "Any permissibility conclusion relying on the repaired classifications.",
+              "status": "SUPPORTED",
+              "depends_on": [
+                "instrumental-negative",
+                "side-effect"
+              ],
+              "evidence_refs": [],
+              "origin": "REVIEWER_IDENTIFIED_DEPENDENCY_NOT_OPERATIVE_VERDICT",
+              "effective_status": "REQUIRES_REASSESSMENT"
+            },
+            {
+              "id": "staff-risk",
+              "text": "Opening the door may expose staff to fumes.",
+              "status": "SUPPORTED",
+              "depends_on": [],
+              "evidence_refs": [
+                "E2"
+              ],
+              "origin": "SOURCE_COPY_IN_ARGUMENT_REVIEW",
+              "effective_status": "SUPPORTED"
+            }
+          ],
+          "instruction": "Address the remaining gap; preserve supported corrections. Do not regenerate the whole argument."
+        },
+        "effective_status": "OPEN_PENDING_CONTENT_REVIEW"
+      },
+      "parent_sha256": "f8d8fd32e993f5937ca659ece56c1aee9a7cc37553a4d512173aa91355129a77",
+      "event_sha256": "3f9c93f227eefafcfbcef0b525a9be74439b96a0d80ecf74ef74f37fa562f669"
+    },
+    {
+      "sequence": 2,
+      "kind": "CONTENT_REVIEW",
+      "payload": {
+        "response_sha256": "6efecce56eb705260469b50b43fdc8fe7867dde38cb59678d52ef5aa4101096d",
+        "reviewer": "ASSISTANT_CONTENT_REVIEW_20261020",
+        "outcome": "PARTIAL",
+        "rationale": "The reply retracts definite non-reliance/use but still insufficiently defends an unconditional side-effect reading. Conditional rescue maxims remain legitimate hypotheses, not evidence of actual intention.",
+        "remaining_gap": "Explain whether the side-effect classification is a candidate interpretation conditional on a rescue maxim, rather than an established description of actual intention. Distinguish a conditional ethical argument from a factual claim about instrumental belief; do not infer absence of intention from an absent graph edge.",
+        "corrected_points": [
+          "Definite DOES_NOT_RELY and DOES_NOT_USE became UNRESOLVED.",
+          "The reply recognizes that an absent depicted causal link does not establish absence of instrumental belief."
+        ],
+        "new_unsupported_claims": [
+          "The safest reading is still asserted without an adequate bridge.",
+          "An evidential limitation is mislabeled as a normative assumption.",
+          "E1 alone does not establish the rescue purpose attributed to it."
+        ],
+        "claims": [
+          {
+            "id": "CLAIM:89fe126748e9299b2d695a74",
+            "text": "The exposure of staff (E2) occurs downstream of the door-opening (E1) and is not necessary for, nor contributory to, achieving the goal of reaching the technician. Therefore the agent neither relies on staff as instruments nor uses them as means, preserving the side-effect interpretation while keeping the action itself (E1) as the intended means.",
+            "status": "UNKNOWN",
+            "depends_on": [],
+            "evidence_refs": [],
+            "origin": "CHALLENGED_ARGUMENT"
+          },
+          {
+            "id": "instrumental-negative",
+            "text": "Mira does not rely on or use staff instrumentally.",
+            "status": "UNKNOWN",
+            "depends_on": [
+              "CLAIM:89fe126748e9299b2d695a74"
+            ],
+            "evidence_refs": [],
+            "origin": "SAVED_MODEL_ARGUMENT"
+          },
+          {
+            "id": "side-effect",
+            "text": "Staff exposure is a foreseen side effect.",
+            "status": "CONDITIONAL",
+            "depends_on": [
+              "rescue-maxim-hypothesis"
+            ],
+            "evidence_refs": [
+              "E1",
+              "E2"
+            ],
+            "origin": "SAVED_MODEL_ARGUMENT"
+          },
+          {
+            "id": "permissibility",
+            "text": "Any permissibility conclusion relying on the repaired classifications.",
+            "status": "SUPPORTED",
+            "depends_on": [
+              "instrumental-negative",
+              "side-effect"
+            ],
+            "evidence_refs": [],
+            "origin": "REVIEWER_IDENTIFIED_DEPENDENCY_NOT_OPERATIVE_VERDICT"
+          },
+          {
+            "id": "staff-risk",
+            "text": "Opening the door may expose staff to fumes.",
+            "status": "SUPPORTED",
+            "depends_on": [],
+            "evidence_refs": [
+              "E2"
+            ],
+            "origin": "SOURCE_COPY_IN_ARGUMENT_REVIEW"
+          },
+          {
+            "id": "rescue-maxim-hypothesis",
+            "text": "Suppose Mira follows a rescue policy that does not rely on staff exposure as a means.",
+            "status": "CONDITIONAL",
+            "depends_on": [],
+            "evidence_refs": [],
+            "origin": "EXPLICIT_INTERPRETIVE_HYPOTHESIS_NOT_WORLD_FACT"
+          },
+          {
+            "id": "safest-reading",
+            "text": "The side-effect reading is the safest interpretation.",
+            "status": "UNKNOWN",
+            "depends_on": [],
+            "evidence_refs": [],
+            "origin": "NEW_MODEL_ARGUMENT_UNSUPPORTED_BY_CONTENT_REVIEW"
+          }
+        ],
+        "authority": "ATTRIBUTED_CONTENT_REVIEW_NOT_AUTOMATIC_TRUTH"
+      },
+      "parent_sha256": "3f9c93f227eefafcfbcef0b525a9be74439b96a0d80ecf74ef74f37fa562f669",
+      "event_sha256": "7b43a017ddf30e937794e40d91fde90267b528eef82eb607da6b4edfb13a19b6"
+    },
+    {
+      "sequence": 3,
+      "kind": "RESPONSE",
+      "payload": {
+        "challenge": {
+          "version": "inference-review/0.1",
+          "prior_reply_sha256": "f33efdcb482fd62806ce61bf4919829b243a8368a2c1d70a4a2d7a1a90f31c3e",
+          "claim_path": "explanation",
+          "quote": "While this supports classifying the exposure as a side-effect, it does not justify the stronger negative claim that the agent definitely does not rely on or use the staff instrumentally.",
+          "defect_kind": "SCOPE_OVERREACH",
+          "missing_premise": "Explain whether the side-effect classification is a candidate interpretation conditional on a rescue maxim, rather than an established description of actual intention. Distinguish a conditional ethical argument from a factual claim about instrumental belief; do not infer absence of intention from an absent graph edge.",
+          "evidence": [
+            {
+              "ref": "E1",
+              "path": "/effects/0",
+              "kind": "FROZEN_WORLD_COPY",
+              "value": {
+                "effect_id": "E1",
+                "action_id": "A0",
+                "party_id": "P2",
+                "outcome": "open the door now",
+                "relation": "OPEN",
+                "polarity": "NEUTRAL",
+                "directness": "DIRECT",
+                "modality": "CERTAIN",
+                "effect_kind": "INTERVENTION",
+                "condition_ids": [],
+                "quantities": [],
+                "provenance": [
+                  {
+                    "clause_id": "C3",
+                    "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                  }
+                ],
+                "likelihood_qualifiers": [],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "overall_likelihood_qualifiers": [],
+                "source_proposition": "open the door now",
+                "source_effect_ids": [],
+                "derivation_operation": "DIRECT_COPY",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED"
+              }
+            },
+            {
+              "ref": "E2",
+              "path": "/effects/1",
+              "kind": "FROZEN_WORLD_COPY",
+              "value": {
+                "effect_id": "E2",
+                "action_id": "A0",
+                "party_id": "P3",
+                "outcome": "doing so may expose nearby staff to hazardous fumes",
+                "relation": "EXPOSE",
+                "polarity": "ADVERSE",
+                "directness": "DOWNSTREAM",
+                "modality": "POSSIBLE",
+                "effect_kind": "OTHER",
+                "condition_ids": [],
+                "quantities": [],
+                "provenance": [
+                  {
+                    "clause_id": "C3",
+                    "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                  }
+                ],
+                "likelihood_qualifiers": [
+                  "may"
+                ],
+                "scope_qualifiers": [],
+                "temporal_qualifiers": [],
+                "condition_join": "AND",
+                "overall_likelihood_qualifiers": [],
+                "source_proposition": "doing so may expose nearby staff to hazardous fumes",
+                "source_effect_ids": [
+                  "E1"
+                ],
+                "derivation_operation": "SOURCE_STIPULATED_CAUSAL",
+                "derivation_explanation": "The blank was filled with this copy of the scenario.",
+                "derivation_assumptions": [],
+                "outcome_type_transformation": "PRESERVED"
+              }
+            },
+            {
+              "ref": "LINK:0",
+              "path": "/causal_links/0",
+              "kind": "FROZEN_WORLD_COPY",
+              "value": {
+                "source_id": "E1",
+                "relation": "ENABLES",
+                "target_id": "E2",
+                "modality": "CERTAIN",
+                "condition_ids": [],
+                "provenance": [
+                  {
+                    "clause_id": "C3",
+                    "excerpt": "Mira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes."
+                  }
+                ],
+                "action_id": "A0"
+              }
+            },
+            {
+              "ref": "ARGUMENT:means_relation",
+              "path": "DEON_ASSESSMENT:deontological:A0/means_relation",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": "FORESEEN_SIDE_EFFECT"
+            },
+            {
+              "ref": "ARGUMENT:candidate_maxim.person_role",
+              "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.person_role",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": "FORESEEN_AFFECTED"
+            },
+            {
+              "ref": "ARGUMENT:candidate_maxim.instrumental_belief",
+              "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_belief",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": "RELIES_ON_PERSON"
+            },
+            {
+              "ref": "ARGUMENT:candidate_maxim.instrumental_use",
+              "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.instrumental_use",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": "USES_PERSON"
+            },
+            {
+              "ref": "ARGUMENT:candidate_maxim.practical_reasoning",
+              "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.practical_reasoning",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": "Staff exposure is accepted to reach technician sooner."
+            },
+            {
+              "ref": "ARGUMENT:candidate_maxim.means_effect_ids",
+              "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.means_effect_ids",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": [
+                "E1"
+              ]
+            },
+            {
+              "ref": "ARGUMENT:candidate_maxim.end_effect_ids",
+              "path": "DEON_ASSESSMENT:deontological:A0/candidate_maxim.end_effect_ids",
+              "kind": "ATTRIBUTED_COMMITTED_ARGUMENT",
+              "value": []
+            }
+          ],
+          "affected_paths": [
+            "means_relation",
+            "candidate_maxim.person_role",
+            "candidate_maxim.instrumental_belief",
+            "candidate_maxim.instrumental_use",
+            "candidate_maxim.practical_reasoning",
+            "candidate_maxim.means_effect_ids",
+            "candidate_maxim.end_effect_ids"
+          ],
+          "reviewer": "ASSISTANT_CONTENT_REVIEW_20261020",
+          "authority": "REVIEWER_OBJECTION_NOT_ESTABLISHED_FACT",
+          "status": "OPEN",
+          "challenge_id": "INFERENCE:6dc7d9fcdeefa17d0f0f5e65"
+        },
+        "prior_reply_sha256": "f33efdcb482fd62806ce61bf4919829b243a8368a2c1d70a4a2d7a1a90f31c3e",
+        "response": {
+          "challenge_id": "INFERENCE:6dc7d9fcdeefa17d0f0f5e65",
+          "disposition": "QUALIFIED",
+          "premises": [
+            {
+              "claim": "\u201cMira can open the door now to reach the technician, but doing so may expose nearby staff to hazardous fumes.\u201d",
+              "basis": "SOURCE_EVIDENCE",
+              "evidence_refs": [
+                "E1",
+                "E2"
+              ]
+            },
+            {
+              "claim": "Opening the door (E1) causally enables the possible exposure (E2).",
+              "basis": "SOURCE_EVIDENCE",
+              "evidence_refs": [
+                "LINK:0"
+              ]
+            },
+            {
+              "claim": "The scenario contains no statement that exposing staff contributes to reaching the technician.",
+              "basis": "INTERPRETIVE_ASSUMPTION",
+              "evidence_refs": []
+            },
+            {
+              "claim": "When a harmful consequence is downstream and unnecessary for the agent\u2019s goal, it is ordinarily modeled as a foreseen side-effect rather than an intended means.",
+              "basis": "NORMATIVE_ASSUMPTION",
+              "evidence_refs": []
+            }
+          ],
+          "bridge": "Given the cited text and causal link, the most defensible working maxim treats staff exposure as a foreseen side-effect (means_relation = FORESEEN_SIDE_EFFECT; person_role = FORESEEN_AFFECTED). This is an interpretive default for deontic analysis, not a proven fact about Mira\u2019s psychology.",
+          "withdrawn_claims": [],
+          "qualifications": [
+            "The side-effect classification is defeasible; new evidence that Mira relies on the exposure would overturn it.",
+            "Because no such evidence is provided, instrumental_belief and instrumental_use remain UNRESOLVED rather than negative."
+          ],
+          "strongest_conclusion": "At present the action is best modeled under the side-effect rubric; whether Mira instrumentally relies on the staff remains undetermined.",
+          "remaining_questions": [
+            "Is there any contextual detail indicating that staff exposure expedites the rescue, which would reclassify it as an intended means? "
+          ],
+          "local_response": {
+            "card_id": "REPAIR:701c17af6a11228878bf4b0b",
+            "changes": {
+              "means_relation": "FORESEEN_SIDE_EFFECT",
+              "candidate_maxim.person_role": "FORESEEN_AFFECTED",
+              "candidate_maxim.instrumental_belief": "UNRESOLVED",
+              "candidate_maxim.instrumental_use": "UNRESOLVED",
+              "candidate_maxim.practical_reasoning": "To reach the technician quickly by opening the door; any staff exposure is treated (provisionally) as a foreseen but undesired risk, not as a step toward the goal.",
+              "candidate_maxim.means_effect_ids": [
+                "E1"
+              ],
+              "candidate_maxim.end_effect_ids": []
+            },
+            "evidence_refs": [
+              "E1",
+              "E2",
+              "LINK:0",
+              "ARGUMENT:means_relation",
+              "ARGUMENT:candidate_maxim.person_role"
+            ],
+            "explanation": "The causal record shows exposure follows door-opening, while the purpose clause links opening solely to reaching the technician. Absence of any role for exposure in achieving that end supports a provisional side-effect reading. Because causal structure alone cannot prove intention, we leave instrumental_belief and instrumental_use UNRESOLVED.",
+            "unresolved_questions": [
+              "Could further context reveal an instrumental role for staff exposure?"
+            ]
+          }
+        },
+        "contract_assessment": {
+          "contract_valid": true,
+          "errors": [],
+          "reported_disposition": "QUALIFIED",
+          "effective_status": "OPEN_PENDING_CONTENT_REVIEW",
+          "semantic_support": "NOT_INDEPENDENTLY_VERIFIED",
+          "world_state_authority": "NONE"
+        },
+        "native_status": "NOT_YET_ASSESSED",
+        "native_audit_sha256": "01fd68c0fd71b03214d90cc90e9669b4b5567c2ab344130ec4bce654c60e2080",
+        "revision_context": {
+          "issue_id": "INFERENCE:4f1b78292210d1bdc5eeab9f",
+          "round": 2,
+          "remaining_gap": "Explain whether the side-effect classification is a candidate interpretation conditional on a rescue maxim, rather than an established description of actual intention. Distinguish a conditional ethical argument from a factual claim about instrumental belief; do not infer absence of intention from an absent graph edge.",
+          "previous_corrections": [
+            [
+              "Definite DOES_NOT_RELY and DOES_NOT_USE became UNRESOLVED.",
+              "The reply recognizes that an absent depicted causal link does not establish absence of instrumental belief."
+            ]
+          ],
+          "newly_identified_unsupported_claims": [
+            [
+              "The safest reading is still asserted without an adequate bridge.",
+              "An evidential limitation is mislabeled as a normative assumption.",
+              "E1 alone does not establish the rescue purpose attributed to it."
+            ]
+          ],
+          "argument_dependencies": [
+            {
+              "id": "CLAIM:89fe126748e9299b2d695a74",
+              "text": "The exposure of staff (E2) occurs downstream of the door-opening (E1) and is not necessary for, nor contributory to, achieving the goal of reaching the technician. Therefore the agent neither relies on staff as instruments nor uses them as means, preserving the side-effect interpretation while keeping the action itself (E1) as the intended means.",
+              "status": "UNKNOWN",
+              "depends_on": [],
+              "evidence_refs": [],
+              "origin": "CHALLENGED_ARGUMENT",
+              "effective_status": "UNKNOWN"
+            },
+            {
+              "id": "instrumental-negative",
+              "text": "Mira does not rely on or use staff instrumentally.",
+              "status": "UNKNOWN",
+              "depends_on": [
+                "CLAIM:89fe126748e9299b2d695a74"
+              ],
+              "evidence_refs": [],
+              "origin": "SAVED_MODEL_ARGUMENT",
+              "effective_status": "UNKNOWN"
+            },
+            {
+              "id": "side-effect",
+              "text": "Staff exposure is a foreseen side effect.",
+              "status": "CONDITIONAL",
+              "depends_on": [
+                "rescue-maxim-hypothesis"
+              ],
+              "evidence_refs": [
+                "E1",
+                "E2"
+              ],
+              "origin": "SAVED_MODEL_ARGUMENT",
+              "effective_status": "CONDITIONAL"
+            },
+            {
+              "id": "permissibility",
+              "text": "Any permissibility conclusion relying on the repaired classifications.",
+              "status": "SUPPORTED",
+              "depends_on": [
+                "instrumental-negative",
+                "side-effect"
+              ],
+              "evidence_refs": [],
+              "origin": "REVIEWER_IDENTIFIED_DEPENDENCY_NOT_OPERATIVE_VERDICT",
+              "effective_status": "REQUIRES_REASSESSMENT"
+            },
+            {
+              "id": "staff-risk",
+              "text": "Opening the door may expose staff to fumes.",
+              "status": "SUPPORTED",
+              "depends_on": [],
+              "evidence_refs": [
+                "E2"
+              ],
+              "origin": "SOURCE_COPY_IN_ARGUMENT_REVIEW",
+              "effective_status": "SUPPORTED"
+            },
+            {
+              "id": "rescue-maxim-hypothesis",
+              "text": "Suppose Mira follows a rescue policy that does not rely on staff exposure as a means.",
+              "status": "CONDITIONAL",
+              "depends_on": [],
+              "evidence_refs": [],
+              "origin": "EXPLICIT_INTERPRETIVE_HYPOTHESIS_NOT_WORLD_FACT",
+              "effective_status": "CONDITIONAL"
+            },
+            {
+              "id": "safest-reading",
+              "text": "The side-effect reading is the safest interpretation.",
+              "status": "UNKNOWN",
+              "depends_on": [],
+              "evidence_refs": [],
+              "origin": "NEW_MODEL_ARGUMENT_UNSUPPORTED_BY_CONTENT_REVIEW",
+              "effective_status": "UNKNOWN"
+            }
+          ],
+          "instruction": "Address the remaining gap; preserve supported corrections. Do not regenerate the whole argument."
+        },
+        "effective_status": "OPEN_PENDING_CONTENT_REVIEW"
+      },
+      "parent_sha256": "7b43a017ddf30e937794e40d91fde90267b528eef82eb607da6b4edfb13a19b6",
+      "event_sha256": "afa6336775091c64334d4481b4349b9c9fb7a1af332be50e364fa91ba4dae626"
+    }
+  ]
+}

@@ -54,6 +54,20 @@ class SelectionReviewTests(unittest.TestCase):
         self.assertTrue(result['errors'])
         self.assertTrue(result['request']['comparison']['differences'])
 
+    def test_terminal_ellipsis_binds_exact_prefix_without_altering_saved_response(self):
+        pair=self.pair();response=self.response(pair)
+        for row in response['resolutions']:row['evidence'][0]['excerpt']='Ada will…'
+        raw=json.dumps(response)
+        result,selected=review_selection('Ada will die.',pair,lambda _:raw)
+        self.assertIs(selected,pair[0])
+        self.assertEqual(result['raw_response'],raw)
+        self.assertTrue(all(b['bound_excerpt']=='Ada will' for b in result['evidence_bindings']))
+        for bad in ('Ada will live…','Ada…die.','…'):
+            wrong=deepcopy(response);wrong['resolutions'][0]['evidence'][0]['excerpt']=bad
+            rejected,selected=review_selection('Ada will die.',pair,lambda _:json.dumps(wrong))
+            self.assertIsNone(selected)
+            self.assertEqual(rejected['status'],'UNRESOLVED')
+
     def test_names_and_ids_do_not_change_equivalence_but_quantities_scope_and_links_do(self):
         a = self.pair()[0]['proposal']; b = deepcopy(a)
         b['candidate']['world_model']['parties'][0]['party_id'] = 'P9'

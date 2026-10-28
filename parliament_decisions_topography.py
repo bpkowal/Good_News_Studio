@@ -108,9 +108,17 @@ def parliament_packet(source, world, trace, frameworks=None):
                 world_slice[key] = _clean(rows)
     views = []
     for view in frameworks or []:
-        views.append({k: view.get(k) for k in (
+        record = {k: view.get(k) for k in (
             'framework', 'position', 'preference', 'reason', 'live_objections',
-            'reversal_conditions', 'decision_boundaries', 'ledger_status')})
+            'reversal_conditions', 'decision_boundaries', 'ledger_status')}
+        # Question-only and provisional argument adapters must retain their
+        # qualifications when the presentation is assessed on the existing axes.
+        for key in ('critical_questions', 'assumption_records', 'dependencies',
+                    'argument_technical_status', 'critical_question_findings',
+                    'recorded_argument'):
+            if key in view:
+                record[key] = view[key]
+        views.append(_clean(record))
     return {
         'source': source or (trace or {}).get('scenario') or '',
         'world': world_slice,
@@ -633,7 +641,9 @@ def run_for_report(report, trace, api_key, opener=None, jackknife_folds=0):
         return unavailable('No unique frozen world was supplied to agents; no framework coordinates exist.')
     world = report.get('world') or (trace.get('action_source_grounding') or {}).get('world_model') or {}
     actions = action_catalog(world, last_candidates(trace))
-    native = topography_from_trace(trace, world, report.get('frameworks') or [])
+    native_views = [view for view in report.get('frameworks') or []
+                    if view.get('ledger_status') != 'NOT_APPLICABLE_ARGUMENT_ADAPTER']
+    native = topography_from_trace(trace, world, native_views)
     packet = parliament_packet(report.get('scenario') or report.get('source'), world, trace, report.get('frameworks'))
     points = evaluate_actions(packet, actions, api_key, opener=opener, jackknife_folds=jackknife_folds)
     return topography_from_decisions(actions, points, native=native, packet=packet)

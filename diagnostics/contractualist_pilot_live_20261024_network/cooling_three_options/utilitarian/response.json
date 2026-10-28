@@ -1,0 +1,370 @@
+{
+  "persons": [
+    {
+      "id": "Mira",
+      "label": "Mira",
+      "source_quotes": [
+        "demolishing Mira's occupied home, leaving her without housing"
+      ]
+    },
+    {
+      "id": "Jo",
+      "label": "Jo",
+      "source_quotes": [
+        "cools Jo's home, which has the greatest heat exposure"
+      ]
+    },
+    {
+      "id": "Sal",
+      "label": "Sal",
+      "source_quotes": [
+        "requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income"
+      ]
+    },
+    {
+      "id": "HH20",
+      "label": "twenty households",
+      "source_quotes": [
+        "Plan A cools twenty households"
+      ]
+    },
+    {
+      "id": "HH12",
+      "label": "twelve households",
+      "source_quotes": [
+        "Plan B cools twelve of those same households"
+      ]
+    }
+  ],
+  "principles": [
+    {
+      "id": "U1",
+      "statement_handle": "P1",
+      "action_ids": [
+        "A",
+        "B",
+        "C"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "kind": "PRINCIPLE",
+      "text": "Choose the plan that produces the greatest expected aggregate welfare for all affected parties.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "P1"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "Plan A cools twenty households.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "Plan A cools twenty households"
+        }
+      ],
+      "handle": "F1"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "Plan A demolishes Mira’s home, leaving her without housing.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "requires demolishing Mira's occupied home, leaving her without housing"
+        }
+      ],
+      "handle": "F2"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "Plan B cools twelve of those households and displaces nobody.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "Plan B cools twelve of those same households and displaces nobody"
+        }
+      ],
+      "handle": "F3"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "Plan C cools Jo’s home, which has the greatest heat exposure.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "Plan C cools Jo's home, which has the greatest heat exposure of any home"
+        }
+      ],
+      "handle": "F4"
+    },
+    {
+      "kind": "FACTUAL_PREMISE",
+      "text": "Plan C forces Sal’s only shop to close for eight weeks without compensation, depriving Sal of income.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [
+        {
+          "evidence_id": "SCENE",
+          "value_path": "",
+          "quote": "requires closing Sal's only shop for eight weeks without compensation, depriving Sal of income"
+        }
+      ],
+      "handle": "F5"
+    },
+    {
+      "kind": "INTERPRETIVE_PREMISE",
+      "text": "Losing one’s only housing for an indefinite period imposes a very large welfare loss, greater than the incremental cooling benefit to eight additional households over eight weeks.",
+      "polarity": "AFFIRMED",
+      "modality": "POSSIBLE",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "I1"
+    },
+    {
+      "kind": "INTERPRETIVE_PREMISE",
+      "text": "Losing the sole source of income for eight weeks imposes a substantial but temporary welfare loss, likely exceeding the cooling benefit to a single household over the same period.",
+      "polarity": "AFFIRMED",
+      "modality": "POSSIBLE",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "I2"
+    },
+    {
+      "kind": "INTERPRETIVE_PREMISE",
+      "text": "Twelve households receiving cooling during a heat-wave gain a significant welfare benefit that, in aggregate, exceeds the single-household benefit to Jo but is less than twenty-household benefit in A.",
+      "polarity": "AFFIRMED",
+      "modality": "POSSIBLE",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "I3"
+    },
+    {
+      "kind": "NORMATIVE_PREMISE",
+      "text": "When comparing harms and benefits, severe, long-lasting deprivations such as homelessness have lexical priority over moderate, time-limited comfort gains.",
+      "polarity": "AFFIRMED",
+      "modality": "POSSIBLE",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "N1"
+    },
+    {
+      "kind": "NORMATIVE_JUDGMENT",
+      "text": "Plan A yields lower net aggregate welfare than Plan B.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "C1"
+    },
+    {
+      "kind": "NORMATIVE_JUDGMENT",
+      "text": "Plan C yields lower net aggregate welfare than Plan B.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "C2"
+    },
+    {
+      "kind": "NORMATIVE_JUDGMENT",
+      "text": "Among the three options, Plan B maximises expected aggregate welfare.",
+      "polarity": "AFFIRMED",
+      "modality": "ASSERTED",
+      "hypothesis_ids": [],
+      "citations": [],
+      "handle": "C3"
+    }
+  ],
+  "supports": [
+    {
+      "operation": "ASSUMPTION",
+      "inputs": [
+        "I1",
+        "I3",
+        "N1"
+      ],
+      "output": "C1",
+      "explanation": "Homelessness to Mira outweighs extra eight households benefit."
+    },
+    {
+      "operation": "ASSUMPTION",
+      "inputs": [
+        "I2",
+        "I3"
+      ],
+      "output": "C2",
+      "explanation": "Sal’s income loss outweighs Jo’s single-household benefit vs twelve-household benefit."
+    },
+    {
+      "operation": "PRACTICAL_REASONING",
+      "inputs": [
+        "C1",
+        "C2",
+        "P1"
+      ],
+      "output": "C3",
+      "explanation": "If B dominates both A and C on aggregate welfare, utilitarian principle selects B."
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [
+        "F1",
+        "F2"
+      ],
+      "output": "I1",
+      "explanation": "Draw magnitude comparison between homelessness and comfort."
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [
+        "F4",
+        "F5"
+      ],
+      "output": "I2",
+      "explanation": "Derive relative magnitudes."
+    },
+    {
+      "operation": "SOURCE",
+      "inputs": [
+        "F1",
+        "F3",
+        "F4"
+      ],
+      "output": "I3",
+      "explanation": "Compare beneficiaries count."
+    }
+  ],
+  "reasons": [
+    {
+      "id": "R_A",
+      "person_id": null,
+      "principle_id": "U1",
+      "action_id": "A",
+      "stance": "AGAINST",
+      "value": "Net welfare negative",
+      "conclusion_handle": "C1",
+      "ground_handles": [
+        "F1",
+        "F2"
+      ],
+      "warrant_handles": [
+        "I1",
+        "N1"
+      ],
+      "generic_basis": "utilitarian aggregation"
+    },
+    {
+      "id": "R_B",
+      "person_id": null,
+      "principle_id": "U1",
+      "action_id": "B",
+      "stance": "FOR",
+      "value": "Highest net welfare",
+      "conclusion_handle": "C3",
+      "ground_handles": [
+        "F3"
+      ],
+      "warrant_handles": [
+        "I3",
+        "C1",
+        "C2"
+      ],
+      "generic_basis": "utilitarian aggregation"
+    },
+    {
+      "id": "R_C",
+      "person_id": null,
+      "principle_id": "U1",
+      "action_id": "C",
+      "stance": "AGAINST",
+      "value": "Net welfare negative",
+      "conclusion_handle": "C2",
+      "ground_handles": [
+        "F4",
+        "F5"
+      ],
+      "warrant_handles": [
+        "I2"
+      ],
+      "generic_basis": "utilitarian aggregation"
+    }
+  ],
+  "comparisons": [
+    {
+      "id": "COMP1",
+      "reason_ids": [
+        "R_A",
+        "R_B"
+      ],
+      "judgment_handle": "C1",
+      "explanation": "B avoids Mira’s severe harm with acceptable welfare loss"
+    },
+    {
+      "id": "COMP2",
+      "reason_ids": [
+        "R_C",
+        "R_B"
+      ],
+      "judgment_handle": "C2",
+      "explanation": "B benefits more people with less harm than C"
+    }
+  ],
+  "challenges": [
+    {
+      "id": "OB1",
+      "kind": "UNDERMINING",
+      "target_kind": "STATEMENT",
+      "target_id": "I1",
+      "challenge_handle": "O1",
+      "response_handle": "RSP1",
+      "status": "ANSWERED"
+    }
+  ],
+  "action_assessments": [
+    {
+      "action_id": "A",
+      "conclusion_handle": "C1",
+      "assessment": "REJECTED"
+    },
+    {
+      "action_id": "B",
+      "conclusion_handle": "C3",
+      "assessment": "DEFENSIBLE"
+    },
+    {
+      "action_id": "C",
+      "conclusion_handle": "C2",
+      "assessment": "REJECTED"
+    }
+  ],
+  "recommendation_action_id": "B",
+  "conclusion": "Utilitarian comparison supports adopting Plan B, because it secures substantial heat-relief for twelve households without imposing the very large welfare losses found in Plans A and C.",
+  "strongest_objection": "The utilitarian aggregation assumes that Mira’s homelessness and Sal’s income loss can be commensurably traded against cooling benefits; critics may claim such severe harms deserve priority regardless of aggregate gains, so Plan B could still be worse than Plan C if Jo faces life-threatening heat.",
+  "answer_to_objection": "If Jo’s risk were life-threatening, the welfare weight of cooling Jo could surpass Sal’s economic harm, but the scenario only notes greater exposure, not imminent danger. Absent evidence of lethality, the aggregate welfare calculus still favours Plan B.",
+  "reversal_condition": "Were Jo’s un-cooled exposure proven likely to cause death or lasting injury, or if alternative housing for Mira were guaranteed, the balance could shift toward Plan C or A respectively.",
+  "residual_disagreement": [
+    "Comparability of severe harms with comfort benefits",
+    "Priority claims for the worst-off vs sum-maximisation"
+  ]
+}

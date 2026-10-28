@@ -1,0 +1,133 @@
+{
+  "source_sha256": "a02f152d03f63868509177d0b4db23b4be5a65beed5925cc61f3e74b99e4928c",
+  "world_sha256": "dbc0b35f7bdedf1b79e17e3dc22136c2f17a831010caec2d5c47ec907719e9d6",
+  "candidates": [
+    {
+      "label": "Disclose-Only-What-is-Needed",
+      "raw_proposal": {
+        "label": "Disclose-Only-What-is-Needed",
+        "statements": [
+          {
+            "kind": "SOURCE_RULE",
+            "text": "\"A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent.\"",
+            "polarity": "AFFIRMED",
+            "modality": "ASSERTED",
+            "hypothesis_ids": [],
+            "citations": [
+              {
+                "evidence_id": "SCENE",
+                "value_path": "",
+                "quote": "A clinic confidentiality policy tells Mara not to disclose a patient's medical record without consent."
+              }
+            ],
+            "handle": "r_policy"
+          },
+          {
+            "kind": "SOURCE_RULE",
+            "text": "\"Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed.\"",
+            "polarity": "AFFIRMED",
+            "modality": "ASSERTED",
+            "hypothesis_ids": [],
+            "citations": [
+              {
+                "evidence_id": "SCENE",
+                "value_path": "",
+                "quote": "Sharing the allergy entry only with that physician may prevent a dangerous reaction, but success is not guaranteed."
+              }
+            ],
+            "handle": "r_emergency"
+          },
+          {
+            "kind": "MAXIM",
+            "text": "If disclosing the minimum information to a treating physician is the only timely way to avert serious and otherwise unavoidable harm to the same patient, then one ought to disclose exactly that minimum.",
+            "polarity": "AFFIRMED",
+            "modality": "ASSERTED",
+            "hypothesis_ids": [],
+            "citations": [],
+            "handle": "m_minimum_disclose"
+          },
+          {
+            "kind": "NORMATIVE_PREMISE",
+            "text": "Preventing an imminent, serious harm to the patient has moral priority over keeping information confidential, provided the disclosure is strictly limited to what is necessary.",
+            "polarity": "AFFIRMED",
+            "modality": "ASSERTED",
+            "hypothesis_ids": [],
+            "citations": [],
+            "handle": "p_priority"
+          },
+          {
+            "kind": "NORMATIVE_PREMISE",
+            "text": "One ought to obey institutional confidentiality policies unless a higher-priority moral duty overrides them.",
+            "polarity": "AFFIRMED",
+            "modality": "ASSERTED",
+            "hypothesis_ids": [],
+            "citations": [],
+            "handle": "p_policy_duty"
+          },
+          {
+            "kind": "NORMATIVE_JUDGMENT",
+            "text": "Therefore, Mara ought to share only the allergy entry with the on-call physician.",
+            "polarity": "AFFIRMED",
+            "modality": "ASSERTED",
+            "hypothesis_ids": [],
+            "citations": [],
+            "handle": "c_share"
+          }
+        ],
+        "supports": [
+          {
+            "operation": "ASSUMPTION",
+            "inputs": [
+              "m_minimum_disclose",
+              "p_priority"
+            ],
+            "output": "c_share",
+            "explanation": "Given the maxim and the priority premise, sharing the minimal information follows."
+          },
+          {
+            "operation": "SOURCE",
+            "inputs": [],
+            "output": "r_policy",
+            "explanation": "Scenario text provides the confidentiality rule."
+          },
+          {
+            "operation": "SOURCE",
+            "inputs": [],
+            "output": "r_emergency",
+            "explanation": "Scenario text provides the possible life-saving effect."
+          },
+          {
+            "operation": "PRACTICAL_REASONING",
+            "inputs": [
+              "r_emergency",
+              "m_minimum_disclose"
+            ],
+            "output": "p_priority",
+            "explanation": "The emergency context brings the maxim into play, establishing the duty priority."
+          },
+          {
+            "operation": "NORM_PRIORITY",
+            "inputs": [
+              "p_priority",
+              "p_policy_duty"
+            ],
+            "output": "c_share",
+            "explanation": "Priority of preventing harm overrides ordinary policy obedience."
+          }
+        ],
+        "conclusion_handle": "c_share",
+        "strongest_objection": "The explicit confidentiality policy contains no emergency exception; obeying it is a standing duty that should not be unilaterally overridden.",
+        "answer_to_objection": "The priority premise holds that saving the patient from serious, otherwise unavoidable harm is a stronger moral duty than rigid policy adherence, provided disclosure is strictly minimal.",
+        "reversal_condition": "If the same medical safety could be achieved without any disclosure (e.g., via known standard protocols or delayed until consent), then the policy duty would again take precedence and Mara should withhold the information."
+      },
+      "operative": false,
+      "status": "UNRESOLVED_CONSTRUCTION",
+      "error": "Assumptions must be explicit interpretive/normative roots"
+    }
+  ],
+  "operative": false,
+  "native_admission": "NOT_AUTHORIZED_BY_THIS_ARGUMENT_VIEW",
+  "case_id": "privacy_emergency",
+  "elapsed_seconds": 9.298,
+  "provider_requests": 1
+}

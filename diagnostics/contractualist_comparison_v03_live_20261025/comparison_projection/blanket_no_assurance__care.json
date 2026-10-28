@@ -1,0 +1,68 @@
+{
+  "projection_version": "complaint-comparison/0.2",
+  "source_response": "blanket_no_assurance/care/response.json",
+  "source_response_sha256": "90d162ce3b7b6a2f741c65b79b0513ee8b0c68b44758f412bc95fca285b59f81",
+  "provider_calls": 0,
+  "semantic_support": "NOT_INDEPENDENTLY_ASSESSED",
+  "model_recommendation_unchanged": "A",
+  "frames": [
+    {
+      "comparison_id": "COMP_A_vs_B",
+      "from_action_id": "A",
+      "to_action_id": "B",
+      "positions": [
+        {
+          "burden_id": "B_Rowan_Death",
+          "person_id": "P_Rowan",
+          "description": "Risk of dying from exposure",
+          "from": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              0
+            ],
+            "descriptions": [
+              "20% chance Rowan dies if Rowan gets blanket"
+            ]
+          },
+          "to": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              1
+            ],
+            "descriptions": [
+              "100% chance Rowan dies if Sasha gets blanket"
+            ]
+          },
+          "change": "REMAINS_WITH_POSSIBLY_DIFFERENT_EXTENT"
+        },
+        {
+          "burden_id": "B_Sasha_Death",
+          "person_id": "P_Sasha",
+          "description": "Risk of dying from exposure",
+          "from": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              2
+            ],
+            "descriptions": [
+              "100% chance Sasha dies if Rowan gets blanket"
+            ]
+          },
+          "to": {
+            "status": "PRESENT",
+            "raw_position_indices": [
+              3
+            ],
+            "descriptions": [
+              "40% chance Sasha dies if Sasha gets blanket"
+            ]
+          },
+          "change": "REMAINS_WITH_POSSIBLY_DIFFERENT_EXTENT"
+        }
+      ],
+      "authority": "DERIVED_FROM_MODEL_MATRIX_NOT_SOURCE_VERIFIED",
+      "proposed_comparison_status": "FAVORS_FROM",
+      "moral_ranking_computed": false
+    }
+  ]
+}

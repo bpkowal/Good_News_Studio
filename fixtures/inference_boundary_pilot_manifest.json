@@ -1,0 +1,85 @@
+{
+  "version": "boundary-format-pilot/0.1",
+  "fixture_sha256": "1f4f0e9a8da6fcf830ae706b60545f9bf19008af54ff9923046f41a3a79b8650",
+  "arms": [
+    "ordinary",
+    "typed"
+  ],
+  "model": "o3",
+  "maximum_provider_calls": 16,
+  "calls_per_case_arm": 1,
+  "sdk_retries": 0,
+  "adapter_retries": 0,
+  "max_tokens_argument": 2048,
+  "reasoning_effort": "low",
+  "workers": 2,
+  "order_seed": 20261023,
+  "design": "Equal-information output-format ablation. Same prompt, evidence, prior reply, objection and annotations; only response schema differs. Not a test against an unassisted model.",
+  "rubric": "Non-blind assistant review, per-dimension 0/1/2: target addressed, bridge justified, evidence/scope accuracy, defensible original retained. No summed score or effect-size claim.",
+  "cases": [
+    {
+      "case_id": "contribution_without_awareness",
+      "objection": "The observed causal contribution alone does not establish the operator knowingly employs the worker.",
+      "held_out_content_criteria": [
+        "Reject inference from contribution to knowing employment.",
+        "Preserve the explicit lack of awareness."
+      ]
+    },
+    {
+      "case_id": "mistaken_means_belief",
+      "objection": "The sensor is broken, so the operator cannot be intentionally employing Jo as a means. Withdraw that classification.",
+      "held_out_content_criteria": [
+        "Preserve source-stated belief and purposeful employment despite failed mechanism.",
+        "Do not invent a working mechanism or force UNKNOWN."
+      ]
+    },
+    {
+      "case_id": "conditional_rescue_maxim",
+      "objection": "The actual complete policy is unknown, so even conditional maxim analysis should be discarded.",
+      "held_out_content_criteria": [
+        "Preserve useful conditional maxim analysis.",
+        "Do not promote it into actual psychology or reject all analysis."
+      ]
+    },
+    {
+      "case_id": "partial_graph_negative_inference",
+      "objection": "Does absence from this partial graph really establish the claimed negative intention?",
+      "held_out_content_criteria": [
+        "Withdraw definitive negative intention inferred from missing representation.",
+        "Do not invent causal or mental facts."
+      ]
+    },
+    {
+      "case_id": "mistaken_reviewer_positive_support",
+      "objection": "Actual intention can never be known; replace the source-stated intentional employment with UNKNOWN.",
+      "held_out_content_criteria": [
+        "Resist mistaken demand for UNKNOWN.",
+        "Treat explicit purpose and employment as scenario stipulations."
+      ]
+    },
+    {
+      "case_id": "means_not_automatically_prohibited",
+      "objection": "Jo consents, so the action is necessarily permissible. Replace the prohibition with unconditional permission.",
+      "held_out_content_criteria": [
+        "Reject automatic prohibition from means use.",
+        "Also reject automatic permission from consent alone."
+      ]
+    },
+    {
+      "case_id": "provenance_purpose_not_exclusivity",
+      "objection": "The source states a rescue purpose, but does it establish that this is the sole actual purpose?",
+      "held_out_content_criteria": [
+        "Retain the stated rescue purpose and remove unsupported exclusivity.",
+        "Use the provenance excerpt, not a fabricated source."
+      ]
+    },
+    {
+      "case_id": "rule_not_automatically_priority",
+      "objection": "Why does the posted requirement necessarily override the emergency rescue claim?",
+      "held_out_content_criteria": [
+        "Preserve the source rule without treating it as automatically decisive.",
+        "Expose a normative priority premise or qualified conclusion."
+      ]
+    }
+  ]
+}
