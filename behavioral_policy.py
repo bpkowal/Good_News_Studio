@@ -18,15 +18,16 @@ class ContextualPolicy:
     and their pairwise interactions. Softmax values are selection probabilities,
     never calibrated probabilities of moral correctness.
     """
-    def __init__(self, actions, features, alpha=0.3, temperature=0.15):
+    def __init__(self, actions, features, alpha=0.3, temperature=0.15, *, interactions=True):
         if len(set(actions)) != len(actions) or not actions or len(set(features)) != len(features):
             raise ValueError('Unique actions and features are required.')
         if not finite(alpha) or not 0 < alpha <= 1 or not finite(temperature) or temperature <= 0:
             raise ValueError('Invalid learning rate or temperature.')
         self.actions, self.features = tuple(actions), tuple(features)
         self.alpha, self.temperature = alpha, temperature
-        self.terms = ['bias'] + list(features) + [
-            left + '*' + right for i, left in enumerate(features) for right in features[i + 1:]]
+        self.interactions = bool(interactions)
+        self.terms = ['bias'] + list(features) + ([
+            left + '*' + right for i, left in enumerate(features) for right in features[i + 1:]] if interactions else [])
         self.weights = {action: [0.5] + [0.0] * (len(self.terms) - 1) for action in actions}
         self.revision = 0
 
@@ -34,7 +35,7 @@ class ContextualPolicy:
         if set(context) != set(self.features) or any(not finite(v) or not -1 <= v <= 1 for v in context.values()):
             raise ValueError('Context must match the versioned feature schema with finite values in [-1,1].')
         values = [context[name] for name in self.features]
-        return [1.0] + values + [left * right for i, left in enumerate(values) for right in values[i + 1:]]
+        return [1.0] + values + ([left * right for i, left in enumerate(values) for right in values[i + 1:]] if self.interactions else [])
 
     def values(self, context):
         vector = self.vector(context)
@@ -80,15 +81,21 @@ class ContextualPolicy:
         self.revision += 1
 
     def snapshot(self):
-        return {'version': VERSION, 'actions': list(self.actions), 'features': list(self.features),
+        snapshot = {'version': VERSION, 'actions': list(self.actions), 'features': list(self.features),
                 'terms': self.terms, 'alpha': self.alpha, 'temperature': self.temperature,
                 'weights': deepcopy(self.weights), 'revision': self.revision}
+        if not self.interactions:
+            snapshot['interaction_order'] = 1
+        return snapshot
 
     @classmethod
     def restore(cls, saved):
         if saved.get('version') != VERSION:
             raise ValueError('Unsupported policy version.')
-        policy = cls(saved['actions'], saved['features'], saved['alpha'], saved['temperature'])
+        order = saved.get('interaction_order', 2)
+        if order not in (1, 2):
+            raise ValueError('Unsupported feature interaction order.')
+        policy = cls(saved['actions'], saved['features'], saved['alpha'], saved['temperature'], interactions=order == 2)
         if policy.terms != saved['terms'] or set(saved['weights']) != set(policy.actions):
             raise ValueError('Policy feature/action schema mismatch.')
         if any(len(row) != len(policy.terms) or any(not finite(v) for v in row)

@@ -196,6 +196,9 @@ def record_execution(function, argv, *, entrypoint, output_flag, defaults=None, 
         mode, path = 'SIMULATION_NO_API', 'behavioral_simulation'
     if entrypoint == 'run_weight_update_comparison.py' and '--review-only' in argv:
         mode, path = 'SAVED_REVIEW_NO_API', 'behavioral_failure_review'
+    if entrypoint == 'run_deliberation_game.py':
+        mode = 'LIVE_GAME_OPT_IN' if argv and argv[0] == 'play' else 'GAME_RECORD_NO_API'
+        path = 'deliberation_game'
     inputs={}
     for flag in ('--scenario','--scenario-file','--report','--answers','--trace'):
         value=option(argv,flag)
