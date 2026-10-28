@@ -1,0 +1,304 @@
+{
+  "version": "weight-failure-review/0.1",
+  "source_run_id": "run_146b35f821d649db8794b5993d680061",
+  "source_files_sha256": {
+    "experience.sqlite3": "23f796101bb81563020e145e0d027a1e00dfdfc1924dce0e9a332315e9fcb28d",
+    "cases.freeze.json": "683ad3f8881db080810b2faa058a7fca803de25efa2485acb7d58b8fa1237d21",
+    "design.json": "c786f8f58153b7c889526bccf5e0a916d7a61b695ce15361b47d9f0deb92d1b6",
+    "evaluations.json": "9547558300b942cc5dd672ed1c35d4d207c16c34d6da74ea257513c690c734e6"
+  },
+  "new_model_calls": 0,
+  "policy_updates": 0,
+  "retrieval_used": false,
+  "total_experiences": 5280,
+  "experience_counts_by_phase": {
+    "train": 5120,
+    "validation": 80,
+    "test": 80
+  },
+  "flagged_experiences": 1940,
+  "counts_by_kind": {
+    "observed_outcome_failure": 1437,
+    "process_proxy_zero": 1024,
+    "monitoring_suboptimal_choice": 16,
+    "monitoring_regression": 4
+  },
+  "kind_definitions": {
+    "observed_outcome_failure": "Observed functional outcome was zero; this alone does not establish a bad choice.",
+    "monitoring_suboptimal_choice": "Recorded monitoring regret was positive under the stipulated simulator.",
+    "monitoring_regression": "Updated policy had lower recorded expected success than its matched frozen control.",
+    "process_proxy_zero": "The recorded procedural proxy was zero; this is not a general ethics verdict."
+  },
+  "grouped": [
+    {
+      "arm": "frozen_weights",
+      "phase": "test",
+      "group_id": "harmful-c0-u1",
+      "experiences": 20,
+      "flagged_experiences": 0,
+      "kinds": {},
+      "flagged_rate": 0.0
+    },
+    {
+      "arm": "frozen_weights",
+      "phase": "test",
+      "group_id": "protective-c1-u1",
+      "experiences": 20,
+      "flagged_experiences": 0,
+      "kinds": {},
+      "flagged_rate": 0.0
+    },
+    {
+      "arm": "frozen_weights",
+      "phase": "train",
+      "group_id": "harmful-c0-u0",
+      "experiences": 320,
+      "flagged_experiences": 42,
+      "kinds": {
+        "observed_outcome_failure": 42
+      },
+      "flagged_rate": 0.13125
+    },
+    {
+      "arm": "frozen_weights",
+      "phase": "train",
+      "group_id": "harmful-c1-u0",
+      "experiences": 320,
+      "flagged_experiences": 44,
+      "kinds": {
+        "observed_outcome_failure": 44
+      },
+      "flagged_rate": 0.1375
+    },
+    {
+      "arm": "frozen_weights",
+      "phase": "train",
+      "group_id": "harmful-c1-u1",
+      "experiences": 320,
+      "flagged_experiences": 55,
+      "kinds": {
+        "observed_outcome_failure": 55
+      },
+      "flagged_rate": 0.171875
+    },
+    {
+      "arm": "frozen_weights",
+      "phase": "train",
+      "group_id": "protective-c0-u1",
+      "experiences": 320,
+      "flagged_experiences": 54,
+      "kinds": {
+        "observed_outcome_failure": 54
+      },
+      "flagged_rate": 0.16875
+    },
+    {
+      "arm": "frozen_weights",
+      "phase": "train",
+      "group_id": "protective-c1-u0",
+      "experiences": 320,
+      "flagged_experiences": 82,
+      "kinds": {
+        "observed_outcome_failure": 82
+      },
+      "flagged_rate": 0.25625
+    },
+    {
+      "arm": "frozen_weights",
+      "phase": "train",
+      "group_id": "unknown-c0-u0",
+      "experiences": 320,
+      "flagged_experiences": 159,
+      "kinds": {
+        "observed_outcome_failure": 109,
+        "process_proxy_zero": 111
+      },
+      "flagged_rate": 0.496875
+    },
+    {
+      "arm": "frozen_weights",
+      "phase": "train",
+      "group_id": "unknown-c0-u1",
+      "experiences": 320,
+      "flagged_experiences": 235,
+      "kinds": {
+        "observed_outcome_failure": 160,
+        "process_proxy_zero": 148
+      },
+      "flagged_rate": 0.734375
+    },
+    {
+      "arm": "frozen_weights",
+      "phase": "train",
+      "group_id": "unknown-c1-u1",
+      "experiences": 320,
+      "flagged_experiences": 247,
+      "kinds": {
+        "observed_outcome_failure": 155,
+        "process_proxy_zero": 197
+      },
+      "flagged_rate": 0.771875
+    },
+    {
+      "arm": "frozen_weights",
+      "phase": "validation",
+      "group_id": "protective-c0-u0",
+      "experiences": 20,
+      "flagged_experiences": 6,
+      "kinds": {
+        "observed_outcome_failure": 5,
+        "monitoring_suboptimal_choice": 4
+      },
+      "flagged_rate": 0.3
+    },
+    {
+      "arm": "frozen_weights",
+      "phase": "validation",
+      "group_id": "unknown-c1-u0",
+      "experiences": 20,
+      "flagged_experiences": 11,
+      "kinds": {
+        "observed_outcome_failure": 8,
+        "monitoring_suboptimal_choice": 8,
+        "process_proxy_zero": 8
+      },
+      "flagged_rate": 0.55
+    },
+    {
+      "arm": "updated_weights",
+      "phase": "test",
+      "group_id": "harmful-c0-u1",
+      "experiences": 20,
+      "flagged_experiences": 0,
+      "kinds": {},
+      "flagged_rate": 0.0
+    },
+    {
+      "arm": "updated_weights",
+      "phase": "test",
+      "group_id": "protective-c1-u1",
+      "experiences": 20,
+      "flagged_experiences": 0,
+      "kinds": {},
+      "flagged_rate": 0.0
+    },
+    {
+      "arm": "updated_weights",
+      "phase": "train",
+      "group_id": "harmful-c0-u0",
+      "experiences": 320,
+      "flagged_experiences": 45,
+      "kinds": {
+        "observed_outcome_failure": 45
+      },
+      "flagged_rate": 0.140625
+    },
+    {
+      "arm": "updated_weights",
+      "phase": "train",
+      "group_id": "harmful-c1-u0",
+      "experiences": 320,
+      "flagged_experiences": 46,
+      "kinds": {
+        "observed_outcome_failure": 46
+      },
+      "flagged_rate": 0.14375
+    },
+    {
+      "arm": "updated_weights",
+      "phase": "train",
+      "group_id": "harmful-c1-u1",
+      "experiences": 320,
+      "flagged_experiences": 57,
+      "kinds": {
+        "observed_outcome_failure": 57
+      },
+      "flagged_rate": 0.178125
+    },
+    {
+      "arm": "updated_weights",
+      "phase": "train",
+      "group_id": "protective-c0-u1",
+      "experiences": 320,
+      "flagged_experiences": 50,
+      "kinds": {
+        "observed_outcome_failure": 50
+      },
+      "flagged_rate": 0.15625
+    },
+    {
+      "arm": "updated_weights",
+      "phase": "train",
+      "group_id": "protective-c1-u0",
+      "experiences": 320,
+      "flagged_experiences": 87,
+      "kinds": {
+        "observed_outcome_failure": 87
+      },
+      "flagged_rate": 0.271875
+    },
+    {
+      "arm": "updated_weights",
+      "phase": "train",
+      "group_id": "unknown-c0-u0",
+      "experiences": 320,
+      "flagged_experiences": 165,
+      "kinds": {
+        "observed_outcome_failure": 110,
+        "process_proxy_zero": 117
+      },
+      "flagged_rate": 0.515625
+    },
+    {
+      "arm": "updated_weights",
+      "phase": "train",
+      "group_id": "unknown-c0-u1",
+      "experiences": 320,
+      "flagged_experiences": 268,
+      "kinds": {
+        "observed_outcome_failure": 159,
+        "process_proxy_zero": 208
+      },
+      "flagged_rate": 0.8375
+    },
+    {
+      "arm": "updated_weights",
+      "phase": "train",
+      "group_id": "unknown-c1-u1",
+      "experiences": 320,
+      "flagged_experiences": 274,
+      "kinds": {
+        "observed_outcome_failure": 158,
+        "process_proxy_zero": 231
+      },
+      "flagged_rate": 0.85625
+    },
+    {
+      "arm": "updated_weights",
+      "phase": "validation",
+      "group_id": "protective-c0-u0",
+      "experiences": 20,
+      "flagged_experiences": 3,
+      "kinds": {
+        "observed_outcome_failure": 3
+      },
+      "flagged_rate": 0.15
+    },
+    {
+      "arm": "updated_weights",
+      "phase": "validation",
+      "group_id": "unknown-c1-u0",
+      "experiences": 20,
+      "flagged_experiences": 10,
+      "kinds": {
+        "observed_outcome_failure": 8,
+        "monitoring_suboptimal_choice": 4,
+        "monitoring_regression": 4,
+        "process_proxy_zero": 4
+      },
+      "flagged_rate": 0.5
+    }
+  ],
+  "counting_note": "One entry per experience; kinds can overlap. Denominators include unflagged experiences.",
+  "limits": "Review uses original feedback and monitoring measurements; no automatic correction, retraining or new moral judgment."
+}

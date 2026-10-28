@@ -192,6 +192,10 @@ def record_execution(function, argv, *, entrypoint, output_flag, defaults=None, 
         mode='SAVED_REPLAY_NO_API'
     path=('saved_replay' if replay else 'compact_demo' if entrypoint=='run_parliament_demo.py' else
           ('world_preparation' if '--prepare-only' in argv else 'full_relent') if entrypoint=='run_blueprint_parliament.py' else 'viewer_export' if entrypoint=='export_parliament_viewer.py' else 'independent_frameworks' if entrypoint=='logic_puzzles_frameworks.py' else 'targeted_review' if entrypoint in ('logic_puzzles_review.py','logic_puzzles_followup.py') else 'report_postprocessing')
+    if entrypoint in ('run_contextual_moral_generalization.py', 'run_weight_update_comparison.py'):
+        mode, path = 'SIMULATION_NO_API', 'behavioral_simulation'
+    if entrypoint == 'run_weight_update_comparison.py' and '--review-only' in argv:
+        mode, path = 'SAVED_REVIEW_NO_API', 'behavioral_failure_review'
     inputs={}
     for flag in ('--scenario','--scenario-file','--report','--answers','--trace'):
         value=option(argv,flag)

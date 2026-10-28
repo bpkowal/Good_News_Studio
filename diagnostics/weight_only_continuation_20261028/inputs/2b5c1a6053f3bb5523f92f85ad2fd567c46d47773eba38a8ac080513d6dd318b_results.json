@@ -1,0 +1,114 @@
+{
+  "version": "weight-update-comparison/0.1",
+  "configuration": {
+    "version": "weight-update-comparison/0.1",
+    "mode": "SIMULATION_NO_API",
+    "seeds": [
+      11,
+      23,
+      37,
+      41,
+      53
+    ],
+    "epochs": 16,
+    "arms": [
+      "frozen_weights",
+      "updated_weights"
+    ],
+    "fixture_sha256": "5ea363cd452a6271e0ea9b1aa42162e953c8b28c2ed94ad1434a37358876c7c6",
+    "origin": {
+      "parent_run_id": "run_2c95965defc1403e880559696240e621",
+      "source_arm": "learned_values",
+      "parent_files": {
+        "cases.freeze.json": "683ad3f8881db080810b2faa058a7fca803de25efa2485acb7d58b8fa1237d21",
+        "design.json": "7e50762e7c6735b1a92641f3042bd6999911209a7f55560c77fb6ea0d32c9509",
+        "policy_checkpoints.json": "59f25ce1bb6b37424866adef1616a9fef77be2c1fb3f866c2eac4f21823b3d3d",
+        "run_manifest.json": "1ba5385050ac672c27f38051deaa7a1970863f3e87582802102d093f176b6a8b"
+      }
+    },
+    "same_initial_weights_per_pair": true,
+    "retrieval_enabled": false,
+    "training_signal": "observed_outcome_only",
+    "new_api_calls": 0,
+    "schedule_offset": 10000,
+    "outcome_seed_offset": 100000,
+    "evaluation_status": "REUSED_MONITORING_CASES_NOT_FRESH_HOLDOUT",
+    "parliament_policy_changed": false
+  },
+  "summary": {
+    "validation": {
+      "frozen_weights": {
+        "expected_score": 0.7484999999999999,
+        "optimal_action_rate": 0.7,
+        "regret": 0.07650000000000001,
+        "observed_success": 0.675
+      },
+      "updated_weights": {
+        "expected_score": 0.7935,
+        "optimal_action_rate": 0.9,
+        "regret": 0.03150000000000001,
+        "observed_success": 0.725
+      },
+      "paired_by_seed": [
+        {
+          "seed": 11,
+          "expected_score_delta": -0.007500000000000062
+        },
+        {
+          "seed": 23,
+          "expected_score_delta": 0.0
+        },
+        {
+          "seed": 37,
+          "expected_score_delta": 0.15749999999999997
+        },
+        {
+          "seed": 41,
+          "expected_score_delta": 0.07499999999999996
+        },
+        {
+          "seed": 53,
+          "expected_score_delta": 0.0
+        }
+      ],
+      "mean_expected_score_delta": 0.04499999999999997
+    },
+    "test": {
+      "frozen_weights": {
+        "expected_score": 0.95,
+        "optimal_action_rate": 1,
+        "regret": 0.0,
+        "observed_success": 1
+      },
+      "updated_weights": {
+        "expected_score": 0.95,
+        "optimal_action_rate": 1,
+        "regret": 0.0,
+        "observed_success": 1
+      },
+      "paired_by_seed": [
+        {
+          "seed": 11,
+          "expected_score_delta": 0.0
+        },
+        {
+          "seed": 23,
+          "expected_score_delta": 0.0
+        },
+        {
+          "seed": 37,
+          "expected_score_delta": 0.0
+        },
+        {
+          "seed": 41,
+          "expected_score_delta": 0.0
+        },
+        {
+          "seed": 53,
+          "expected_score_delta": 0.0
+        }
+      ],
+      "mean_expected_score_delta": 0.0
+    }
+  }
+}
